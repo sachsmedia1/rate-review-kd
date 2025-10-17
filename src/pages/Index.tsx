@@ -1,42 +1,18 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
 import { Review, ProductCategory } from "@/types";
 
-// Fix Leaflet Default Icons
-import icon from "leaflet/dist/images/marker-icon.png";
-import iconShadow from "leaflet/dist/images/marker-shadow.png";
-
-const DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
+// WICHTIG: Leaflet Icon Fix
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-L.Marker.prototype.options.icon = DefaultIcon;
-
-// Custom Marker Icons nach Kategorie
-const categoryColors: Record<ProductCategory, string> = {
-  Kaminofen: "#FF4500",
-  "Neubau Kaminanlage": "#FF6B35",
-  "Austausch Kamineinsatz": "#FFA500",
-  Kaminkassette: "#FFD700",
-  "Austausch Kachelofeneinsatz": "#FF8C00",
-};
-
-function createCategoryIcon(category: ProductCategory) {
-  const color = categoryColors[category] || "#FF4500";
-  return L.divIcon({
-    html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; font-size: 16px;">🔥</div>`,
-    className: "custom-marker",
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-  });
-}
 
 // Helper: Flammen rendern
 function renderFlames(rating: number) {
@@ -79,14 +55,21 @@ const Index = () => {
   }, []);
 
   const loadReviews = async () => {
-    const { data } = await supabase
-      .from("reviews")
-      .select("*")
-      .eq("is_published", true)
-      .order("created_at", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*")
+        .eq("is_published", true)
+        .order("created_at", { ascending: false });
 
-    setReviews((data || []) as Review[]);
-    setLoading(false);
+      if (error) throw error;
+
+      setReviews((data || []) as Review[]);
+    } catch (error) {
+      console.error('Error loading reviews:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Filter anwenden
@@ -174,44 +157,41 @@ const Index = () => {
               >
                 <TileLayer
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 />
 
-                <MarkerClusterGroup>
-                  {reviews
-                    .filter((r) => r.latitude && r.longitude)
-                    .map((review) => (
-                      <Marker
-                        key={review.id}
-                        position={[review.latitude!, review.longitude!]}
-                        icon={createCategoryIcon(review.product_category)}
-                      >
-                        <Popup>
-                          <div className="text-gray-900 p-2">
-                            <h3 className="font-bold text-lg mb-1">
-                              {review.customer_salutation}{" "}
-                              {review.customer_lastname}
-                            </h3>
-                            <p className="text-sm text-gray-600 mb-1">
-                              {review.city}
-                            </p>
-                            <p className="text-orange-600 font-semibold mb-1">
-                              ⚡ {review.average_rating?.toFixed(1)} / 5 Flammen
-                            </p>
-                            <p className="text-xs text-gray-500 mb-2">
-                              {review.product_category}
-                            </p>
-                            <a
-                              href={`/bewertung/${review.slug}`}
-                              className="text-orange-600 hover:text-orange-700 text-sm font-semibold underline"
-                            >
-                              Mehr erfahren →
-                            </a>
-                          </div>
-                        </Popup>
-                      </Marker>
-                    ))}
-                </MarkerClusterGroup>
+                {reviews
+                  .filter((r) => r.latitude && r.longitude)
+                  .map((review) => (
+                    <Marker
+                      key={review.id}
+                      position={[review.latitude!, review.longitude!]}
+                    >
+                      <Popup>
+                        <div className="text-gray-900 p-2">
+                          <h3 className="font-bold text-lg mb-1">
+                            {review.customer_salutation}{" "}
+                            {review.customer_lastname}
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-1">
+                            {review.city}
+                          </p>
+                          <p className="text-orange-600 font-semibold mb-1">
+                            ⚡ {review.average_rating?.toFixed(1)} / 5 Flammen
+                          </p>
+                          <p className="text-xs text-gray-500 mb-2">
+                            {review.product_category}
+                          </p>
+                          <a
+                            href={`/bewertung/${review.slug}`}
+                            className="text-orange-600 hover:text-orange-700 text-sm font-semibold underline"
+                          >
+                            Mehr erfahren →
+                          </a>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
               </MapContainer>
             </div>
 
