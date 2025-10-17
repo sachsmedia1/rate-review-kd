@@ -588,21 +588,25 @@ const Index = () => {
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <span>⚠️</span>
-                        <span className="text-gray-400">Sicherheit:</span>
-                        <span className="font-semibold text-orange-500">
-                          {review.rating_fire_safety.toFixed(1)}
-                        </span>
-                      </div>
+                      {review.rating_fire_safety !== null && review.rating_fire_safety !== undefined && (
+                        <div className="flex items-center gap-2">
+                          <span>⚠️</span>
+                          <span className="text-gray-400">Sicherheit:</span>
+                          <span className="font-semibold text-orange-500">
+                            {review.rating_fire_safety.toFixed(1)}
+                          </span>
+                        </div>
+                      )}
 
-                      <div className="flex items-center gap-2">
-                        <span>🔥</span>
-                        <span className="text-gray-400">Heizleistung:</span>
-                        <span className="font-semibold text-orange-500">
-                          {review.rating_heating_performance.toFixed(1)}
-                        </span>
-                      </div>
+                      {review.rating_heating_performance !== null && review.rating_heating_performance !== undefined && (
+                        <div className="flex items-center gap-2">
+                          <span>🔥</span>
+                          <span className="text-gray-400">Heizleistung:</span>
+                          <span className="font-semibold text-orange-500">
+                            {review.rating_heating_performance.toFixed(1)}
+                          </span>
+                        </div>
+                      )}
 
                       <div className="flex items-center gap-2">
                         <span>✨</span>
