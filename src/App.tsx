@@ -15,6 +15,7 @@ import Customers from "./pages/admin/Customers";
 import Images from "./pages/admin/Images";
 import Users from "./pages/admin/Users";
 import ReviewDetail from "./pages/ReviewDetail";
+import Sitemap from "./pages/Sitemap";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -29,8 +30,9 @@ function App() {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
+            <Route path="/" element={<Index />} />
               <Route path="/bewertung/:slug" element={<ReviewDetail />} />
+              <Route path="/sitemap.xml" element={<Sitemap />} />
               <Route path="/admin/login" element={<Login />} />
               <Route path="/admin/setup" element={<Setup />} />
               <Route

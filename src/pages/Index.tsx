@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Search, MapPin, Calendar, TrendingUp } from "lucide-react";
 import { renderFlames } from "@/lib/renderFlames";
+import { Helmet } from "react-helmet-async";
 
 interface Review {
   id: string;
@@ -191,8 +192,50 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
-      {/* Hero Section */}
+    <>
+      <Helmet>
+        {/* Primary Meta Tags */}
+        <title>Kundenbewertungen | Der Kamindoktor - Authentische Erfahrungen</title>
+        <meta name="title" content="Kundenbewertungen | Der Kamindoktor - Authentische Erfahrungen" />
+        <meta name="description" content="Entdecken Sie authentische Kundenbewertungen für Kaminbau, Ofenbau und Schornsteinbau. Über 50+ zufriedene Kunden in ganz Deutschland. Vorher-Nachher-Bilder inklusive." />
+        <meta name="keywords" content="Kaminbau Bewertungen, Ofenbau Erfahrungen, Schornsteinbau Kundenmeinungen, Der Kamindoktor, Kaminofen Installation" />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://bewertungen.der-kamindoktor.de/" />
+        <meta property="og:title" content="Kundenbewertungen | Der Kamindoktor" />
+        <meta property="og:description" content="Authentische Kundenbewertungen für Kaminbau, Ofenbau und Schornsteinbau. Über 50+ zufriedene Kunden." />
+        <meta property="og:image" content="https://bewertungen.der-kamindoktor.de/og-image.jpg" />
+        
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://bewertungen.der-kamindoktor.de/" />
+        <meta property="twitter:title" content="Kundenbewertungen | Der Kamindoktor" />
+        <meta property="twitter:description" content="Authentische Kundenbewertungen für Kaminbau, Ofenbau und Schornsteinbau." />
+        <meta property="twitter:image" content="https://bewertungen.der-kamindoktor.de/twitter-image.jpg" />
+        
+        {/* Schema.org für Bewertungsübersicht */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": "Kundenbewertungen",
+            "description": "Authentische Kundenbewertungen für Kaminbau, Ofenbau und Schornsteinbau",
+            "url": "https://bewertungen.der-kamindoktor.de/",
+            "publisher": {
+              "@type": "LocalBusiness",
+              "name": "Der Kamindoktor",
+              "address": {
+                "@type": "PostalAddress",
+                "addressCountry": "DE"
+              }
+            }
+          })}
+        </script>
+      </Helmet>
+
+      <div className="min-h-screen bg-[#0a0a0a] text-white">
+        {/* Hero Section */}
       <div className="bg-gradient-to-b from-orange-900/20 to-transparent py-16 px-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center">
@@ -649,7 +692,7 @@ const Index = () => {
             )}
 
             {filteredReviews.length === displayedReviews.length &&
-              displayedReviews.length > 8 && (
+               displayedReviews.length > 8 && (
                 <div className="text-center text-gray-400 text-sm">
                   Alle {displayedReviews.length} Bewertungen geladen
                 </div>
@@ -658,6 +701,7 @@ const Index = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 
