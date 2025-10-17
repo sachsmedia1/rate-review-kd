@@ -2,10 +2,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, Pencil, Trash2, CheckCircle2, FileText, Loader2, Flame } from "lucide-react";
+import { Eye, Pencil, Trash2, CheckCircle2, FileText, Loader2, Flame, ArrowRight } from "lucide-react";
 import { Review } from "@/types";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
+import { Link } from "react-router-dom";
 
 interface RecentReviewsTableProps {
   reviews: Review[];
@@ -69,8 +70,18 @@ const RecentReviewsTable = ({ reviews, isLoading, userRole }: RecentReviewsTable
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Letzte Bewertungen</CardTitle>
-        <CardDescription>Die 5 neuesten Bewertungen</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Letzte Bewertungen</CardTitle>
+            <CardDescription>Die 5 neuesten Bewertungen</CardDescription>
+          </div>
+          <Button variant="outline" asChild>
+            <Link to="/admin/reviews">
+              Alle Bewertungen
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
