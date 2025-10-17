@@ -77,6 +77,7 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+  const [manualDateInput, setManualDateInput] = useState("");
 
   // Image states
   const [beforeImage, setBeforeImage] = useState<File | null>(null);
@@ -119,6 +120,8 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
     setValue,
     watch,
     reset,
+    setError,
+    clearErrors,
     formState: { errors, isValid },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -164,6 +167,102 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
       setKeepExistingAfterImage(false);
     }
   }, [afterImage]);
+
+  // Initialize manual date input in edit mode
+  useEffect(() => {
+    if (existingData?.installation_date) {
+      const date = new Date(existingData.installation_date);
+      const formatted = `${date.getDate().toString().padStart(2, "0")}.${(
+        date.getMonth() + 1
+      )
+        .toString()
+        .padStart(2, "0")}.${date.getFullYear()}`;
+      setManualDateInput(formatted);
+    }
+  }, [existingData]);
+
+  // Parse date string in various formats to YYYY-MM-DD
+  const parseDateString = (dateStr: string): string | null => {
+    const formats = [
+      /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/, // DD.MM.YYYY or D.M.YYYY
+      /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // DD/MM/YYYY
+      /^(\d{1,2})-(\d{1,2})-(\d{4})$/, // DD-MM-YYYY
+    ];
+
+    for (const format of formats) {
+      const match = dateStr.match(format);
+      if (match) {
+        const day = match[1].padStart(2, "0");
+        const month = match[2].padStart(2, "0");
+        const year = match[3];
+
+        // Validate date
+        const date = new Date(`${year}-${month}-${day}`);
+        if (isNaN(date.getTime())) {
+          return null;
+        }
+
+        // Check if in future
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (date > today) {
+          return null;
+        }
+
+        return `${year}-${month}-${day}`;
+      }
+    }
+
+    return null;
+  };
+
+  const handleManualDateInput = (value: string) => {
+    setManualDateInput(value);
+
+    if (value.trim() === "") {
+      clearErrors("installation_date");
+      return;
+    }
+
+    const parsedDate = parseDateString(value);
+
+    if (parsedDate) {
+      setValue("installation_date", new Date(parsedDate), {
+        shouldValidate: true,
+      });
+      clearErrors("installation_date");
+    } else {
+      setError("installation_date", {
+        type: "manual",
+        message: "Ungültiges Datumsformat. Nutzen Sie TT.MM.JJJJ",
+      });
+    }
+  };
+
+  const handleDatePickerChange = (date: Date | undefined) => {
+    if (date) {
+      setValue("installation_date", date, { shouldValidate: true });
+      const formatted = `${date.getDate().toString().padStart(2, "0")}.${(
+        date.getMonth() + 1
+      )
+        .toString()
+        .padStart(2, "0")}.${date.getFullYear()}`;
+      setManualDateInput(formatted);
+    } else {
+      setManualDateInput("");
+    }
+  };
+
+  const handleTodayClick = () => {
+    const today = new Date();
+    setValue("installation_date", today, { shouldValidate: true });
+    const formatted = `${today.getDate().toString().padStart(2, "0")}.${(
+      today.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, "0")}.${today.getFullYear()}`;
+    setManualDateInput(formatted);
+  };
 
 const shouldRegenerateSlug = (oldData: any, newData: FormData): boolean => {
     return (
@@ -615,38 +714,78 @@ const shouldRegenerateSlug = (oldData: any, newData: FormData): boolean => {
                   <Label>
                     Montagedatum <span className="text-destructive">*</span>
                   </Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
+                  
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {/* Datepicker */}
+                    <div className="flex-1">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !installationDate && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {installationDate ? (
+                              format(installationDate, "PPP", { locale: de })
+                            ) : (
+                              <span>Datum wählen</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={installationDate}
+                            onSelect={handleDatePickerChange}
+                            disabled={(date) => date > new Date()}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* Separator */}
+                    <div className="flex items-center justify-center text-muted-foreground px-2 text-sm">
+                      oder
+                    </div>
+
+                    {/* Manual input */}
+                    <div className="flex-1">
+                      <Input
+                        type="text"
+                        placeholder="z.B. 15.12.2024"
+                        value={manualDateInput}
+                        onChange={(e) => handleManualDateInput(e.target.value)}
                         className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !installationDate && "text-muted-foreground"
+                          "transition-colors",
+                          manualDateInput && parseDateString(manualDateInput)
+                            ? "border-green-500 focus-visible:ring-green-500"
+                            : manualDateInput
+                            ? "border-destructive focus-visible:ring-destructive"
+                            : ""
                         )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {installationDate ? (
-                          format(installationDate, "PPP", { locale: de })
-                        ) : (
-                          <span>Datum wählen</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={installationDate}
-                        onSelect={(date) =>
-                          setValue("installation_date", date as Date, {
-                            shouldValidate: true,
-                          })
-                        }
-                        disabled={(date) => date > new Date()}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
                       />
-                    </PopoverContent>
-                  </Popover>
+                    </div>
+
+                    {/* Today button */}
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={handleTodayClick}
+                      className="whitespace-nowrap"
+                    >
+                      Heute
+                    </Button>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    💡 Wählen Sie ein Datum per Kalender oder geben Sie es manuell ein (TT.MM.JJJJ)
+                  </p>
+
                   {errors.installation_date && (
                     <p className="text-sm text-destructive">{errors.installation_date.message}</p>
                   )}
