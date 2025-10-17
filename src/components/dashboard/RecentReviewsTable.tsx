@@ -6,7 +6,7 @@ import { Eye, Pencil, Trash2, CheckCircle2, FileText, Loader2, Flame, ArrowRight
 import { Review } from "@/types";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface RecentReviewsTableProps {
   reviews: Review[];
@@ -15,6 +15,8 @@ interface RecentReviewsTableProps {
 }
 
 const RecentReviewsTable = ({ reviews, isLoading, userRole }: RecentReviewsTableProps) => {
+  const navigate = useNavigate();
+  
   const getStatusIcon = (status: string) => {
     if (status === "published") {
       return <CheckCircle2 className="h-4 w-4 text-green-500" />;
@@ -127,10 +129,20 @@ const RecentReviewsTable = ({ reviews, isLoading, userRole }: RecentReviewsTable
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="icon" title="Bearbeiten">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        title="Bearbeiten"
+                        onClick={() => navigate(`/admin/reviews/${review.id}/edit`)}
+                      >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" title="Vorschau">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        title="Vorschau"
+                        onClick={() => window.open(`/bewertung/${review.slug}`, "_blank")}
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
                       {userRole === "admin" && (
