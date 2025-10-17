@@ -77,7 +77,10 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
-  const [manualDateInput, setManualDateInput] = useState("");
+  const [dateDisplayValue, setDateDisplayValue] = useState(""); // TT.MM.JJJJ
+  const [isoDateValue, setIsoDateValue] = useState(""); // YYYY-MM-DD
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Image states
   const [beforeImage, setBeforeImage] = useState<File | null>(null);
@@ -168,100 +171,108 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
     }
   }, [afterImage]);
 
-  // Initialize manual date input in edit mode
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    setIsMobile(checkMobile);
+  }, []);
+
+  // Initialize date display in edit mode
   useEffect(() => {
     if (existingData?.installation_date) {
-      const date = new Date(existingData.installation_date);
-      const formatted = `${date.getDate().toString().padStart(2, "0")}.${(
-        date.getMonth() + 1
-      )
-        .toString()
-        .padStart(2, "0")}.${date.getFullYear()}`;
-      setManualDateInput(formatted);
+      const isoDate = existingData.installation_date;
+      setIsoDateValue(isoDate);
+      setDateDisplayValue(formatToGerman(isoDate));
     }
   }, [existingData]);
 
-  // Parse date string in various formats to YYYY-MM-DD
-  const parseDateString = (dateStr: string): string | null => {
-    const formats = [
-      /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/, // DD.MM.YYYY or D.M.YYYY
-      /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // DD/MM/YYYY
-      /^(\d{1,2})-(\d{1,2})-(\d{4})$/, // DD-MM-YYYY
-    ];
+  // Click outside closes date picker
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showDatePicker && !target.closest(".date-picker-container")) {
+        setShowDatePicker(false);
+      }
+    };
 
-    for (const format of formats) {
-      const match = dateStr.match(format);
-      if (match) {
-        const day = match[1].padStart(2, "0");
-        const month = match[2].padStart(2, "0");
-        const year = match[3];
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showDatePicker]);
 
-        // Validate date
-        const date = new Date(`${year}-${month}-${day}`);
-        if (isNaN(date.getTime())) {
-          return null;
-        }
+  // Convert TT.MM.JJJJ → YYYY-MM-DD
+  const parseGermanDate = (dateStr: string): string | null => {
+    const match = dateStr.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (!match) return null;
 
-        // Check if in future
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (date > today) {
-          return null;
-        }
+    const day = match[1].padStart(2, "0");
+    const month = match[2].padStart(2, "0");
+    const year = match[3];
 
-        return `${year}-${month}-${day}`;
+    // Validate date
+    const date = new Date(`${year}-${month}-${day}`);
+    if (isNaN(date.getTime())) return null;
+
+    // Check if not in future
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (date > today) return null;
+
+    // Check if not too old
+    if (date.getFullYear() < 1900) return null;
+
+    return `${year}-${month}-${day}`;
+  };
+
+  // Convert YYYY-MM-DD → TT.MM.JJJJ
+  const formatToGerman = (isoDate: string): string => {
+    if (!isoDate) return "";
+    const [year, month, day] = isoDate.split("-");
+    return `${day}.${month}.${year}`;
+  };
+
+  // Handle manual input with auto-format
+  const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/[^\d.]/g, ""); // Only numbers and dots
+
+    // Auto-format: Automatically insert dots
+    if (value.length >= 2 && value[2] !== "." && value.length === 2) {
+      value += ".";
+    }
+    if (value.length >= 5 && value[5] !== "." && value.split(".").length === 2) {
+      value += ".";
+    }
+
+    // Max 10 characters (TT.MM.JJJJ)
+    if (value.length > 10) {
+      value = value.substring(0, 10);
+    }
+
+    setDateDisplayValue(value);
+
+    // Try to parse if complete
+    if (value.length === 10) {
+      const parsed = parseGermanDate(value);
+      if (parsed) {
+        setIsoDateValue(parsed);
+        setValue("installation_date", new Date(parsed), { shouldValidate: true });
+        clearErrors("installation_date");
+      } else {
+        setError("installation_date", {
+          type: "manual",
+          message: "Ungültiges Datum. Format: TT.MM.JJJJ (z.B. 15.10.2024)",
+        });
       }
     }
-
-    return null;
   };
 
-  const handleManualDateInput = (value: string) => {
-    setManualDateInput(value);
-
-    if (value.trim() === "") {
-      clearErrors("installation_date");
-      return;
-    }
-
-    const parsedDate = parseDateString(value);
-
-    if (parsedDate) {
-      setValue("installation_date", new Date(parsedDate), {
-        shouldValidate: true,
-      });
-      clearErrors("installation_date");
-    } else {
-      setError("installation_date", {
-        type: "manual",
-        message: "Ungültiges Datumsformat. Nutzen Sie TT.MM.JJJJ",
-      });
-    }
-  };
-
-  const handleDatePickerChange = (date: Date | undefined) => {
-    if (date) {
-      setValue("installation_date", date, { shouldValidate: true });
-      const formatted = `${date.getDate().toString().padStart(2, "0")}.${(
-        date.getMonth() + 1
-      )
-        .toString()
-        .padStart(2, "0")}.${date.getFullYear()}`;
-      setManualDateInput(formatted);
-    } else {
-      setManualDateInput("");
-    }
-  };
-
-  const handleTodayClick = () => {
-    const today = new Date();
-    setValue("installation_date", today, { shouldValidate: true });
-    const formatted = `${today.getDate().toString().padStart(2, "0")}.${(
-      today.getMonth() + 1
-    )
-      .toString()
-      .padStart(2, "0")}.${today.getFullYear()}`;
-    setManualDateInput(formatted);
+  // Handle date picker selection
+  const handleDatePickerSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value; // YYYY-MM-DD
+    setIsoDateValue(value);
+    setDateDisplayValue(formatToGerman(value));
+    setValue("installation_date", new Date(value), { shouldValidate: true });
+    clearErrors("installation_date");
+    setShowDatePicker(false);
   };
 
 const shouldRegenerateSlug = (oldData: any, newData: FormData): boolean => {
@@ -714,81 +725,86 @@ const shouldRegenerateSlug = (oldData: any, newData: FormData): boolean => {
                   <Label>
                     Montagedatum <span className="text-destructive">*</span>
                   </Label>
-                  
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    {/* Datepicker */}
-                    <div className="flex-1">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !installationDate && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {installationDate ? (
-                              format(installationDate, "PPP", { locale: de })
-                            ) : (
-                              <span>Datum wählen</span>
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={installationDate}
-                            onSelect={handleDatePickerChange}
-                            disabled={(date) => date > new Date()}
-                            initialFocus
-                            className={cn("p-3 pointer-events-auto")}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
 
-                    {/* Separator */}
-                    <div className="flex items-center justify-center text-muted-foreground px-2 text-sm">
-                      oder
-                    </div>
-
-                    {/* Manual input */}
-                    <div className="flex-1">
+                  {isMobile ? (
+                    // Mobile: Native Date Input
+                    <Input
+                      type="date"
+                      value={isoDateValue}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setIsoDateValue(value);
+                        setDateDisplayValue(formatToGerman(value));
+                        setValue("installation_date", new Date(value), {
+                          shouldValidate: true,
+                        });
+                      }}
+                      max={new Date().toISOString().split("T")[0]}
+                      className={cn(
+                        errors.installation_date && "border-destructive"
+                      )}
+                    />
+                  ) : (
+                    // Desktop: Combined Field with Overlay
+                    <div className="relative date-picker-container">
                       <Input
                         type="text"
-                        placeholder="z.B. 15.12.2024"
-                        value={manualDateInput}
-                        onChange={(e) => handleManualDateInput(e.target.value)}
+                        placeholder="TT.MM.JJJJ oder Kalender nutzen"
+                        value={dateDisplayValue}
+                        onChange={handleDateInputChange}
+                        onFocus={() => setShowDatePicker(true)}
                         className={cn(
-                          "transition-colors",
-                          manualDateInput && parseDateString(manualDateInput)
+                          "pr-12 transition-colors",
+                          dateDisplayValue && parseGermanDate(dateDisplayValue)
                             ? "border-green-500 focus-visible:ring-green-500"
-                            : manualDateInput
+                            : errors.installation_date
                             ? "border-destructive focus-visible:ring-destructive"
                             : ""
                         )}
                       />
+
+                      {/* Calendar Icon */}
+                      <button
+                        type="button"
+                        onClick={() => setShowDatePicker(!showDatePicker)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors text-xl"
+                      >
+                        📅
+                      </button>
+
+                      {/* Date Picker Overlay */}
+                      {showDatePicker && (
+                        <div className="date-picker-container absolute top-full left-0 mt-2 z-10 bg-background border border-border rounded-lg shadow-xl p-3">
+                          <input
+                            type="date"
+                            value={isoDateValue}
+                            onChange={handleDatePickerSelect}
+                            max={new Date().toISOString().split("T")[0]}
+                            className="bg-muted text-foreground border border-border rounded p-2 w-full"
+                            autoFocus
+                          />
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => setShowDatePicker(false)}
+                            className="w-full mt-2"
+                            size="sm"
+                          >
+                            Schließen
+                          </Button>
+                        </div>
+                      )}
                     </div>
-
-                    {/* Today button */}
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={handleTodayClick}
-                      className="whitespace-nowrap"
-                    >
-                      Heute
-                    </Button>
-                  </div>
-
-                  <p className="text-xs text-muted-foreground">
-                    💡 Wählen Sie ein Datum per Kalender oder geben Sie es manuell ein (TT.MM.JJJJ)
-                  </p>
+                  )}
 
                   {errors.installation_date && (
                     <p className="text-sm text-destructive">{errors.installation_date.message}</p>
                   )}
+
+                  <p className="text-xs text-muted-foreground">
+                    💡 Geben Sie das Datum manuell ein (z.B. 15.10.2024) oder klicken Sie auf 📅 für
+                    den Kalender
+                  </p>
                 </div>
               </CardContent>
             </Card>
