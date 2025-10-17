@@ -11,6 +11,7 @@ import NewReview from "./pages/NewReview";
 import Reviews from "./pages/admin/Reviews";
 import EditReview from "./pages/admin/EditReview";
 import Customers from "./pages/admin/Customers";
+import Images from "./pages/admin/Images";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -63,6 +64,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Customers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/images"
+            element={
+              <ProtectedRoute>
+                <Images />
               </ProtectedRoute>
             }
           />
