@@ -165,6 +165,16 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
     }
   }, [afterImage]);
 
+const shouldRegenerateSlug = (oldData: any, newData: FormData): boolean => {
+    return (
+      oldData.customer_lastname !== newData.customer_lastname ||
+      oldData.city !== newData.city ||
+      oldData.product_category !== newData.product_category ||
+      new Date(oldData.installation_date).getFullYear() !==
+        new Date(newData.installation_date).getFullYear()
+    );
+  };
+
   const generateSlug = (data: {
     product_category: string;
     customer_lastname: string;
@@ -188,6 +198,42 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
     const city = cleanText(data.city);
 
     return `${category}-${lastname}-${city}-${year}`;
+  };
+
+  const ensureUniqueSlug = async (baseSlug: string, excludeId?: string): Promise<string> => {
+    // Check if base slug exists
+    let query = supabase.from("reviews").select("id").eq("slug", baseSlug);
+    
+    if (excludeId) {
+      query = query.neq("id", excludeId);
+    }
+    
+    const { data: existing } = await query.maybeSingle();
+
+    if (!existing) {
+      return baseSlug;
+    }
+
+    // Slug exists, add counter
+    let counter = 2;
+    let uniqueSlug = `${baseSlug}-${counter}`;
+
+    while (true) {
+      let checkQuery = supabase.from("reviews").select("id").eq("slug", uniqueSlug);
+      
+      if (excludeId) {
+        checkQuery = checkQuery.neq("id", excludeId);
+      }
+      
+      const { data: check } = await checkQuery.maybeSingle();
+
+      if (!check) {
+        return uniqueSlug;
+      }
+
+      counter++;
+      uniqueSlug = `${baseSlug}-${counter}`;
+    }
   };
 
   const onSubmit = async (data: FormData) => {
@@ -260,18 +306,35 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
         console.log("After image uploaded:", afterImageUrl);
       }
 
-      // 2. Slug generieren (nur für create)
-      let slug = existingData?.slug;
+      // 2. Slug generieren und unique machen
+      let slug: string;
+      let slugChanged = false;
+      
       if (mode === "create") {
-        slug = generateSlug({
+        const baseSlug = generateSlug({
           product_category: data.product_category,
           customer_lastname: data.customer_lastname,
           city: data.city,
           installation_date: data.installation_date,
         });
+        slug = await ensureUniqueSlug(baseSlug);
         console.log("2. Slug generiert:", slug);
       } else {
-        console.log("2. Slug beibehalten:", slug);
+        // Edit mode: Check if slug needs regeneration
+        if (shouldRegenerateSlug(existingData, data)) {
+          const baseSlug = generateSlug({
+            product_category: data.product_category,
+            customer_lastname: data.customer_lastname,
+            city: data.city,
+            installation_date: data.installation_date,
+          });
+          slug = await ensureUniqueSlug(baseSlug, reviewId);
+          slugChanged = slug !== existingData.slug;
+          console.log("2. Slug geändert:", existingData.slug, "→", slug);
+        } else {
+          slug = existingData.slug;
+          console.log("2. Slug beibehalten:", slug);
+        }
       }
 
       // 3. Durchschnitt wird automatisch von der Datenbank berechnet (GENERATED COLUMN)
@@ -347,7 +410,12 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
         }
 
         console.log("7. Erfolgreich aktualisiert");
-        toast.success("Bewertung erfolgreich aktualisiert!");
+        
+        if (slugChanged) {
+          toast.success("Bewertung aktualisiert! URL wurde angepasst.");
+        } else {
+          toast.success("Bewertung erfolgreich aktualisiert!");
+        }
       }
 
       console.log("=== SPEICHER-PROZESS ENDE ===");
@@ -408,6 +476,27 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
                 URL: /bewertung/{existingData.slug}
               </Badge>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* URL-Hinweis für Edit-Mode */}
+      {mode === "edit" && existingData && (
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="pt-6">
+            <h3 className="font-semibold mb-2 flex items-center gap-2">
+              <span>📎</span> Öffentliche URL
+            </h3>
+            <p className="text-sm text-muted-foreground mb-1">
+              Aktuelle URL:{" "}
+              <code className="px-2 py-1 bg-muted rounded text-foreground">
+                /bewertung/{existingData.slug}
+              </code>
+            </p>
+            <p className="text-xs text-muted-foreground">
+              ℹ️ Die URL wird automatisch angepasst, wenn Sie Nachname, Stadt, Kategorie oder Jahr
+              ändern.
+            </p>
           </CardContent>
         </Card>
       )}
