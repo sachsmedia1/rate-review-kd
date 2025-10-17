@@ -9,8 +9,6 @@ interface LinkedReview {
   customer_salutation: string;
   customer_lastname: string;
   city: string;
-  before_image_url?: string;
-  after_image_url?: string;
 }
 
 interface StorageImage {
@@ -86,7 +84,12 @@ const Images = () => {
         ...img,
         publicUrl,
         isUsed: !!linkedReview,
-        linkedReview: linkedReview || null,
+        linkedReview: linkedReview ? {
+          id: linkedReview.id,
+          customer_salutation: linkedReview.customer_salutation,
+          customer_lastname: linkedReview.customer_lastname,
+          city: linkedReview.city
+        } : null,
         size: img.metadata?.size || 0
       };
     });
@@ -358,9 +361,15 @@ const Images = () => {
                 
                 {/* Verknüpfte Bewertung (falls verwendet) */}
                 {image.linkedReview && (
-                  <div className="text-xs text-blue-400 mb-2 truncate">
-                    → {image.linkedReview.customer_lastname}, {image.linkedReview.city}
-                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/admin/reviews/${image.linkedReview.id}/edit`);
+                    }}
+                    className="text-xs text-blue-400 hover:text-blue-300 mb-2 truncate w-full text-left transition-colors underline"
+                  >
+                    → {image.linkedReview.customer_salutation} {image.linkedReview.customer_lastname}, {image.linkedReview.city}
+                  </button>
                 )}
                 
                 {/* Aktionen */}
@@ -418,7 +427,17 @@ const Images = () => {
               </div>
               {lightboxImage.linkedReview && (
                 <div className="text-blue-400 text-sm mt-1">
-                  Verknüpft mit: {lightboxImage.linkedReview.customer_salutation} {lightboxImage.linkedReview.customer_lastname}, {lightboxImage.linkedReview.city}
+                  Verknüpft mit: 
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      closeLightbox();
+                      navigate(`/admin/reviews/${lightboxImage.linkedReview.id}/edit`);
+                    }}
+                    className="ml-1 hover:text-blue-300 transition-colors underline"
+                  >
+                    {lightboxImage.linkedReview.customer_salutation} {lightboxImage.linkedReview.customer_lastname}, {lightboxImage.linkedReview.city}
+                  </button>
                 </div>
               )}
             </div>
