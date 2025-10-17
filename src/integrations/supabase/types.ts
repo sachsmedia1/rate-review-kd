@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      review_images: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          display_order: number | null
+          id: string
+          image_url: string
+          review_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          image_url: string
+          review_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string
+          review_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_images_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           after_image_url: string | null

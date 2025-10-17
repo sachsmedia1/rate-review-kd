@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 import { Search, MapPin, Calendar, TrendingUp } from "lucide-react";
+import { renderFlames } from "@/lib/renderFlames";
 
 interface Review {
   id: string;
@@ -31,21 +33,6 @@ interface LocationStats {
   city: string;
   postalCode: string;
 }
-
-// Helper: Flammen rendern
-const renderFlames = (rating: number) => {
-  const flames = [];
-  for (let i = 1; i <= 5; i++) {
-    if (i <= Math.floor(rating)) {
-      flames.push(<span key={i} className="text-orange-500">🔥</span>);
-    } else if (i === Math.ceil(rating) && rating % 1 !== 0) {
-      flames.push(<span key={i} className="text-orange-300">🔥</span>);
-    } else {
-      flames.push(<span key={i} className="text-gray-600">🔥</span>);
-    }
-  }
-  return flames;
-};
 
 const Index = () => {
   const [reviews, setReviews] = useState<Review[]>([]);

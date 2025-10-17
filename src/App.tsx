@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Setup from "./pages/Setup";
@@ -13,6 +14,7 @@ import EditReview from "./pages/admin/EditReview";
 import Customers from "./pages/admin/Customers";
 import Images from "./pages/admin/Images";
 import Users from "./pages/admin/Users";
+import ReviewDetail from "./pages/ReviewDetail";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -20,14 +22,16 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/admin/login" element={<Login />} />
-          <Route path="/admin/setup" element={<Setup />} />
+    <HelmetProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/bewertung/:slug" element={<ReviewDetail />} />
+            <Route path="/admin/login" element={<Login />} />
+            <Route path="/admin/setup" element={<Setup />} />
           <Route
             path="/admin/dashboard"
             element={
@@ -89,6 +93,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </HelmetProvider>
   </QueryClientProvider>
 );
 
