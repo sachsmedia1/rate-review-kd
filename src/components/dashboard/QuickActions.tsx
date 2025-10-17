@@ -16,9 +16,11 @@ const QuickActions = () => {
           Alle Bewertungen
         </a>
       </Button>
-      <Button variant="outline" size="lg" className="w-full">
-        <Users className="mr-2 h-5 w-5" />
-        Zur Kundenkarte
+      <Button variant="outline" size="lg" className="w-full" asChild>
+        <a href="/admin/customers">
+          <Users className="mr-2 h-5 w-5" />
+          📊 Zur Kundenkarte
+        </a>
       </Button>
       <Button variant="outline" size="lg" className="w-full">
         <Image className="mr-2 h-5 w-5" />

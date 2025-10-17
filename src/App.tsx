@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import NewReview from "./pages/NewReview";
 import Reviews from "./pages/admin/Reviews";
 import EditReview from "./pages/admin/EditReview";
+import Customers from "./pages/admin/Customers";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -54,6 +55,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <EditReview />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/customers"
+            element={
+              <ProtectedRoute>
+                <Customers />
               </ProtectedRoute>
             }
           />
