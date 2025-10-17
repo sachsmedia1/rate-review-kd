@@ -306,11 +306,13 @@ const NewReview = () => {
   const handleNextStep = () => {
     if (isValid) {
       setCurrentStep(2);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handlePrevStep = () => {
     setCurrentStep(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (

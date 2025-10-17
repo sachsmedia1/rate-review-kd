@@ -53,6 +53,33 @@ const RatingSlider = ({
         </span>
       </div>
       <div className="space-y-3">
+        {/* Klickbare Flammen */}
+        <div className="flex items-center gap-1 justify-center">
+          {[1, 2, 3, 4, 5].map((flameValue) => (
+            <button
+              key={flameValue}
+              type="button"
+              onClick={() => !isDisabled && onChange(flameValue)}
+              disabled={isDisabled}
+              className={cn(
+                "transition-transform focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded",
+                !isDisabled && "hover:scale-110 cursor-pointer"
+              )}
+              aria-label={`${flameValue} Flammen`}
+            >
+              <Flame
+                className={cn(
+                  "h-8 w-8 transition-colors",
+                  !isDisabled && flameValue <= value
+                    ? "fill-primary text-primary"
+                    : "fill-muted text-muted"
+                )}
+              />
+            </button>
+          ))}
+        </div>
+        
+        {/* Slider */}
         <Slider
           value={[isDisabled ? 0 : value]}
           onValueChange={(vals) => !isDisabled && onChange(vals[0])}
@@ -62,19 +89,6 @@ const RatingSlider = ({
           className="w-full"
           disabled={isDisabled}
         />
-        <div className="flex gap-1 justify-center">
-          {[1, 2, 3, 4, 5].map((flame) => (
-            <Flame
-              key={flame}
-              className={cn(
-                "h-6 w-6 transition-colors",
-                !isDisabled && flame <= value
-                  ? "fill-primary text-primary"
-                  : "fill-muted text-muted"
-              )}
-            />
-          ))}
-        </div>
       </div>
     </div>
   );
