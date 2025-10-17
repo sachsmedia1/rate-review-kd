@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Search, MapPin, Calendar, TrendingUp } from "lucide-react";
 import { renderFlames } from "@/lib/renderFlames";
 import { Helmet } from "react-helmet-async";
@@ -36,6 +36,7 @@ interface LocationStats {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [searchPostalCode, setSearchPostalCode] = useState("");
@@ -545,6 +546,33 @@ const Index = () => {
                   key={review.id}
                   className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg overflow-hidden hover:border-orange-500/50 transition-all"
                 >
+                  {/* Nachher-Bild-Vorschau */}
+                  {review.after_image_url ? (
+                    <div className="relative w-full h-40 md:h-48 overflow-hidden bg-gray-900">
+                      <img
+                        src={review.after_image_url}
+                        alt={`Nachher-Zustand: ${review.product_category}`}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                        loading="lazy"
+                        onClick={() => navigate(`/bewertung/${review.slug}`)}
+                      />
+                      <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                        <span>📷</span>
+                        <span>Vorher/Nachher</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div 
+                      className="w-full h-40 md:h-48 bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center cursor-pointer"
+                      onClick={() => navigate(`/bewertung/${review.slug}`)}
+                    >
+                      <div className="text-gray-500 text-center">
+                        <span className="text-4xl mb-2 block">🔥</span>
+                        <span className="text-sm">Keine Bilder verfügbar</span>
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* Header */}
                   <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a]">
                     <span className="px-3 py-1 bg-orange-500 text-white text-xs rounded-full">
