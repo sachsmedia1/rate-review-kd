@@ -219,20 +219,8 @@ const NewReview = () => {
       });
       console.log('2. Slug generiert:', slug);
       
-      // 3. Durchschnitt berechnen (nur nicht-null Werte)
-      const ratingValues = [
-        ratings.consultation,
-        optionalRatings.fire_safety ? null : ratings.fire_safety,
-        optionalRatings.heating_performance ? null : ratings.heating_performance,
-        ratings.aesthetics,
-        ratings.installation_quality,
-        ratings.service
-      ].filter(r => r !== null && r > 0);
-      
-      const averageRating = ratingValues.length > 0 
-        ? ratingValues.reduce((sum, r) => sum + (r || 0), 0) / ratingValues.length 
-        : 0;
-      console.log('3. Durchschnitt berechnet:', averageRating, 'aus', ratingValues);
+      // 3. Durchschnitt wird automatisch von der Datenbank berechnet (GENERATED COLUMN)
+      console.log('3. Durchschnitt wird von DB berechnet (GENERATED COLUMN)');
       
       // 4. User ID holen
       const { data: { user } } = await supabase.auth.getUser();
@@ -261,7 +249,6 @@ const NewReview = () => {
         rating_aesthetics: ratings.aesthetics,
         rating_installation_quality: ratings.installation_quality,
         rating_service: ratings.service,
-        average_rating: averageRating,
         customer_comment: customerComment || null,
         internal_notes: internalNotes || null,
         installed_by: installedBy || null,
