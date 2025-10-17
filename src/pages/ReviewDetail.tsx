@@ -32,6 +32,7 @@ interface ReviewImage {
   image_url: string;
   caption?: string | null;
   display_order: number;
+  image_type?: string; // 'before', 'after', 'normal'
 }
 
 interface SimilarReview {
@@ -49,11 +50,18 @@ const ReviewDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [review, setReview] = useState<Review | null>(null);
   const [images, setImages] = useState<ReviewImage[]>([]);
+  const [beforeImages, setBeforeImages] = useState<ReviewImage[]>([]);
+  const [afterImages, setAfterImages] = useState<ReviewImage[]>([]);
+  const [normalImages, setNormalImages] = useState<ReviewImage[]>([]);
+  const [beforeAfterPairs, setBeforeAfterPairs] = useState<Array<{before: ReviewImage, after: ReviewImage}>>([]);
   const [similarReviews, setSimilarReviews] = useState<SimilarReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxType, setLightboxType] = useState<'normal' | 'beforeAfter'>('normal');
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [beforeAfterIndex, setBeforeAfterIndex] = useState(0);
+  const [beforeAfterView, setBeforeAfterView] = useState<'before' | 'after' | 'both'>('both');
 
   useEffect(() => {
     const fetchReview = async () => {
@@ -77,15 +85,40 @@ const ReviewDetail = () => {
 
       setReview(reviewData);
 
-      // Fetch images
-      const { data: imagesData } = await supabase
+      // Fetch all images
+      const { data: allImagesData } = await supabase
         .from('review_images')
         .select('*')
         .eq('review_id', reviewData.id)
-        .order('display_order', { ascending: true });
+        .order('created_at', { ascending: true });
 
-      if (imagesData) {
-        setImages(imagesData);
+      if (allImagesData) {
+        setImages(allImagesData);
+        
+        // Filter nach Typ
+        const before = allImagesData.filter(img => img.image_type === 'before');
+        const after = allImagesData.filter(img => img.image_type === 'after');
+        const normal = allImagesData.filter(img => img.image_type === 'normal' || !img.image_type);
+        
+        setBeforeImages(before);
+        setAfterImages(after);
+        setNormalImages(normal);
+        
+        // Erstelle Vorher-/Nachher-Paare
+        const pairs = before.map((beforeImg, index) => ({
+          before: beforeImg,
+          after: after[index]
+        })).filter(pair => pair.after !== undefined);
+        
+        setBeforeAfterPairs(pairs);
+        
+        console.log('Debug - Bilder geladen:', {
+          total: allImagesData.length,
+          before: before.length,
+          after: after.length,
+          normal: normal.length,
+          pairs: pairs.length
+        });
       }
 
       // Fetch similar reviews (same category)
@@ -130,19 +163,61 @@ const ReviewDetail = () => {
     setLightboxIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  // Normale Bildergalerie öffnen
+  const openNormalLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setLightboxType('normal');
+    setLightboxOpen(true);
+    document.body.style.overflow = 'hidden';
+  };
+
+  // Vorher-/Nachher-Lightbox öffnen
+  const openBeforeAfterLightbox = (pairIndex: number) => {
+    setBeforeAfterIndex(pairIndex);
+    setBeforeAfterView('both');
+    setLightboxType('beforeAfter');
+    setLightboxOpen(true);
+    document.body.style.overflow = 'hidden';
+  };
+
+  // Navigation für Vorher-/Nachher-Paare
+  const nextBeforeAfterPair = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setBeforeAfterIndex((prev) => (prev + 1) % beforeAfterPairs.length);
+  };
+
+  const prevBeforeAfterPair = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setBeforeAfterIndex((prev) => (prev - 1 + beforeAfterPairs.length) % beforeAfterPairs.length);
+  };
+
+  // View-Toggle
+  const toggleView = (view: 'before' | 'after' | 'both') => {
+    setBeforeAfterView(view);
+  };
+
   // Keyboard navigation
   useEffect(() => {
     if (!lightboxOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeLightbox();
-      if (e.key === 'ArrowRight') setLightboxIndex((prev) => (prev + 1) % images.length);
-      if (e.key === 'ArrowLeft') setLightboxIndex((prev) => (prev - 1 + images.length) % images.length);
+      if (e.key === 'Escape') {
+        closeLightbox();
+      } else if (lightboxType === 'normal') {
+        if (e.key === 'ArrowRight') setLightboxIndex((prev) => (prev + 1) % normalImages.length);
+        if (e.key === 'ArrowLeft') setLightboxIndex((prev) => (prev - 1 + normalImages.length) % normalImages.length);
+      } else if (lightboxType === 'beforeAfter') {
+        if (e.key === 'ArrowRight') setBeforeAfterIndex((prev) => (prev + 1) % beforeAfterPairs.length);
+        if (e.key === 'ArrowLeft') setBeforeAfterIndex((prev) => (prev - 1 + beforeAfterPairs.length) % beforeAfterPairs.length);
+        if (e.key === '1') setBeforeAfterView('before');
+        if (e.key === '2') setBeforeAfterView('both');
+        if (e.key === '3') setBeforeAfterView('after');
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [lightboxOpen, images.length]);
+  }, [lightboxOpen, lightboxType, normalImages.length, beforeAfterPairs.length]);
 
   if (loading) {
     return (
@@ -356,6 +431,77 @@ const ReviewDetail = () => {
             </article>
           )}
 
+          {/* Vorher-/Nachher-Bilder */}
+          {beforeAfterPairs.length > 0 && (
+            <section className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 md:p-8 mb-8">
+              <h2 className="text-2xl font-bold text-white mb-6">
+                Vorher- und Nachher-Bilder
+              </h2>
+              
+              <div className="space-y-8">
+                {beforeAfterPairs.map((pair, pairIndex) => (
+                  <div key={pairIndex} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* VORHER-Bild */}
+                    <div className="relative group">
+                      <div className="absolute top-3 left-3 z-10 bg-gray-600/90 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                        VORHER
+                      </div>
+                      <button
+                        onClick={() => openBeforeAfterLightbox(pairIndex)}
+                        className="relative w-full aspect-video rounded-lg overflow-hidden
+                                   border-2 border-transparent hover:border-gray-500 transition-all
+                                   cursor-pointer"
+                      >
+                        <img
+                          src={pair.before.image_url}
+                          alt={`Vorher-Zustand - ${review.product_category} in ${review.city}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors
+                                        flex items-center justify-center">
+                          <span className="text-white text-3xl opacity-0 group-hover:opacity-100 transition-opacity">
+                            🔍
+                          </span>
+                        </div>
+                      </button>
+                    </div>
+                    
+                    {/* NACHHER-Bild */}
+                    <div className="relative group">
+                      <div className="absolute top-3 left-3 z-10 bg-orange-500/90 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                        NACHHER
+                      </div>
+                      <button
+                        onClick={() => openBeforeAfterLightbox(pairIndex)}
+                        className="relative w-full aspect-video rounded-lg overflow-hidden
+                                   border-2 border-transparent hover:border-orange-500 transition-all
+                                   cursor-pointer"
+                      >
+                        <img
+                          src={pair.after.image_url}
+                          alt={`Nachher-Zustand - ${review.product_category} in ${review.city} - Bewertet mit ${review.average_rating.toFixed(1)} Sternen`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors
+                                        flex items-center justify-center">
+                          <span className="text-white text-3xl opacity-0 group-hover:opacity-100 transition-opacity">
+                            🔍
+                          </span>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <p className="text-gray-400 text-sm mt-6 text-center">
+                💡 Klicken Sie auf ein Bild für eine größere Ansicht
+              </p>
+            </section>
+          )}
+
           {/* Detail-Bewertungen */}
           <section className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 md:p-8 mb-8">
             <h2 className="text-2xl font-bold text-white mb-6">
@@ -465,25 +611,25 @@ const ReviewDetail = () => {
             </div>
           </section>
 
-          {/* Bildergalerie */}
-          {images && images.length > 0 && (
+          {/* Projektbilder (nur normale Bilder) */}
+          {normalImages && normalImages.length > 0 && (
             <section className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
                 <ImageIcon size={24} />
-                Bilder <span className="text-gray-400 text-lg">({images.length})</span>
+                Projektbilder <span className="text-gray-400 text-lg">({normalImages.length})</span>
               </h2>
               
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {images.map((image, index) => (
+                {normalImages.map((image, index) => (
                   <button
                     key={image.id}
-                    onClick={() => openLightbox(index)}
+                    onClick={() => openNormalLightbox(index)}
                     className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer
                                border-2 border-transparent hover:border-orange-500 transition-all"
                   >
                     <img
                       src={image.image_url}
-                      alt={`${review.product_category} - ${review.city} - Bild ${index + 1} von ${images.length} - Bewertet mit ${review.average_rating.toFixed(1)} Sternen`}
+                      alt={`${review.product_category} - ${review.city} - Bild ${index + 1} von ${normalImages.length}`}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       loading="lazy"
                     />
@@ -494,100 +640,6 @@ const ReviewDetail = () => {
                       </span>
                     </div>
                   </button>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* FAQ Section */}
-          <section className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 md:p-8 mb-8">
-            <h2 className="text-2xl font-bold text-white mb-6">
-              Häufig gestellte Fragen zu dieser Bewertung
-            </h2>
-            
-            <div className="space-y-4">
-              <div className="border-b border-[#2a2a2a] pb-4">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Wie wurde die Beratungsqualität bewertet?
-                </h3>
-                <p className="text-gray-300">
-                  {review.rating_consultation.toFixed(1)} von 5.0 Punkten
-                </p>
-              </div>
-              
-              <div className="border-b border-[#2a2a2a] pb-4">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Wo wurde diese Dienstleistung durchgeführt?
-                </h3>
-                <p className="text-gray-300">
-                  In {review.city} ({review.postal_code}), Deutschland
-                </p>
-              </div>
-              
-              <div className="border-b border-[#2a2a2a] pb-4">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Welche Art von Dienstleistung wurde bewertet?
-                </h3>
-                <p className="text-gray-300">
-                  {review.product_category}
-                </p>
-              </div>
-              
-              <div className="border-b border-[#2a2a2a] pb-4">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Wie ist die Gesamtbewertung?
-                </h3>
-                <p className="text-gray-300">
-                  {review.average_rating.toFixed(1)} von 5.0 Punkten - {getRatingLabel(review.average_rating)}
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Wann wurde diese Bewertung abgegeben?
-                </h3>
-                <p className="text-gray-300">
-                  Am {new Date(review.installation_date).toLocaleDateString('de-DE', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric'
-                  })}
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Ähnliche Bewertungen */}
-          {similarReviews && similarReviews.length > 0 && (
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-6">
-                Weitere {review.product_category}-Bewertungen
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {similarReviews.map(similar => (
-                  <Link
-                    key={similar.slug}
-                    to={`/bewertung/${similar.slug}`}
-                    className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4
-                               hover:border-orange-500 transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-white font-medium">
-                        {similar.customer_salutation} {similar.customer_lastname}
-                      </span>
-                      <span className="text-orange-500 font-bold">
-                        {similar.average_rating.toFixed(1)}
-                      </span>
-                    </div>
-                    <div className="text-gray-400 text-sm flex items-center gap-2">
-                      <MapPin size={14} />
-                      <span>{similar.city}</span>
-                    </div>
-                    <div className="text-gray-400 text-sm mt-1">
-                      {new Date(similar.installation_date).toLocaleDateString('de-DE')}
-                    </div>
-                  </Link>
                 ))}
               </div>
             </section>
@@ -616,41 +668,169 @@ const ReviewDetail = () => {
       </div>
 
       {/* Lightbox Modal */}
-      {lightboxOpen && images.length > 0 && (
+      {lightboxOpen && (
         <div 
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/95 z-50 flex flex-col"
           onClick={closeLightbox}
         >
           <button
-            className="absolute top-4 right-4 text-white text-4xl hover:text-orange-500 transition-colors z-10"
+            className="absolute top-4 right-4 text-white text-4xl hover:text-orange-500 z-50"
             onClick={closeLightbox}
             aria-label="Schließen"
           >
             ×
           </button>
-          <button
-            className="absolute left-4 text-white text-4xl hover:text-orange-500 transition-colors z-10"
-            onClick={prevImage}
-            aria-label="Vorheriges Bild"
-          >
-            ‹
-          </button>
-          <button
-            className="absolute right-4 text-white text-4xl hover:text-orange-500 transition-colors z-10"
-            onClick={nextImage}
-            aria-label="Nächstes Bild"
-          >
-            ›
-          </button>
-          <img
-            src={images[lightboxIndex].image_url}
-            alt={`${review.product_category} - ${review.city} - Bild ${lightboxIndex + 1}`}
-            className="max-w-full max-h-full object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <div className="absolute bottom-4 text-white text-center">
-            <p>Bild {lightboxIndex + 1} von {images.length}</p>
-          </div>
+          
+          {lightboxType === 'normal' ? (
+            // NORMALE BILDERGALERIE
+            <>
+              {normalImages.length > 1 && (
+                <>
+                  <button
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-6xl hover:text-orange-500 z-50"
+                    onClick={prevImage}
+                    aria-label="Vorheriges Bild"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-6xl hover:text-orange-500 z-50"
+                    onClick={nextImage}
+                    aria-label="Nächstes Bild"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
+              
+              <div className="flex-1 flex items-center justify-center p-4">
+                <img
+                  src={normalImages[lightboxIndex]?.image_url}
+                  alt={`${review.product_category} - ${review.city} - Bild ${lightboxIndex + 1}`}
+                  className="max-w-full max-h-full object-contain"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+              
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-center bg-black/70 px-4 py-2 rounded-lg">
+                <p>Bild {lightboxIndex + 1} von {normalImages.length}</p>
+              </div>
+            </>
+          ) : (
+            // VORHER-/NACHHER LIGHTBOX
+            <>
+              {beforeAfterPairs.length > 1 && (
+                <>
+                  <button
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-6xl hover:text-orange-500 z-50"
+                    onClick={prevBeforeAfterPair}
+                    aria-label="Vorheriges Paar"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-6xl hover:text-orange-500 z-50"
+                    onClick={nextBeforeAfterPair}
+                    aria-label="Nächstes Paar"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
+              
+              {/* View Toggle Buttons */}
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2 z-50">
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggleView('before'); }}
+                  className={`px-4 py-2 rounded-lg font-semibold transition ${
+                    beforeAfterView === 'before' 
+                      ? 'bg-gray-500 text-white' 
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  }`}
+                >
+                  Nur Vorher
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggleView('both'); }}
+                  className={`px-4 py-2 rounded-lg font-semibold transition ${
+                    beforeAfterView === 'both' 
+                      ? 'bg-orange-500 text-white' 
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  }`}
+                >
+                  Vergleich
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggleView('after'); }}
+                  className={`px-4 py-2 rounded-lg font-semibold transition ${
+                    beforeAfterView === 'after' 
+                      ? 'bg-orange-500 text-white' 
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  }`}
+                >
+                  Nur Nachher
+                </button>
+              </div>
+              
+              {/* Bildanzeige */}
+              <div className="flex-1 flex items-center justify-center p-4 pt-20">
+                <div className="w-full max-w-6xl" onClick={(e) => e.stopPropagation()}>
+                  {beforeAfterView === 'both' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="relative">
+                        <div className="absolute top-3 left-3 z-10 bg-gray-600/90 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                          VORHER
+                        </div>
+                        <img
+                          src={beforeAfterPairs[beforeAfterIndex]?.before.image_url}
+                          alt="Vorher"
+                          className="w-full h-full object-contain rounded-lg"
+                        />
+                      </div>
+                      <div className="relative">
+                        <div className="absolute top-3 left-3 z-10 bg-orange-500/90 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                          NACHHER
+                        </div>
+                        <img
+                          src={beforeAfterPairs[beforeAfterIndex]?.after.image_url}
+                          alt="Nachher"
+                          className="w-full h-full object-contain rounded-lg"
+                        />
+                      </div>
+                    </div>
+                  ) : beforeAfterView === 'before' ? (
+                    <div className="relative">
+                      <div className="absolute top-3 left-3 z-10 bg-gray-600/90 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                        VORHER
+                      </div>
+                      <img
+                        src={beforeAfterPairs[beforeAfterIndex]?.before.image_url}
+                        alt="Vorher"
+                        className="w-full max-h-[80vh] object-contain rounded-lg mx-auto"
+                      />
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <div className="absolute top-3 left-3 z-10 bg-orange-500/90 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                        NACHHER
+                      </div>
+                      <img
+                        src={beforeAfterPairs[beforeAfterIndex]?.after.image_url}
+                        alt="Nachher"
+                        className="w-full max-h-[80vh] object-contain rounded-lg mx-auto"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {beforeAfterPairs.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-center bg-black/70 px-4 py-2 rounded-lg">
+                  <p>Vergleich {beforeAfterIndex + 1} von {beforeAfterPairs.length}</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
     </>
