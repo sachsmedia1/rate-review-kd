@@ -246,7 +246,6 @@ const NewReview = () => {
       const reviewData = {
         slug,
         status,
-        is_published: status === 'published',
         customer_salutation: data.customer_salutation,
         customer_firstname: data.customer_firstname,
         customer_lastname: data.customer_lastname,
