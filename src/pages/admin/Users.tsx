@@ -87,7 +87,7 @@ const Users = () => {
     
     try {
       if (editingUser) {
-        // UPDATE
+        // UPDATE user_profiles
         const { error: profileError } = await supabase
           .from('user_profiles')
           .update({
@@ -97,7 +97,10 @@ const Users = () => {
           })
           .eq('id', editingUser.id);
         
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Profile update error:', profileError);
+          throw new Error(`Profil-Update fehlgeschlagen: ${profileError.message}`);
+        }
         
         // Update Rolle in user_roles
         const { error: roleError } = await supabase
@@ -105,12 +108,34 @@ const Users = () => {
           .update({ role: formData.role })
           .eq('user_id', editingUser.id);
         
-        if (roleError) throw roleError;
+        if (roleError) {
+          console.error('Role update error:', roleError);
+          // Nicht kritisch, weiter machen
+        }
         
-        toast.success('Nutzer aktualisiert');
+        // Passwort ändern falls angegeben
+        if (formData.password && formData.password.length >= 8) {
+          console.log('Updating password via edge function...');
+          const { data, error: passwordError } = await supabase.functions.invoke('manage-user', {
+            body: {
+              action: 'update_password',
+              userId: editingUser.id,
+              updates: { password: formData.password }
+            }
+          });
+          
+          if (passwordError) {
+            console.error('Password update error:', passwordError);
+            toast.warning('Nutzer aktualisiert, aber Passwort konnte nicht geändert werden');
+          } else {
+            toast.success('Nutzer und Passwort erfolgreich aktualisiert');
+          }
+        } else {
+          toast.success('Nutzer erfolgreich aktualisiert');
+        }
       } else {
         // CREATE - Nutze Edge Function
-        const { error } = await supabase.functions.invoke('setup-first-admin', {
+        const { data, error } = await supabase.functions.invoke('setup-first-admin', {
           body: {
             email: formData.email,
             password: formData.password,
@@ -121,7 +146,10 @@ const Users = () => {
           }
         });
         
-        if (error) throw error;
+        if (error) {
+          console.error('Create user error:', error);
+          throw new Error(`Nutzer-Erstellung fehlgeschlagen: ${error.message}`);
+        }
         
         toast.success('Nutzer erfolgreich erstellt');
       }
@@ -129,23 +157,41 @@ const Users = () => {
       closeModal();
       loadUsers();
     } catch (error: any) {
-      console.error('Error:', error);
+      console.error('Submit error:', error);
       toast.error(error.message || 'Fehler beim Speichern');
     }
   };
 
   const handleToggleActive = async (user: UserProfile) => {
-    const { error } = await supabase
-      .from('user_profiles')
-      .update({ is_active: !user.is_active })
-      .eq('id', user.id);
+    console.log('=== TOGGLE ACTIVE START ===');
+    console.log('User:', user);
+    console.log('New status:', !user.is_active);
     
-    if (!error) {
-      toast.success(user.is_active ? 'Nutzer deaktiviert' : 'Nutzer aktiviert');
+    try {
+      const newStatus = !user.is_active;
+      
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .update({ is_active: newStatus })
+        .eq('id', user.id)
+        .select();
+      
+      console.log('Update response:', { data, error });
+      
+      if (error) {
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        throw new Error(`Status konnte nicht geändert werden: ${error.message}`);
+      }
+      
+      console.log('Success! Updated user:', data);
+      toast.success(newStatus ? 'Nutzer aktiviert' : 'Nutzer deaktiviert');
       loadUsers();
-    } else {
-      toast.error('Fehler beim Ändern des Status');
+    } catch (error: any) {
+      console.error('=== TOGGLE ERROR ===', error);
+      toast.error(error.message || 'Fehler beim Ändern des Status');
     }
+    
+    console.log('=== TOGGLE ACTIVE END ===');
   };
 
   const handleDeleteUser = async (user: UserProfile) => {
@@ -155,28 +201,64 @@ const Users = () => {
     }
     
     const confirmed = confirm(
-      `Möchten Sie den Nutzer "${user.firstname} ${user.lastname}" wirklich löschen? Dies kann nicht rückgängig gemacht werden.`
+      `Möchten Sie den Nutzer "${user.firstname} ${user.lastname}" wirklich löschen?\n\n` +
+      `Dies löscht:\n` +
+      `- Das Benutzerkonto\n` +
+      `- Alle Zuordnungen\n\n` +
+      `HINWEIS: Von diesem Nutzer erstellte Bewertungen bleiben erhalten.\n\n` +
+      `Dies kann nicht rückgängig gemacht werden!`
     );
     
     if (!confirmed) return;
     
-    // Lösche zuerst aus user_roles
-    await supabase
-      .from('user_roles')
-      .delete()
-      .eq('user_id', user.id);
-    
-    // Dann aus user_profiles
-    const { error } = await supabase
-      .from('user_profiles')
-      .delete()
-      .eq('id', user.id);
-    
-    if (!error) {
-      toast.success('Nutzer gelöscht');
+    try {
+      console.log('=== DELETE USER START ===');
+      console.log('Deleting user:', user);
+      
+      // 1. Lösche aus user_roles
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', user.id);
+      
+      if (roleError) {
+        console.error('Delete role error:', roleError);
+        // Weiter machen, da nicht kritisch
+      }
+      
+      // 2. Lösche aus user_profiles
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .delete()
+        .eq('id', user.id);
+      
+      if (profileError) {
+        console.error('Delete profile error:', profileError);
+        throw new Error(`Nutzer konnte nicht gelöscht werden: ${profileError.message}`);
+      }
+      
+      // 3. Lösche aus Supabase Auth via Edge Function
+      console.log('Deleting from auth via edge function...');
+      const { data, error: authError } = await supabase.functions.invoke('manage-user', {
+        body: {
+          action: 'delete_user',
+          userId: user.id
+        }
+      });
+      
+      if (authError) {
+        console.error('Delete auth error:', authError);
+        toast.warning('Profil gelöscht, aber Auth-Account konnte nicht entfernt werden');
+      } else {
+        console.log('Auth deletion successful:', data);
+        toast.success('Nutzer erfolgreich gelöscht');
+      }
+      
       loadUsers();
-    } else {
-      toast.error('Löschen fehlgeschlagen');
+      console.log('=== DELETE USER END ===');
+    } catch (error: any) {
+      console.error('=== DELETE ERROR ===', error);
+      toast.error(error.message || 'Löschen fehlgeschlagen');
     }
   };
 
@@ -379,23 +461,27 @@ const Users = () => {
                   )}
                 </div>
                 
-                {/* Passwort (nur bei Create) */}
-                {!editingUser && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                      Passwort *
-                    </label>
-                    <input
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => setFormData({...formData, password: e.target.value})}
-                      required
-                      minLength={8}
-                      className="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none"
-                    />
-                    <p className="text-xs text-gray-400 mt-1">Mindestens 8 Zeichen</p>
-                  </div>
-                )}
+                {/* Passwort */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    {editingUser ? 'Neues Passwort (optional)' : 'Passwort *'}
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    required={!editingUser}
+                    placeholder={editingUser ? 'Leer lassen um nicht zu ändern' : ''}
+                    minLength={8}
+                    className="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white focus:border-orange-500 focus:outline-none"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    {editingUser 
+                      ? 'Mindestens 8 Zeichen. Leer lassen, wenn Passwort nicht geändert werden soll.'
+                      : 'Mindestens 8 Zeichen'
+                    }
+                  </p>
+                </div>
                 
                 {/* Rolle */}
                 <div>
