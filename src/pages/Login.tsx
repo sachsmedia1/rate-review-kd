@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { signIn, signUp, getCurrentSession } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Flame } from "lucide-react";
 import { z } from "zod";
 
@@ -20,6 +21,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
+  const [hasUsers, setHasUsers] = useState<boolean | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -31,7 +33,20 @@ const Login = () => {
       }
     };
     checkAuth();
+    checkIfUsersExist();
   }, [navigate]);
+
+  const checkIfUsersExist = async () => {
+    try {
+      const { data } = await supabase.functions.invoke('setup-first-admin', {
+        body: { action: 'check' }
+      });
+      setHasUsers(data?.hasUsers ?? true);
+    } catch (error) {
+      console.error('Error checking users:', error);
+      setHasUsers(true); // Default to true on error
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,6 +205,19 @@ const Login = () => {
               </form>
             </TabsContent>
           </Tabs>
+
+          {hasUsers === false && (
+            <div className="mt-6 pt-6 border-t border-border/50 text-center">
+              <p className="text-sm text-muted-foreground mb-3">
+                Noch kein Admin-Account vorhanden?
+              </p>
+              <Link to="/admin/setup">
+                <Button variant="outline" className="w-full">
+                  Erste Einrichtung starten
+                </Button>
+              </Link>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
