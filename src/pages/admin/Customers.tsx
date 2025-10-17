@@ -2,18 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Review } from "@/types";
-import { Bar } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-} from "chart.js";
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const Customers = () => {
   const navigate = useNavigate();
@@ -34,7 +23,7 @@ const Customers = () => {
       .select("*")
       .order("installation_date", { ascending: false });
     
-    setReviews(data || []);
+    setReviews((data as Review[]) || []);
   };
 
   const uniqueTeams = [...new Set(reviews
@@ -104,40 +93,11 @@ const Customers = () => {
   };
 
   const plzDistribution = groupByPlzRange(filteredReviews);
-
-  const chartData = {
-    labels: Object.keys(plzDistribution),
-    datasets: [{
-      label: "Anzahl Projekte",
-      data: Object.values(plzDistribution),
-      backgroundColor: "#FF4500",
-      borderColor: "#FF6B35",
-      borderWidth: 1
-    }]
-  };
-
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-      title: {
-        display: true,
-        text: "Regional-Verteilung nach PLZ-Bereichen",
-        color: "#fff"
-      }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: { color: "#fff" },
-        grid: { color: "#333" }
-      },
-      x: {
-        ticks: { color: "#fff" },
-        grid: { color: "#333" }
-      }
-    }
-  };
+  
+  const chartData = Object.keys(plzDistribution).map(key => ({
+    name: key,
+    projekte: plzDistribution[key]
+  }));
 
   const teamStats = teamFilter !== "all" ? (() => {
     const teamReviews = filteredReviews.filter(r => r.installed_by === teamFilter);
@@ -289,7 +249,25 @@ const Customers = () => {
 
         {/* Regional-Verteilung Chart */}
         <div className="bg-card rounded-lg p-6 mb-6">
-          <Bar data={chartData} options={chartOptions} />
+          <h3 className="text-xl font-bold text-foreground mb-4">Regional-Verteilung nach PLZ-Bereichen</h3>
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <defs>
+                <linearGradient id="colorProjekte" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#FF4500" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#FF6B35" stopOpacity={0.3}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+              <XAxis dataKey="name" stroke="#fff" />
+              <YAxis stroke="#fff" />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }}
+                labelStyle={{ color: '#fff' }}
+              />
+              <Bar dataKey="projekte" fill="url(#colorProjekte)" />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
         {/* Kunden-Tabelle */}
