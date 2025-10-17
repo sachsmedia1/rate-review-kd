@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { CustomerSalutation, ProductCategory } from "@/types";
@@ -137,116 +137,116 @@ const NewReview = () => {
     }
   }, [afterImage]);
 
-  const uploadImage = async (file: File, folder: string): Promise<string | null> => {
-    try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-      const { data, error } = await supabase.storage
-        .from("review-images")
-        .upload(fileName, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-      if (error) throw error;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("review-images")
-        .getPublicUrl(data.path);
-
-      return publicUrl;
-    } catch (error) {
-      console.error("Image upload error:", error);
-      return null;
-    }
+  const generateSlug = (data: {
+    product_category: string;
+    customer_lastname: string;
+    city: string;
+    installation_date: Date;
+  }): string => {
+    const year = new Date(data.installation_date).getFullYear();
+    
+    const cleanText = (text: string) => text
+      .toLowerCase()
+      .replace(/ä/g, 'ae')
+      .replace(/ö/g, 'oe')
+      .replace(/ü/g, 'ue')
+      .replace(/ß/g, 'ss')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    
+    const category = cleanText(data.product_category);
+    const lastname = cleanText(data.customer_lastname);
+    const city = cleanText(data.city);
+    
+    return `${category}-${lastname}-${city}-${year}`;
   };
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
 
     try {
-      // Get current user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Fehler",
-          description: "Sie müssen angemeldet sein",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Upload images
+      console.log('=== SPEICHER-PROZESS START ===');
+      
+      // 1. Bilder hochladen
+      console.log('1. Lade Bilder hoch...');
       let beforeImageUrl: string | null = null;
       let afterImageUrl: string | null = null;
-
+      
       if (beforeImage) {
-        beforeImageUrl = await uploadImage(beforeImage, "before");
-        if (!beforeImageUrl) {
-          toast({
-            title: "Fehler beim Hochladen",
-            description: "Das Vorher-Bild konnte nicht hochgeladen werden",
-            variant: "destructive",
-          });
-          return;
+        console.log('Uploading before image:', beforeImage.name);
+        const beforePath = `before/${Date.now()}-${beforeImage.name}`;
+        const { data: beforeData, error: beforeError } = await supabase.storage
+          .from('review-images')
+          .upload(beforePath, beforeImage);
+        
+        if (beforeError) {
+          console.error('Before image upload error:', beforeError);
+          throw new Error(`Vorher-Bild Upload fehlgeschlagen: ${beforeError.message}`);
         }
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('review-images')
+          .getPublicUrl(beforePath);
+        beforeImageUrl = publicUrl;
+        console.log('Before image uploaded:', beforeImageUrl);
       }
-
+      
       if (afterImage) {
-        afterImageUrl = await uploadImage(afterImage, "after");
-        if (!afterImageUrl) {
-          toast({
-            title: "Fehler beim Hochladen",
-            description: "Das Nachher-Bild konnte nicht hochgeladen werden",
-            variant: "destructive",
-          });
-          return;
+        console.log('Uploading after image:', afterImage.name);
+        const afterPath = `after/${Date.now()}-${afterImage.name}`;
+        const { data: afterData, error: afterError } = await supabase.storage
+          .from('review-images')
+          .upload(afterPath, afterImage);
+        
+        if (afterError) {
+          console.error('After image upload error:', afterError);
+          throw new Error(`Nachher-Bild Upload fehlgeschlagen: ${afterError.message}`);
         }
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('review-images')
+          .getPublicUrl(afterPath);
+        afterImageUrl = publicUrl;
+        console.log('After image uploaded:', afterImageUrl);
       }
-
-      // Calculate average rating (only from active ratings)
-      const activeRatings = [];
-      if (ratings.consultation > 0) activeRatings.push(ratings.consultation);
-      if (!optionalRatings.fire_safety && ratings.fire_safety > 0) activeRatings.push(ratings.fire_safety);
-      if (!optionalRatings.heating_performance && ratings.heating_performance > 0) activeRatings.push(ratings.heating_performance);
-      if (ratings.aesthetics > 0) activeRatings.push(ratings.aesthetics);
-      if (ratings.installation_quality > 0) activeRatings.push(ratings.installation_quality);
-      if (ratings.service > 0) activeRatings.push(ratings.service);
-
-      const averageRating = activeRatings.length > 0
-        ? activeRatings.reduce((sum, val) => sum + val, 0) / activeRatings.length
+      
+      // 2. Slug generieren
+      const slug = generateSlug({
+        product_category: data.product_category,
+        customer_lastname: data.customer_lastname,
+        city: data.city,
+        installation_date: data.installation_date
+      });
+      console.log('2. Slug generiert:', slug);
+      
+      // 3. Durchschnitt berechnen (nur nicht-null Werte)
+      const ratingValues = [
+        ratings.consultation,
+        optionalRatings.fire_safety ? null : ratings.fire_safety,
+        optionalRatings.heating_performance ? null : ratings.heating_performance,
+        ratings.aesthetics,
+        ratings.installation_quality,
+        ratings.service
+      ].filter(r => r !== null && r > 0);
+      
+      const averageRating = ratingValues.length > 0 
+        ? ratingValues.reduce((sum, r) => sum + (r || 0), 0) / ratingValues.length 
         : 0;
-
-      // Generate slug
-      const generateSlug = (formData: FormData): string => {
-        const year = new Date(formData.installation_date).getFullYear();
-        
-        const cleanText = (text: string) => text
-          .toLowerCase()
-          .replace(/ä/g, 'ae')
-          .replace(/ö/g, 'oe')
-          .replace(/ü/g, 'ue')
-          .replace(/ß/g, 'ss')
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-|-$/g, '');
-        
-        const category = cleanText(formData.product_category);
-        const lastname = cleanText(formData.customer_lastname);
-        const city = cleanText(formData.city);
-        
-        return `${category}-${lastname}-${city}-${year}`;
-      };
-
-      const slug = generateSlug(data);
-
-      // Insert review
-      const { error: insertError } = await supabase.from("reviews").insert({
+      console.log('3. Durchschnitt berechnet:', averageRating, 'aus', ratingValues);
+      
+      // 4. User ID holen
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('4. User ID:', user?.id);
+      
+      if (!user) {
+        throw new Error('Sie müssen angemeldet sein');
+      }
+      
+      // 5. Review-Daten vorbereiten
+      const reviewData = {
         slug,
         status,
-        is_published: status === "published",
+        is_published: status === 'published',
         customer_salutation: data.customer_salutation,
         customer_firstname: data.customer_firstname,
         customer_lastname: data.customer_lastname,
@@ -264,26 +264,37 @@ const NewReview = () => {
         rating_service: ratings.service,
         average_rating: averageRating,
         customer_comment: customerComment || null,
-        installed_by: installedBy || null,
         internal_notes: internalNotes || null,
-        created_by: user.id,
-      });
-
-      if (insertError) throw insertError;
-
-      toast({
-        title: "Erfolg!",
-        description: "Bewertung erfolgreich gespeichert!",
-      });
-
-      navigate("/admin/dashboard");
-    } catch (error) {
-      console.error("Error saving review:", error);
-      toast({
-        title: "Speichern fehlgeschlagen",
-        description: "Es ist ein Fehler beim Speichern aufgetreten",
-        variant: "destructive",
-      });
+        installed_by: installedBy || null,
+        created_by: user.id
+      };
+      
+      console.log('5. Review-Daten:', reviewData);
+      
+      // 6. In Datenbank speichern
+      console.log('6. Speichere in Datenbank...');
+      const { data: insertedData, error: insertError } = await supabase
+        .from('reviews')
+        .insert(reviewData)
+        .select()
+        .single();
+      
+      if (insertError) {
+        console.error('Database insert error:', insertError);
+        console.error('Error details:', JSON.stringify(insertError, null, 2));
+        throw new Error(`Datenbank-Fehler: ${insertError.message}`);
+      }
+      
+      console.log('7. Erfolgreich gespeichert:', insertedData);
+      console.log('=== SPEICHER-PROZESS ENDE ===');
+      
+      // Success
+      toast.success('Bewertung erfolgreich gespeichert!');
+      navigate('/admin/dashboard');
+      
+    } catch (error: any) {
+      console.error('=== SPEICHER-FEHLER ===', error);
+      toast.error(error.message || 'Speichern fehlgeschlagen');
     } finally {
       setIsSubmitting(false);
     }
