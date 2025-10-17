@@ -14,16 +14,171 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      reviews: {
+        Row: {
+          after_image_url: string | null
+          average_rating: number | null
+          before_image_url: string | null
+          city: string
+          created_at: string | null
+          created_by: string | null
+          customer_comment: string | null
+          customer_firstname: string
+          customer_lastname: string
+          customer_salutation: string
+          id: string
+          installation_date: string
+          installed_by: string | null
+          internal_notes: string | null
+          is_published: boolean | null
+          latitude: number | null
+          longitude: number | null
+          meta_description: string | null
+          meta_title: string | null
+          postal_code: string
+          product_category: string
+          rating_aesthetics: number | null
+          rating_consultation: number | null
+          rating_fire_safety: number | null
+          rating_heating_performance: number | null
+          rating_installation_quality: number | null
+          rating_service: number | null
+          slug: string
+          status: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          after_image_url?: string | null
+          average_rating?: number | null
+          before_image_url?: string | null
+          city: string
+          created_at?: string | null
+          created_by?: string | null
+          customer_comment?: string | null
+          customer_firstname: string
+          customer_lastname: string
+          customer_salutation: string
+          id?: string
+          installation_date: string
+          installed_by?: string | null
+          internal_notes?: string | null
+          is_published?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
+          postal_code: string
+          product_category: string
+          rating_aesthetics?: number | null
+          rating_consultation?: number | null
+          rating_fire_safety?: number | null
+          rating_heating_performance?: number | null
+          rating_installation_quality?: number | null
+          rating_service?: number | null
+          slug: string
+          status?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          after_image_url?: string | null
+          average_rating?: number | null
+          before_image_url?: string | null
+          city?: string
+          created_at?: string | null
+          created_by?: string | null
+          customer_comment?: string | null
+          customer_firstname?: string
+          customer_lastname?: string
+          customer_salutation?: string
+          id?: string
+          installation_date?: string
+          installed_by?: string | null
+          internal_notes?: string | null
+          is_published?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          meta_description?: string | null
+          meta_title?: string | null
+          postal_code?: string
+          product_category?: string
+          rating_aesthetics?: number | null
+          rating_consultation?: number | null
+          rating_fire_safety?: number | null
+          rating_heating_performance?: number | null
+          rating_installation_quality?: number | null
+          rating_service?: number | null
+          slug?: string
+          status?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          firstname: string | null
+          id: string
+          is_active: boolean | null
+          last_login: string | null
+          lastname: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          firstname?: string | null
+          id: string
+          is_active?: boolean | null
+          last_login?: string | null
+          lastname?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          firstname?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_login?: string | null
+          lastname?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "user" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +305,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["user", "admin"],
+    },
   },
 } as const
