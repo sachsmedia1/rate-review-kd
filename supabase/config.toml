@@ -1,1 +1,4 @@
 project_id = "babohldgbyiltrixrcwe"
+
+[functions.check-mysql-connection]
+verify_jwt = false
