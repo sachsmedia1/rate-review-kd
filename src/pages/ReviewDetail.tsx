@@ -509,6 +509,100 @@ const ReviewDetail = () => {
             </div>
           </section>
 
+          {/* FAQ Section */}
+          <section className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 md:p-8 mb-8">
+            <h2 className="text-2xl font-bold text-white mb-6">
+              Häufig gestellte Fragen zu dieser Bewertung
+            </h2>
+            
+            <div className="space-y-4">
+              <div className="border-b border-[#2a2a2a] pb-4">
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Wie wurde die Beratungsqualität bewertet?
+                </h3>
+                <p className="text-gray-300">
+                  {review.rating_consultation.toFixed(1)} von 5.0 Punkten
+                </p>
+              </div>
+              
+              <div className="border-b border-[#2a2a2a] pb-4">
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Wo wurde diese Dienstleistung durchgeführt?
+                </h3>
+                <p className="text-gray-300">
+                  In {review.city} ({review.postal_code}), Deutschland
+                </p>
+              </div>
+              
+              <div className="border-b border-[#2a2a2a] pb-4">
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Welche Art von Dienstleistung wurde bewertet?
+                </h3>
+                <p className="text-gray-300">
+                  {review.product_category}
+                </p>
+              </div>
+              
+              <div className="border-b border-[#2a2a2a] pb-4">
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Wie ist die Gesamtbewertung?
+                </h3>
+                <p className="text-gray-300">
+                  {review.average_rating.toFixed(1)} von 5.0 Punkten - {getRatingLabel(review.average_rating)}
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Wann wurde diese Bewertung abgegeben?
+                </h3>
+                <p className="text-gray-300">
+                  Am {new Date(review.installation_date).toLocaleDateString('de-DE', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Ähnliche Bewertungen */}
+          {similarReviews && similarReviews.length > 0 && (
+            <section className="mb-8">
+              <h2 className="text-2xl font-bold text-white mb-6">
+                Weitere {review.product_category}-Bewertungen
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {similarReviews.map(similar => (
+                  <Link
+                    key={similar.slug}
+                    to={`/bewertung/${similar.slug}`}
+                    className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4
+                               hover:border-orange-500 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-white font-medium">
+                        {similar.customer_salutation} {similar.customer_lastname}
+                      </span>
+                      <span className="text-orange-500 font-bold">
+                        {similar.average_rating.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className="text-gray-400 text-sm flex items-center gap-2">
+                      <MapPin size={14} />
+                      <span>{similar.city}</span>
+                    </div>
+                    <div className="text-gray-400 text-sm mt-1">
+                      {new Date(similar.installation_date).toLocaleDateString('de-DE')}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Call-to-Action & Navigation */}
           <footer className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <Link
