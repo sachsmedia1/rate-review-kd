@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { CalendarIcon, ArrowLeft } from "lucide-react";
+import { CalendarIcon, ArrowLeft, Eye, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,8 +13,13 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { CustomerSalutation, ProductCategory } from "@/types";
+import { ImageUploadSection } from "@/components/review-form/ImageUploadSection";
+import { RatingsSection } from "@/components/review-form/RatingSliders";
+import { AdditionalInfoSection } from "@/components/review-form/AdditionalInfoSection";
 
 const formSchema = z.object({
   customer_salutation: z.enum(["Herr", "Frau"], {
@@ -58,7 +63,29 @@ type FormData = z.infer<typeof formSchema>;
 
 const NewReview = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<FormData | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Image states
+  const [beforeImage, setBeforeImage] = useState<File | null>(null);
+  const [afterImage, setAfterImage] = useState<File | null>(null);
+  const [beforePreview, setBeforePreview] = useState<string | null>(null);
+  const [afterPreview, setAfterPreview] = useState<string | null>(null);
+
+  // Rating states
+  const [ratings, setRatings] = useState({
+    consultation: 5,
+    fire_safety: 5,
+    heating_performance: 5,
+    aesthetics: 5,
+    installation_quality: 5,
+    service: 5,
+  });
+
+  // Additional info states
+  const [customerComment, setCustomerComment] = useState("");
+  const [installedBy, setInstalledBy] = useState("");
+  const [internalNotes, setInternalNotes] = useState("");
+  const [status, setStatus] = useState<"draft" | "published">("published");
 
   const {
     register,
@@ -78,15 +105,167 @@ const NewReview = () => {
   const category = watch("product_category");
   const installationDate = watch("installation_date");
 
-  const onSubmit = (data: FormData) => {
-    console.log("Form data:", data);
-    setFormData(data);
-    // TODO: Navigate to next step (images & ratings)
-    // navigate("/admin/reviews/new/details");
+  // Generate image previews
+  useEffect(() => {
+    if (beforeImage) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBeforePreview(reader.result as string);
+      };
+      reader.readAsDataURL(beforeImage);
+    } else {
+      setBeforePreview(null);
+    }
+  }, [beforeImage]);
+
+  useEffect(() => {
+    if (afterImage) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAfterPreview(reader.result as string);
+      };
+      reader.readAsDataURL(afterImage);
+    } else {
+      setAfterPreview(null);
+    }
+  }, [afterImage]);
+
+  const uploadImage = async (file: File, folder: string): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from("review-images")
+        .upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("review-images")
+        .getPublicUrl(data.path);
+
+      return publicUrl;
+    } catch (error) {
+      console.error("Image upload error:", error);
+      return null;
+    }
+  };
+
+  const onSubmit = async (data: FormData) => {
+    setIsSubmitting(true);
+
+    try {
+      // Get current user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Fehler",
+          description: "Sie müssen angemeldet sein",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Upload images
+      let beforeImageUrl: string | null = null;
+      let afterImageUrl: string | null = null;
+
+      if (beforeImage) {
+        beforeImageUrl = await uploadImage(beforeImage, "before");
+        if (!beforeImageUrl) {
+          toast({
+            title: "Fehler beim Hochladen",
+            description: "Das Vorher-Bild konnte nicht hochgeladen werden",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      if (afterImage) {
+        afterImageUrl = await uploadImage(afterImage, "after");
+        if (!afterImageUrl) {
+          toast({
+            title: "Fehler beim Hochladen",
+            description: "Das Nachher-Bild konnte nicht hochgeladen werden",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      // Calculate average rating
+      const averageRating =
+        (ratings.consultation +
+          ratings.fire_safety +
+          ratings.heating_performance +
+          ratings.aesthetics +
+          ratings.installation_quality +
+          ratings.service) /
+        6;
+
+      // Generate slug
+      const slug = `${data.city.toLowerCase()}-${data.customer_lastname.toLowerCase()}-${Date.now()}`;
+
+      // Insert review
+      const { error: insertError } = await supabase.from("reviews").insert({
+        slug,
+        status,
+        is_published: status === "published",
+        customer_salutation: data.customer_salutation,
+        customer_firstname: data.customer_firstname,
+        customer_lastname: data.customer_lastname,
+        postal_code: data.postal_code,
+        city: data.city,
+        installation_date: format(data.installation_date, "yyyy-MM-dd"),
+        product_category: data.product_category,
+        before_image_url: beforeImageUrl,
+        after_image_url: afterImageUrl,
+        rating_consultation: ratings.consultation,
+        rating_fire_safety: ratings.fire_safety,
+        rating_heating_performance: ratings.heating_performance,
+        rating_aesthetics: ratings.aesthetics,
+        rating_installation_quality: ratings.installation_quality,
+        rating_service: ratings.service,
+        average_rating: averageRating,
+        customer_comment: customerComment || null,
+        installed_by: installedBy || null,
+        internal_notes: internalNotes || null,
+        created_by: user.id,
+      });
+
+      if (insertError) throw insertError;
+
+      toast({
+        title: "Erfolg!",
+        description: "Bewertung erfolgreich gespeichert!",
+      });
+
+      navigate("/admin/dashboard");
+    } catch (error) {
+      console.error("Error saving review:", error);
+      toast({
+        title: "Speichern fehlgeschlagen",
+        description: "Es ist ein Fehler beim Speichern aufgetreten",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
     navigate("/admin/dashboard");
+  };
+
+  const handleRatingChange = (key: string, value: number) => {
+    setRatings((prev) => ({ ...prev, [key]: value }));
   };
 
   return (
@@ -318,6 +497,31 @@ const NewReview = () => {
               </CardContent>
             </Card>
 
+            {/* Image Upload Section */}
+            <ImageUploadSection
+              beforeImage={beforeImage}
+              afterImage={afterImage}
+              beforePreview={beforePreview}
+              afterPreview={afterPreview}
+              onBeforeImageChange={setBeforeImage}
+              onAfterImageChange={setAfterImage}
+            />
+
+            {/* Ratings Section */}
+            <RatingsSection ratings={ratings} onRatingChange={handleRatingChange} />
+
+            {/* Additional Info Section */}
+            <AdditionalInfoSection
+              customerComment={customerComment}
+              installedBy={installedBy}
+              internalNotes={internalNotes}
+              status={status}
+              onCustomerCommentChange={setCustomerComment}
+              onInstalledByChange={setInstalledBy}
+              onInternalNotesChange={setInternalNotes}
+              onStatusChange={setStatus}
+            />
+
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 justify-between">
               <Button
@@ -325,16 +529,27 @@ const NewReview = () => {
                 variant="outline"
                 onClick={handleCancel}
                 className="order-2 sm:order-1"
+                disabled={isSubmitting}
               >
                 Abbrechen
               </Button>
-              <Button
-                type="submit"
-                disabled={!isValid}
-                className="order-1 sm:order-2"
-              >
-                Weiter zu Bildern & Bewertungen
-              </Button>
+              <div className="flex gap-3 order-1 sm:order-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={!isValid || isSubmitting}
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  Vorschau
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={!isValid || isSubmitting}
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  {isSubmitting ? "Speichert..." : "Speichern"}
+                </Button>
+              </div>
             </div>
           </form>
         </div>
