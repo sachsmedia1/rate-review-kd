@@ -64,6 +64,7 @@ type FormData = z.infer<typeof formSchema>;
 const NewReview = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
 
   // Image states
   const [beforeImage, setBeforeImage] = useState<File | null>(null);
@@ -79,6 +80,12 @@ const NewReview = () => {
     aesthetics: 5,
     installation_quality: 5,
     service: 5,
+  });
+
+  // Optional ratings (fire_safety and heating_performance can be not applicable)
+  const [optionalRatings, setOptionalRatings] = useState({
+    fire_safety: false,
+    heating_performance: false,
   });
 
   // Additional info states
@@ -200,18 +207,40 @@ const NewReview = () => {
         }
       }
 
-      // Calculate average rating
-      const averageRating =
-        (ratings.consultation +
-          ratings.fire_safety +
-          ratings.heating_performance +
-          ratings.aesthetics +
-          ratings.installation_quality +
-          ratings.service) /
-        6;
+      // Calculate average rating (only from active ratings)
+      const activeRatings = [];
+      if (ratings.consultation > 0) activeRatings.push(ratings.consultation);
+      if (!optionalRatings.fire_safety && ratings.fire_safety > 0) activeRatings.push(ratings.fire_safety);
+      if (!optionalRatings.heating_performance && ratings.heating_performance > 0) activeRatings.push(ratings.heating_performance);
+      if (ratings.aesthetics > 0) activeRatings.push(ratings.aesthetics);
+      if (ratings.installation_quality > 0) activeRatings.push(ratings.installation_quality);
+      if (ratings.service > 0) activeRatings.push(ratings.service);
+
+      const averageRating = activeRatings.length > 0
+        ? activeRatings.reduce((sum, val) => sum + val, 0) / activeRatings.length
+        : 0;
 
       // Generate slug
-      const slug = `${data.city.toLowerCase()}-${data.customer_lastname.toLowerCase()}-${Date.now()}`;
+      const generateSlug = (formData: FormData): string => {
+        const year = new Date(formData.installation_date).getFullYear();
+        
+        const cleanText = (text: string) => text
+          .toLowerCase()
+          .replace(/ä/g, 'ae')
+          .replace(/ö/g, 'oe')
+          .replace(/ü/g, 'ue')
+          .replace(/ß/g, 'ss')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '');
+        
+        const category = cleanText(formData.product_category);
+        const lastname = cleanText(formData.customer_lastname);
+        const city = cleanText(formData.city);
+        
+        return `${category}-${lastname}-${city}-${year}`;
+      };
+
+      const slug = generateSlug(data);
 
       // Insert review
       const { error: insertError } = await supabase.from("reviews").insert({
@@ -228,8 +257,8 @@ const NewReview = () => {
         before_image_url: beforeImageUrl,
         after_image_url: afterImageUrl,
         rating_consultation: ratings.consultation,
-        rating_fire_safety: ratings.fire_safety,
-        rating_heating_performance: ratings.heating_performance,
+        rating_fire_safety: optionalRatings.fire_safety ? null : ratings.fire_safety,
+        rating_heating_performance: optionalRatings.heating_performance ? null : ratings.heating_performance,
         rating_aesthetics: ratings.aesthetics,
         rating_installation_quality: ratings.installation_quality,
         rating_service: ratings.service,
@@ -268,6 +297,25 @@ const NewReview = () => {
     setRatings((prev) => ({ ...prev, [key]: value }));
   };
 
+  const handleOptionalToggle = (key: string, checked: boolean) => {
+    setOptionalRatings((prev) => ({ ...prev, [key]: checked }));
+    if (checked) {
+      setRatings((prev) => ({ ...prev, [key]: 0 }));
+    } else {
+      setRatings((prev) => ({ ...prev, [key]: 5 }));
+    }
+  };
+
+  const handleNextStep = () => {
+    if (isValid) {
+      setCurrentStep(2);
+    }
+  };
+
+  const handlePrevStep = () => {
+    setCurrentStep(1);
+  };
+
   return (
     <div className="min-h-screen bg-background pb-8">
       {/* Header */}
@@ -289,13 +337,22 @@ const NewReview = () => {
           <div>
             <h1 className="text-3xl font-bold mb-2">Neue Bewertung erstellen</h1>
             <p className="text-muted-foreground">
-              Schritt 1: Kundendaten und Produktkategorie
+              Schritt {currentStep} von 2: {currentStep === 1 ? 'Kundendaten und Produktkategorie' : 'Bilder, Bewertungen und Zusatzinformationen'}
             </p>
+            {/* Progress Bar */}
+            <div className="mt-4 w-full bg-muted rounded-full h-2">
+              <div 
+                className="bg-primary h-2 rounded-full transition-all duration-300"
+                style={{ width: `${(currentStep / 2) * 100}%` }}
+              />
+            </div>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Kundendaten Section */}
-            <Card>
+            {currentStep === 1 && (
+              <>
+                {/* Kundendaten Section */}
+                <Card>
               <CardHeader>
                 <CardTitle>Kundendaten</CardTitle>
                 <CardDescription>
@@ -497,7 +554,34 @@ const NewReview = () => {
               </CardContent>
             </Card>
 
-            {/* Image Upload Section */}
+                {/* Next Button */}
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    size="lg"
+                    onClick={handleNextStep}
+                    disabled={!isValid}
+                  >
+                    Weiter zu Bildern & Bewertungen
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {currentStep === 2 && (
+              <>
+                {/* Back Button */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handlePrevStep}
+                  className="mb-4"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Zurück zu Schritt 1
+                </Button>
+
+                {/* Image Upload Section */}
             <ImageUploadSection
               beforeImage={beforeImage}
               afterImage={afterImage}
@@ -507,50 +591,58 @@ const NewReview = () => {
               onAfterImageChange={setAfterImage}
             />
 
-            {/* Ratings Section */}
-            <RatingsSection ratings={ratings} onRatingChange={handleRatingChange} />
+                {/* Ratings Section */}
+                <RatingsSection 
+                  ratings={ratings} 
+                  optionalRatings={optionalRatings}
+                  onRatingChange={handleRatingChange}
+                  onOptionalToggle={handleOptionalToggle}
+                />
 
-            {/* Additional Info Section */}
-            <AdditionalInfoSection
-              customerComment={customerComment}
-              installedBy={installedBy}
-              internalNotes={internalNotes}
-              status={status}
-              onCustomerCommentChange={setCustomerComment}
-              onInstalledByChange={setInstalledBy}
-              onInternalNotesChange={setInternalNotes}
-              onStatusChange={setStatus}
-            />
+                {/* Additional Info Section */}
+                <AdditionalInfoSection
+                  customerComment={customerComment}
+                  installedBy={installedBy}
+                  internalNotes={internalNotes}
+                  status={status}
+                  onCustomerCommentChange={setCustomerComment}
+                  onInstalledByChange={setInstalledBy}
+                  onInternalNotesChange={setInternalNotes}
+                  onStatusChange={setStatus}
+                />
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-between">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                className="order-2 sm:order-1"
-                disabled={isSubmitting}
-              >
-                Abbrechen
-              </Button>
-              <div className="flex gap-3 order-1 sm:order-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={!isValid || isSubmitting}
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  Vorschau
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={!isValid || isSubmitting}
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  {isSubmitting ? "Speichert..." : "Speichern"}
-                </Button>
-              </div>
-            </div>
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePrevStep}
+                    className="order-2 sm:order-1"
+                    disabled={isSubmitting}
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Zurück
+                  </Button>
+                  <div className="flex gap-3 order-1 sm:order-2">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={!isValid || isSubmitting}
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      Vorschau
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={!isValid || isSubmitting}
+                    >
+                      <Save className="mr-2 h-4 w-4" />
+                      {isSubmitting ? "Speichert..." : "Speichern"}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
           </form>
         </div>
       </main>
