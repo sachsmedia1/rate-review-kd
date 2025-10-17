@@ -175,42 +175,43 @@ const Reviews = () => {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] pb-8">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header mit Zurück-Button */}
+        <div className="mb-6">
+          <button
+            onClick={() => navigate('/admin/dashboard')}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4"
+          >
+            ← Zurück zum Dashboard
+          </button>
+          
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link
-                to="/admin/dashboard"
-                className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Dashboard</span>
-              </Link>
-              <h1 className="text-2xl font-bold">Bewertungen verwalten</h1>
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Bewertungen verwalten
+              </h1>
             </div>
-            <Button
+            <button
               onClick={() => navigate("/admin/reviews/new")}
-              className="bg-primary hover:bg-primary/90"
+              className="px-6 py-3 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors font-semibold"
             >
-              <Plus className="mr-2 h-4 w-4" />
               Neue Bewertung
-            </Button>
+            </button>
           </div>
         </div>
-      </header>
+        
+        {/* Trennlinie */}
+        <div className="border-t border-gray-800 mb-6"></div>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {/* Status Filter */}
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="bg-[#2d2d2d] border-border">
+            <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
               <SelectValue placeholder="Status wählen" />
             </SelectTrigger>
-            <SelectContent className="bg-[#2d2d2d] border-border">
+            <SelectContent className="bg-gray-800 border-gray-700">
               <SelectItem value="all">Alle</SelectItem>
               <SelectItem value="published">Veröffentlicht</SelectItem>
               <SelectItem value="draft">Entwurf</SelectItem>
@@ -220,10 +221,10 @@ const Reviews = () => {
 
           {/* Category Filter */}
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="bg-[#2d2d2d] border-border">
+            <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
               <SelectValue placeholder="Kategorie wählen" />
             </SelectTrigger>
-            <SelectContent className="bg-[#2d2d2d] border-border">
+            <SelectContent className="bg-gray-800 border-gray-700">
               <SelectItem value="all">Alle Kategorien</SelectItem>
               <SelectItem value="Kaminofen">Kaminofen</SelectItem>
               <SelectItem value="Neubau Kaminanlage">Neubau Kaminanlage</SelectItem>
@@ -239,9 +240,9 @@ const Reviews = () => {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setCurrentPage(1); // Reset to first page on search
+              setCurrentPage(1);
             }}
-            className="bg-[#2d2d2d] border-border"
+            className="bg-gray-800 border-gray-700 text-white"
           />
         </div>
 
@@ -253,37 +254,34 @@ const Reviews = () => {
         ) : reviews.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
             <p className="text-xl mb-4">Keine Bewertungen gefunden</p>
-            <Button
+            <button
               onClick={() => navigate("/admin/reviews/new")}
-              className="bg-primary hover:bg-primary/90"
+              className="px-6 py-3 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors font-semibold"
             >
-              <Plus className="mr-2 h-4 w-4" />
               Erste Bewertung erstellen
-            </Button>
+            </button>
           </div>
         ) : (
           <>
-            <div className="rounded-lg border border-border overflow-hidden">
+            <div className="bg-gray-800 rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-[#1f1f1f] border-b border-border">
+                  <thead className="bg-gray-900 border-b border-gray-700">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Kunde</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Stadt</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Kategorie</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Durchschnitt</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Datum</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium">Aktionen</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Status</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Kunde</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Stadt</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Kategorie</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Durchschnitt</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Datum</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Aktionen</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-[#1f1f1f] divide-y divide-border/50">
+                  <tbody className="bg-gray-800 divide-y divide-gray-700">
                     {reviews.map((review, index) => (
                       <tr
                         key={review.id}
-                        className={`hover:bg-primary/5 transition-colors ${
-                          index % 2 === 1 ? "bg-[#252525]" : ""
-                        }`}
+                        className="hover:bg-gray-700/50 transition-colors"
                       >
                         <td className="px-4 py-3">
                           {getStatusIcon(review.status)}
@@ -392,29 +390,29 @@ const Reviews = () => {
             )}
           </>
         )}
-      </main>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Bewertung löschen?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Diese Aktion kann nicht rückgängig gemacht werden. Die Bewertung wird
-              dauerhaft gelöscht.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Löschen
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent className="bg-gray-800 border-gray-700">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-white">Bewertung löschen?</AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-400">
+                Diese Aktion kann nicht rückgängig gemacht werden. Die Bewertung wird
+                dauerhaft gelöscht.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-gray-700 hover:bg-gray-600 text-white">Abbrechen</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-red-600 text-white hover:bg-red-700"
+              >
+                Löschen
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
 };

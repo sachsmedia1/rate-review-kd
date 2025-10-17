@@ -1,33 +1,31 @@
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { ReviewForm } from "@/components/admin/ReviewForm";
 
 const NewReview = () => {
+  const navigate = useNavigate();
+  
   return (
-    <div className="min-h-screen bg-background pb-8">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <Link
-            to="/admin/dashboard"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+    <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
+      <div className="max-w-3xl mx-auto">
+        {/* Header mit Zurück-Button */}
+        <div className="mb-6">
+          <button
+            onClick={() => navigate('/admin/dashboard')}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4"
           >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Zurück</span>
-          </Link>
+            ← Zurück zum Dashboard
+          </button>
+          
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Neue Bewertung erstellen
+          </h1>
         </div>
-      </header>
+        
+        {/* Trennlinie */}
+        <div className="border-t border-gray-800 mb-6"></div>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 sm:py-8">
-        <div className="max-w-3xl mx-auto space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Neue Bewertung erstellen</h1>
-          </div>
-
-          <ReviewForm mode="create" />
-        </div>
-      </main>
+        <ReviewForm mode="create" />
+      </div>
     </div>
   );
 };

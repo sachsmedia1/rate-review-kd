@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { checkUserRole } from "@/lib/auth";
@@ -67,8 +66,8 @@ const EditReview = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
       </div>
     );
   }
@@ -78,34 +77,31 @@ const EditReview = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <Link
-            to="/admin/reviews"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+    <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
+      <div className="max-w-3xl mx-auto">
+        {/* Header mit Zurück-Button */}
+        <div className="mb-6">
+          <button
+            onClick={() => navigate('/admin/reviews')}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4"
           >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Zurück zur Liste</span>
-          </Link>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 sm:py-8">
-        <div className="max-w-3xl mx-auto space-y-6">
+            ← Zurück zur Liste
+          </button>
+          
           <div>
-            <h1 className="text-3xl font-bold mb-2">Bewertung bearbeiten</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl font-bold text-white mb-2">Bewertung bearbeiten</h1>
+            <p className="text-gray-400">
               {existingReview.customer_salutation} {existingReview.customer_lastname},{" "}
               {existingReview.city}
             </p>
           </div>
-
-          <ReviewForm mode="edit" existingData={existingReview} reviewId={id} />
         </div>
-      </main>
+        
+        {/* Trennlinie */}
+        <div className="border-t border-gray-800 mb-6"></div>
+
+        <ReviewForm mode="edit" existingData={existingReview} reviewId={id} />
+      </div>
     </div>
   );
 };

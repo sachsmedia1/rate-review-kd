@@ -152,20 +152,38 @@ const Customers = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">📊 Kundenkarte</h1>
-          <p className="text-muted-foreground">Übersicht und Analyse aller Projekte</p>
+    <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header mit Zurück-Button */}
+        <div className="mb-6">
+          <button
+            onClick={() => navigate('/admin/dashboard')}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4"
+          >
+            ← Zurück zum Dashboard
+          </button>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Kundenkarte
+              </h1>
+              <p className="text-gray-400">
+                Übersicht und Analyse aller Projekte
+              </p>
+            </div>
+          </div>
         </div>
+        
+        {/* Trennlinie */}
+        <div className="border-t border-gray-800 mb-6"></div>
 
         {/* Filter-Leiste */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <select 
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-4 py-2 bg-card border border-border rounded-lg text-foreground"
+            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
           >
             <option value="all">Alle Kategorien</option>
             <option value="Kaminofen">Kaminofen</option>
@@ -181,21 +199,21 @@ const Customers = () => {
               placeholder="PLZ von"
               value={plzFrom}
               onChange={(e) => setPlzFrom(e.target.value.replace(/\D/g, "").substring(0, 5))}
-              className="w-1/2 px-4 py-2 bg-card border border-border rounded-lg text-foreground"
+              className="w-1/2 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
             />
             <input
               type="text"
               placeholder="PLZ bis"
               value={plzTo}
               onChange={(e) => setPlzTo(e.target.value.replace(/\D/g, "").substring(0, 5))}
-              className="w-1/2 px-4 py-2 bg-card border border-border rounded-lg text-foreground"
+              className="w-1/2 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
             />
           </div>
           
           <select
             value={teamFilter}
             onChange={(e) => setTeamFilter(e.target.value)}
-            className="px-4 py-2 bg-card border border-border rounded-lg text-foreground"
+            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
           >
             <option value="all">Alle Teams</option>
             {uniqueTeams.map(team => (
@@ -206,7 +224,7 @@ const Customers = () => {
           <select
             value={timeFilter}
             onChange={(e) => setTimeFilter(e.target.value)}
-            className="px-4 py-2 bg-card border border-border rounded-lg text-foreground"
+            className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
           >
             <option value="all">Gesamter Zeitraum</option>
             <option value="last30">Letzte 30 Tage</option>
@@ -219,37 +237,37 @@ const Customers = () => {
         {/* Export-Button */}
         <button
           onClick={handleExportCSV}
-          className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors mb-6"
+          className="px-6 py-3 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors mb-6"
         >
-          📥 Als CSV exportieren
+          Als CSV exportieren
         </button>
 
         {/* Statistik-Karten */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-card rounded-lg p-4">
-            <div className="text-3xl font-bold text-primary">{stats.kaminofen}</div>
-            <div className="text-sm text-muted-foreground">Kaminofen</div>
+          <div className="bg-gray-800 rounded-lg p-4">
+            <div className="text-3xl font-bold text-orange-500">{stats.kaminofen}</div>
+            <div className="text-sm text-gray-400">Kaminofen</div>
           </div>
           
-          <div className="bg-card rounded-lg p-4">
-            <div className="text-3xl font-bold text-primary">{stats.neubau}</div>
-            <div className="text-sm text-muted-foreground">Neubau Kaminanlage</div>
+          <div className="bg-gray-800 rounded-lg p-4">
+            <div className="text-3xl font-bold text-orange-500">{stats.neubau}</div>
+            <div className="text-sm text-gray-400">Neubau Kaminanlage</div>
           </div>
           
-          <div className="bg-card rounded-lg p-4">
-            <div className="text-3xl font-bold text-primary">{stats.austauschKamineinsatz}</div>
-            <div className="text-sm text-muted-foreground">Austausch Kamineinsatz</div>
+          <div className="bg-gray-800 rounded-lg p-4">
+            <div className="text-3xl font-bold text-orange-500">{stats.austauschKamineinsatz}</div>
+            <div className="text-sm text-gray-400">Austausch Kamineinsatz</div>
           </div>
           
-          <div className="bg-card rounded-lg p-4">
-            <div className="text-3xl font-bold text-primary">{stats.kaminkassette}</div>
-            <div className="text-sm text-muted-foreground">Kaminkassette</div>
+          <div className="bg-gray-800 rounded-lg p-4">
+            <div className="text-3xl font-bold text-orange-500">{stats.kaminkassette}</div>
+            <div className="text-sm text-gray-400">Kaminkassette</div>
           </div>
         </div>
 
         {/* Regional-Verteilung Chart */}
-        <div className="bg-card rounded-lg p-6 mb-6">
-          <h3 className="text-xl font-bold text-foreground mb-4">Regional-Verteilung nach PLZ-Bereichen</h3>
+        <div className="bg-gray-800 rounded-lg p-6 mb-6">
+          <h3 className="text-xl font-bold text-white mb-4">Regional-Verteilung nach PLZ-Bereichen</h3>
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <defs>
@@ -271,34 +289,34 @@ const Customers = () => {
         </div>
 
         {/* Kunden-Tabelle */}
-        <div className="bg-card rounded-lg overflow-hidden mb-6">
+        <div className="bg-gray-800 rounded-lg overflow-hidden mb-6">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-muted">
+              <thead className="bg-gray-900">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground">Kunde</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground">PLZ</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground">Stadt</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground">Kategorie</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground">Team</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground">Ø</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground">Datum</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground">Status</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-muted-foreground">Aktionen</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Kunde</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">PLZ</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Stadt</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Kategorie</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Team</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Ø</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Datum</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Status</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-400">Aktionen</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredReviews.map((review) => (
-                  <tr key={review.id} className="border-t border-border hover:bg-muted/50">
-                    <td className="px-4 py-3 text-foreground">{review.customer_salutation} {review.customer_lastname}</td>
-                    <td className="px-4 py-3 text-foreground">{review.postal_code}</td>
-                    <td className="px-4 py-3 text-foreground">{review.city}</td>
-                    <td className="px-4 py-3 text-sm text-foreground">{review.product_category}</td>
-                    <td className="px-4 py-3 text-sm text-foreground">{review.installed_by || "-"}</td>
+                  <tr key={review.id} className="border-t border-gray-700 hover:bg-gray-700/50">
+                    <td className="px-4 py-3 text-white">{review.customer_salutation} {review.customer_lastname}</td>
+                    <td className="px-4 py-3 text-white">{review.postal_code}</td>
+                    <td className="px-4 py-3 text-white">{review.city}</td>
+                    <td className="px-4 py-3 text-sm text-white">{review.product_category}</td>
+                    <td className="px-4 py-3 text-sm text-white">{review.installed_by || "-"}</td>
                     <td className="px-4 py-3">
-                      <span className="text-primary">🔥 {review.average_rating?.toFixed(1)}</span>
+                      <span className="text-orange-500">🔥 {review.average_rating?.toFixed(1)}</span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-foreground">
+                    <td className="px-4 py-3 text-sm text-white">
                       {new Date(review.installation_date).toLocaleDateString("de-DE")}
                     </td>
                     <td className="px-4 py-3">
@@ -321,35 +339,35 @@ const Customers = () => {
 
         {/* Team-Performance */}
         {teamFilter !== "all" && teamStats && (
-          <div className="bg-card rounded-lg p-6">
-            <h3 className="text-xl font-bold text-foreground mb-4">Team-Performance: {teamFilter}</h3>
+          <div className="bg-gray-800 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">Team-Performance: {teamFilter}</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
-                <div className="text-2xl font-bold text-primary">
+                <div className="text-2xl font-bold text-orange-500">
                   ⚡ {teamStats.average.toFixed(2)}
                 </div>
-                <div className="text-sm text-muted-foreground">Durchschnittsbewertung</div>
+                <div className="text-sm text-gray-400">Durchschnittsbewertung</div>
               </div>
               
               <div>
-                <div className="text-2xl font-bold text-primary">
+                <div className="text-2xl font-bold text-orange-500">
                   {teamStats.total}
                 </div>
-                <div className="text-sm text-muted-foreground">Montagen gesamt</div>
+                <div className="text-sm text-gray-400">Montagen gesamt</div>
               </div>
               
               <div>
                 <div className="text-2xl font-bold text-green-500">
                   🔥 {teamStats.bestCategory}
                 </div>
-                <div className="text-sm text-muted-foreground">Beste Kategorie</div>
+                <div className="text-sm text-gray-400">Beste Kategorie</div>
               </div>
             </div>
             
             <div>
-              <h4 className="font-semibold text-foreground mb-2">Detailbewertungen:</h4>
-              <div className="space-y-1 text-sm text-foreground">
+              <h4 className="font-semibold text-white mb-2">Detailbewertungen:</h4>
+              <div className="space-y-1 text-sm text-white">
                 <div>Beratung: 🔥 {teamStats.ratings.consultation.toFixed(2)}</div>
                 <div>Gefahrenanalyse: 🔥 {teamStats.ratings.fire_safety.toFixed(2)}</div>
                 <div>Heizleistung: 🔥 {teamStats.ratings.heating_performance.toFixed(2)}</div>
