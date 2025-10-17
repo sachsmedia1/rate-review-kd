@@ -41,10 +41,26 @@ const formSchema = z.object({
     .string()
     .min(1, "Stadt ist erforderlich")
     .max(100, "Stadt ist zu lang"),
-  installation_date: z.date({
+  installation_date: z.string({
     required_error: "Montagedatum ist erforderlich",
-  }).refine((date) => date <= new Date(), {
-    message: "Datum darf nicht in der Zukunft liegen",
+  }).refine((dateStr) => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime());
+  }, {
+    message: "Ungültiges Datum",
+  }).refine((dateStr) => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date <= today;
+  }, {
+    message: "Das Datum darf nicht in der Zukunft liegen",
+  }).refine((dateStr) => {
+    const date = new Date(dateStr);
+    return date.getFullYear() >= 1900;
+  }, {
+    message: "Das Datum ist zu weit in der Vergangenheit",
   }),
   product_category: z.enum(
     [
@@ -79,8 +95,6 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
   const [currentStep, setCurrentStep] = useState<1 | 2>(1);
   const [dateDisplayValue, setDateDisplayValue] = useState(""); // TT.MM.JJJJ
   const [isoDateValue, setIsoDateValue] = useState(""); // YYYY-MM-DD
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
   // Image states
   const [beforeImage, setBeforeImage] = useState<File | null>(null);
@@ -136,17 +150,14 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
           customer_lastname: existingData.customer_lastname,
           postal_code: existingData.postal_code,
           city: existingData.city,
-          installation_date: new Date(existingData.installation_date),
+          installation_date: existingData.installation_date,
           product_category: existingData.product_category,
         }
-      : {
-          installation_date: new Date(),
-        },
+      : {},
   });
 
   const salutation = watch("customer_salutation");
   const category = watch("product_category");
-  const installationDate = watch("installation_date");
 
   // Generate image previews for new uploads
   useEffect(() => {
@@ -171,12 +182,6 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
     }
   }, [afterImage]);
 
-  // Detect mobile device
-  useEffect(() => {
-    const checkMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    setIsMobile(checkMobile);
-  }, []);
-
   // Initialize date display in edit mode
   useEffect(() => {
     if (existingData?.installation_date) {
@@ -185,19 +190,6 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
       setDateDisplayValue(formatToGerman(isoDate));
     }
   }, [existingData]);
-
-  // Click outside closes date picker
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (showDatePicker && !target.closest(".date-picker-container")) {
-        setShowDatePicker(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showDatePicker]);
 
   // Convert TT.MM.JJJJ → YYYY-MM-DD
   const parseGermanDate = (dateStr: string): string | null => {
@@ -234,48 +226,60 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
   const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/[^\d.]/g, ""); // Only numbers and dots
 
-    // Auto-format: Automatically insert dots
-    if (value.length >= 2 && value[2] !== "." && value.length === 2) {
-      value += ".";
-    }
-    if (value.length >= 5 && value[5] !== "." && value.split(".").length === 2) {
-      value += ".";
+    // Parse parts
+    const parts = value.split(".");
+
+    // First part (day): Max 2 digits
+    if (parts[0] && parts[0].length > 2) {
+      parts[0] = parts[0].substring(0, 2);
     }
 
-    // Max 10 characters (TT.MM.JJJJ)
+    // Second part (month): Max 2 digits
+    if (parts[1] && parts[1].length > 2) {
+      parts[1] = parts[1].substring(0, 2);
+    }
+
+    // Third part (year): Max 4 digits
+    if (parts[2] && parts[2].length > 4) {
+      parts[2] = parts[2].substring(0, 4);
+    }
+
+    // Auto-add dots
+    if (parts[0] && parts[0].length === 2 && !value.includes(".")) {
+      value = parts[0] + ".";
+    } else if (parts.length === 2 && parts[1].length === 2 && value.split(".").length === 2) {
+      value = parts[0] + "." + parts[1] + ".";
+    } else {
+      value = parts.join(".");
+    }
+
+    // Max 10 characters
     if (value.length > 10) {
       value = value.substring(0, 10);
     }
 
     setDateDisplayValue(value);
 
-    // Try to parse if complete
+    // Parse when complete (10 chars = DD.MM.YYYY)
     if (value.length === 10) {
       const parsed = parseGermanDate(value);
       if (parsed) {
         setIsoDateValue(parsed);
-        setValue("installation_date", new Date(parsed), { shouldValidate: true });
+        setValue("installation_date", parsed, { shouldValidate: true });
         clearErrors("installation_date");
       } else {
         setError("installation_date", {
           type: "manual",
-          message: "Ungültiges Datum. Format: TT.MM.JJJJ (z.B. 15.10.2024)",
+          message: "Ungültiges Datum. Bitte prüfen Sie Tag, Monat und Jahr.",
         });
       }
+    } else {
+      // Incomplete input → no error yet
+      clearErrors("installation_date");
     }
   };
 
-  // Handle date picker selection
-  const handleDatePickerSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value; // YYYY-MM-DD
-    setIsoDateValue(value);
-    setDateDisplayValue(formatToGerman(value));
-    setValue("installation_date", new Date(value), { shouldValidate: true });
-    clearErrors("installation_date");
-    setShowDatePicker(false);
-  };
-
-const shouldRegenerateSlug = (oldData: any, newData: FormData): boolean => {
+  const shouldRegenerateSlug = (oldData: any, newData: FormData): boolean => {
     return (
       oldData.customer_lastname !== newData.customer_lastname ||
       oldData.city !== newData.city ||
@@ -289,7 +293,7 @@ const shouldRegenerateSlug = (oldData: any, newData: FormData): boolean => {
     product_category: string;
     customer_lastname: string;
     city: string;
-    installation_date: Date;
+    installation_date: string;
   }): string => {
     const year = new Date(data.installation_date).getFullYear();
 
@@ -469,7 +473,7 @@ const shouldRegenerateSlug = (oldData: any, newData: FormData): boolean => {
         customer_lastname: data.customer_lastname,
         postal_code: data.postal_code,
         city: data.city,
-        installation_date: format(data.installation_date, "yyyy-MM-dd"),
+        installation_date: data.installation_date,
         product_category: data.product_category,
         before_image_url: beforeImageUrl,
         after_image_url: afterImageUrl,
@@ -726,84 +730,34 @@ const shouldRegenerateSlug = (oldData: any, newData: FormData): boolean => {
                     Montagedatum <span className="text-destructive">*</span>
                   </Label>
 
-                  {isMobile ? (
-                    // Mobile: Native Date Input
-                    <Input
-                      type="date"
-                      value={isoDateValue}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setIsoDateValue(value);
-                        setDateDisplayValue(formatToGerman(value));
-                        setValue("installation_date", new Date(value), {
-                          shouldValidate: true,
-                        });
-                      }}
-                      max={new Date().toISOString().split("T")[0]}
-                      className={cn(
-                        errors.installation_date && "border-destructive"
-                      )}
-                    />
-                  ) : (
-                    // Desktop: Combined Field with Overlay
-                    <div className="relative date-picker-container">
-                      <Input
-                        type="text"
-                        placeholder="TT.MM.JJJJ oder Kalender nutzen"
-                        value={dateDisplayValue}
-                        onChange={handleDateInputChange}
-                        onFocus={() => setShowDatePicker(true)}
-                        className={cn(
-                          "pr-12 transition-colors",
-                          dateDisplayValue && parseGermanDate(dateDisplayValue)
-                            ? "border-green-500 focus-visible:ring-green-500"
-                            : errors.installation_date
-                            ? "border-destructive focus-visible:ring-destructive"
-                            : ""
-                        )}
-                      />
+                  <Input
+                    type="text"
+                    placeholder="TT.MM.JJJJ (z.B. 15.10.2024)"
+                    value={dateDisplayValue}
+                    onChange={handleDateInputChange}
+                    className={cn(
+                      "transition-colors",
+                      dateDisplayValue && parseGermanDate(dateDisplayValue)
+                        ? "border-green-500 focus-visible:ring-green-500"
+                        : errors.installation_date
+                        ? "border-destructive focus-visible:ring-destructive"
+                        : ""
+                    )}
+                  />
 
-                      {/* Calendar Icon */}
-                      <button
-                        type="button"
-                        onClick={() => setShowDatePicker(!showDatePicker)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors text-xl"
-                      >
-                        📅
-                      </button>
-
-                      {/* Date Picker Overlay */}
-                      {showDatePicker && (
-                        <div className="date-picker-container absolute top-full left-0 mt-2 z-10 bg-background border border-border rounded-lg shadow-xl p-3">
-                          <input
-                            type="date"
-                            value={isoDateValue}
-                            onChange={handleDatePickerSelect}
-                            max={new Date().toISOString().split("T")[0]}
-                            className="bg-muted text-foreground border border-border rounded p-2 w-full"
-                            autoFocus
-                          />
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() => setShowDatePicker(false)}
-                            className="w-full mt-2"
-                            size="sm"
-                          >
-                            Schließen
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {/* Hidden input for React Hook Form */}
+                  <input
+                    type="hidden"
+                    {...register("installation_date")}
+                    value={isoDateValue}
+                  />
 
                   {errors.installation_date && (
                     <p className="text-sm text-destructive">{errors.installation_date.message}</p>
                   )}
 
                   <p className="text-xs text-muted-foreground">
-                    💡 Geben Sie das Datum manuell ein (z.B. 15.10.2024) oder klicken Sie auf 📅 für
-                    den Kalender
+                    Geben Sie das Datum im Format TT.MM.JJJJ ein (z.B. 15.10.2024)
                   </p>
                 </div>
               </CardContent>
