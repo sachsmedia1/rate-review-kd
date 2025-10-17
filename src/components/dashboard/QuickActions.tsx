@@ -1,6 +1,11 @@
 import { useNavigate } from "react-router-dom";
+import { AppRole } from "@/types";
 
-const QuickActions = () => {
+interface QuickActionsProps {
+  userRole?: AppRole | null;
+}
+
+const QuickActions = ({ userRole }: QuickActionsProps) => {
   const navigate = useNavigate();
   
   return (
@@ -32,6 +37,15 @@ const QuickActions = () => {
       >
         Bilderverwaltung
       </button>
+      
+      {userRole === 'admin' && (
+        <button
+          onClick={() => navigate('/admin/users')}
+          className="px-6 py-3 bg-muted text-foreground hover:bg-muted/80 rounded-lg transition-colors"
+        >
+          Nutzerverwaltung
+        </button>
+      )}
     </div>
   );
 };

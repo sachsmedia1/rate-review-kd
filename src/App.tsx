@@ -12,6 +12,7 @@ import Reviews from "./pages/admin/Reviews";
 import EditReview from "./pages/admin/EditReview";
 import Customers from "./pages/admin/Customers";
 import Images from "./pages/admin/Images";
+import Users from "./pages/admin/Users";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -72,6 +73,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Images />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute>
+                <Users />
               </ProtectedRoute>
             }
           />

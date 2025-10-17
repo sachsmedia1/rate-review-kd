@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { getCurrentUser, getUserProfile, checkUserRole, signOut } from "@/lib/auth";
-import { Flame, LogOut } from "lucide-react";
+import { Flame, LogOut, Users } from "lucide-react";
 import { AppRole } from "@/types";
 import StatCard from "@/components/dashboard/StatCard";
 import QuickActions from "@/components/dashboard/QuickActions";
@@ -151,7 +151,7 @@ const Dashboard = () => {
         {/* Quick Actions */}
         <div>
           <h3 className="text-xl font-semibold mb-4">Schnellaktionen</h3>
-          <QuickActions />
+          <QuickActions userRole={userRole} />
         </div>
 
         {/* Recent Reviews Table */}
