@@ -1,17 +1,26 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { getCurrentUser, getUserProfile, checkUserRole, signOut } from "@/lib/auth";
-import { Flame, LogOut, User } from "lucide-react";
+import { Flame, LogOut } from "lucide-react";
 import { AppRole } from "@/types";
+import StatCard from "@/components/dashboard/StatCard";
+import QuickActions from "@/components/dashboard/QuickActions";
+import RecentReviewsTable from "@/components/dashboard/RecentReviewsTable";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useRecentReviews } from "@/hooks/useRecentReviews";
 
 const Dashboard = () => {
-  const [userName, setUserName] = useState<string>("");
+  const [userFirstName, setUserFirstName] = useState<string>("");
+  const [userLastName, setUserLastName] = useState<string>("");
   const [userRole, setUserRole] = useState<AppRole | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  const { stats, isLoading: statsLoading } = useDashboardStats();
+  const { reviews, isLoading: reviewsLoading } = useRecentReviews(5);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -21,12 +30,8 @@ const Dashboard = () => {
         const role = await checkUserRole(user.id);
         
         if (profile) {
-          const fullName = [profile.firstname, profile.lastname]
-            .filter(Boolean)
-            .join(" ");
-          setUserName(fullName || profile.email);
-        } else {
-          setUserName(user.email || "");
+          setUserFirstName(profile.firstname || "");
+          setUserLastName(profile.lastname || "");
         }
         
         setUserRole(role);
@@ -56,66 +61,105 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Flame className="w-5 h-5 text-primary" />
+      {/* Header */}
+      <header className="border-b border-border/50 bg-card/50 backdrop-blur sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Flame className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-lg sm:text-xl font-bold">Kamindoktor Admin</h1>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Dashboard</p>
+                </div>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold">Kamindoktor</h1>
-              <p className="text-sm text-muted-foreground">Admin Dashboard</p>
+            
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-sm font-medium">
+                    {userFirstName && userLastName && `${userFirstName} ${userLastName}`}
+                  </p>
+                  {userRole && (
+                    <Badge variant={userRole === "admin" ? "default" : "secondary"} className="text-xs">
+                      {userRole === "admin" ? "Administrator" : "Nutzer"}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <Button variant="outline" onClick={handleSignOut} size="sm">
+                <LogOut className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Abmelden</span>
+              </Button>
             </div>
           </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Abmelden
-          </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5" />
-                Willkommen im Dashboard
-              </CardTitle>
-              <CardDescription>
-                {userName && `Angemeldet als: ${userName}`}
-                {userRole && ` (${userRole === 'admin' ? 'Administrator' : 'Benutzer'})`}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Das Dashboard wird in Kürze mit Funktionen zur Verwaltung von Bewertungen erweitert.
-              </p>
-            </CardContent>
-          </Card>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Bewertungen</CardTitle>
-                <CardDescription>Kunden-Bewertungen verwalten</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">Coming soon...</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Statistiken</CardTitle>
-                <CardDescription>Übersicht und Analysen</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">Coming soon...</p>
-              </CardContent>
-            </Card>
-          </div>
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-6 sm:py-8 space-y-6 sm:space-y-8">
+        {/* Welcome Section - Mobile */}
+        <div className="sm:hidden space-y-2">
+          <h2 className="text-2xl font-bold">
+            Willkommen, {userFirstName || "Admin"}
+          </h2>
+          {userRole && (
+            <Badge variant={userRole === "admin" ? "default" : "secondary"}>
+              {userRole === "admin" ? "Administrator" : "Nutzer"}
+            </Badge>
+          )}
         </div>
+
+        {/* Welcome Section - Desktop */}
+        <div className="hidden sm:block">
+          <h2 className="text-3xl font-bold">
+            Willkommen, {userFirstName} {userLastName}
+          </h2>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="Bewertungen gesamt"
+            value={stats.totalReviews}
+            icon="📊"
+            isLoading={statsLoading}
+          />
+          <StatCard
+            title="Entwürfe"
+            value={stats.draftReviews}
+            icon="📝"
+            isLoading={statsLoading}
+          />
+          <StatCard
+            title="Durchschnitt (Flammen)"
+            value={stats.averageRating.toFixed(1)}
+            icon="⚡"
+            isLoading={statsLoading}
+          />
+          <StatCard
+            title="Heute hinzugefügt"
+            value={stats.todayReviews}
+            icon="📅"
+            isLoading={statsLoading}
+          />
+        </div>
+
+        {/* Quick Actions */}
+        <div>
+          <h3 className="text-xl font-semibold mb-4">Schnellaktionen</h3>
+          <QuickActions />
+        </div>
+
+        {/* Recent Reviews Table */}
+        <RecentReviewsTable 
+          reviews={reviews} 
+          isLoading={reviewsLoading}
+          userRole={userRole}
+        />
       </main>
     </div>
   );
