@@ -209,7 +209,7 @@ const Index = () => {
       <div className="bg-gradient-to-b from-orange-900/20 to-transparent py-16 px-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center">
-            Kaminbau Tino Schmolke - Kundenbewertungen
+            Der Kamindoktor - Unsere Kundenbewertungen
           </h1>
           <p className="text-lg md:text-xl text-gray-300 text-center mb-8">
             Authentische Erfahrungen unserer zufriedenen Kunden
