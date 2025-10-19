@@ -4,29 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Search, MapPin, Calendar, TrendingUp } from "lucide-react";
 import { renderFlames } from "@/lib/renderFlames";
 import { Helmet } from "react-helmet-async";
-
-interface Review {
-  id: string;
-  slug: string;
-  customer_salutation: string;
-  customer_lastname: string;
-  city: string;
-  postal_code: string;
-  product_category: string;
-  installation_date: string;
-  customer_comment: string;
-  rating_consultation: number;
-  rating_fire_safety: number;
-  rating_heating_performance: number;
-  rating_aesthetics: number;
-  rating_installation_quality: number;
-  rating_service: number;
-  average_rating: number;
-  is_published: boolean;
-  before_image_url?: string;
-  after_image_url?: string;
-  created_at: string;
-}
+import { Review } from "@/types";
 
 interface LocationStats {
   location: string;

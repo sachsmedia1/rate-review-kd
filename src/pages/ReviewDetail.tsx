@@ -4,29 +4,7 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { renderFlames } from "@/lib/renderFlames";
 import { ArrowLeft, MapPin, Calendar } from "lucide-react";
-
-interface Review {
-  id: string;
-  slug: string;
-  customer_salutation: string;
-  customer_firstname: string;
-  customer_lastname: string;
-  city: string;
-  postal_code: string;
-  product_category: string;
-  installation_date: string;
-  customer_comment: string | null;
-  rating_consultation: number;
-  rating_installation_quality: number;
-  rating_service: number;
-  rating_aesthetics: number;
-  rating_fire_safety?: number | null;
-  rating_heating_performance?: number | null;
-  average_rating: number;
-  is_published: boolean;
-  before_image_url?: string | null;
-  after_image_url?: string | null;
-}
+import { Review } from "@/types";
 
 interface SimilarReview {
   id: string;
@@ -68,7 +46,7 @@ const ReviewDetail = () => {
         return;
       }
 
-      setReview(reviewData);
+      setReview(reviewData as Review);
 
       // Fetch similar reviews (same category)
       const { data: similarData } = await supabase
