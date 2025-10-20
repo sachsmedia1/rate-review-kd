@@ -432,71 +432,43 @@ const Index = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-300">Beratung</span>
-                <div className="flex items-center gap-2">
-                  <div className="flex">
-                    {renderFlames(overallRatings.consultation)}
-                  </div>
-                  <span className="text-sm font-semibold text-orange-500 w-8">
-                    {overallRatings.consultation.toFixed(1)}
-                  </span>
+                <div className="flex">
+                  {renderFlames(overallRatings.consultation)}
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-300">Gefahrenanalyse</span>
-                <div className="flex items-center gap-2">
-                  <div className="flex">
-                    {renderFlames(overallRatings.fire_safety)}
-                  </div>
-                  <span className="text-sm font-semibold text-orange-500 w-8">
-                    {overallRatings.fire_safety.toFixed(1)}
-                  </span>
+                <div className="flex">
+                  {renderFlames(overallRatings.fire_safety)}
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-300">Heizleistung</span>
-                <div className="flex items-center gap-2">
-                  <div className="flex">
-                    {renderFlames(overallRatings.heating_performance)}
-                  </div>
-                  <span className="text-sm font-semibold text-orange-500 w-8">
-                    {overallRatings.heating_performance.toFixed(1)}
-                  </span>
+                <div className="flex">
+                  {renderFlames(overallRatings.heating_performance)}
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-300">Optik</span>
-                <div className="flex items-center gap-2">
-                  <div className="flex">
-                    {renderFlames(overallRatings.aesthetics)}
-                  </div>
-                  <span className="text-sm font-semibold text-orange-500 w-8">
-                    {overallRatings.aesthetics.toFixed(1)}
-                  </span>
+                <div className="flex">
+                  {renderFlames(overallRatings.aesthetics)}
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-300">Professionalität</span>
-                <div className="flex items-center gap-2">
-                  <div className="flex">
-                    {renderFlames(overallRatings.installation_quality)}
-                  </div>
-                  <span className="text-sm font-semibold text-orange-500 w-8">
-                    {overallRatings.installation_quality.toFixed(1)}
-                  </span>
+                <div className="flex">
+                  {renderFlames(overallRatings.installation_quality)}
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-300">Service</span>
-                <div className="flex items-center gap-2">
-                  <div className="flex">{renderFlames(overallRatings.service)}</div>
-                  <span className="text-sm font-semibold text-orange-500 w-8">
-                    {overallRatings.service.toFixed(1)}
-                  </span>
+                <div className="flex">
+                  {renderFlames(overallRatings.service)}
                 </div>
               </div>
             </div>
@@ -600,56 +572,50 @@ const Index = () => {
 
                     {/* Detail-Bewertungen */}
                     <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span>💬</span>
-                        <span className="text-gray-400">Beratung:</span>
-                        <span className="font-semibold text-orange-500">
-                          {review.rating_consultation.toFixed(1)}
-                        </span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">Beratung</span>
+                        <div className="flex text-xs">
+                          {renderFlames(review.rating_consultation)}
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <span>🧹</span>
-                        <span className="text-gray-400">Service:</span>
-                        <span className="font-semibold text-orange-500">
-                          {review.rating_service.toFixed(1)}
-                        </span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">Service</span>
+                        <div className="flex text-xs">
+                          {renderFlames(review.rating_service)}
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <span>🔧</span>
-                        <span className="text-gray-400">Qualität:</span>
-                        <span className="font-semibold text-orange-500">
-                          {review.rating_installation_quality.toFixed(1)}
-                        </span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">Professionalität</span>
+                        <div className="flex text-xs">
+                          {renderFlames(review.rating_installation_quality)}
+                        </div>
                       </div>
 
                       {review.rating_fire_safety !== null && review.rating_fire_safety !== undefined && (
-                        <div className="flex items-center gap-2">
-                          <span>⚠️</span>
-                          <span className="text-gray-400">Sicherheit:</span>
-                          <span className="font-semibold text-orange-500">
-                            {review.rating_fire_safety.toFixed(1)}
-                          </span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400">Gefahrenanalyse</span>
+                          <div className="flex text-xs">
+                            {renderFlames(review.rating_fire_safety)}
+                          </div>
                         </div>
                       )}
 
                       {review.rating_heating_performance !== null && review.rating_heating_performance !== undefined && (
-                        <div className="flex items-center gap-2">
-                          <span>🔥</span>
-                          <span className="text-gray-400">Heizleistung:</span>
-                          <span className="font-semibold text-orange-500">
-                            {review.rating_heating_performance.toFixed(1)}
-                          </span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400">Heizleistung</span>
+                          <div className="flex text-xs">
+                            {renderFlames(review.rating_heating_performance)}
+                          </div>
                         </div>
                       )}
 
-                      <div className="flex items-center gap-2">
-                        <span>✨</span>
-                        <span className="text-gray-400">Optik:</span>
-                        <span className="font-semibold text-orange-500">
-                          {review.rating_aesthetics.toFixed(1)}
-                        </span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">Optik</span>
+                        <div className="flex text-xs">
+                          {renderFlames(review.rating_aesthetics)}
+                        </div>
                       </div>
                     </div>
 

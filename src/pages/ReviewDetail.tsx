@@ -385,84 +385,44 @@ const ReviewDetail = () => {
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Beratungsqualität */}
+              {/* Beratung */}
               <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">💬</span>
-                  <span className="text-white font-medium">Beratungsqualität</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-bold text-white">
-                    {review.rating_consultation.toFixed(1)}
-                  </span>
-                  <div className="flex gap-0.5 text-lg">
-                    {renderFlames(review.rating_consultation)}
-                  </div>
+                <span className="text-white font-medium">Beratung</span>
+                <div className="flex gap-0.5 text-lg">
+                  {renderFlames(review.rating_consultation)}
                 </div>
               </div>
               
-              {/* Verarbeitungsqualität */}
+              {/* Professionalität */}
               <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">🔧</span>
-                  <span className="text-white font-medium">Verarbeitungsqualität</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-bold text-white">
-                    {review.rating_installation_quality.toFixed(1)}
-                  </span>
-                  <div className="flex gap-0.5 text-lg">
-                    {renderFlames(review.rating_installation_quality)}
-                  </div>
+                <span className="text-white font-medium">Professionalität</span>
+                <div className="flex gap-0.5 text-lg">
+                  {renderFlames(review.rating_installation_quality)}
                 </div>
               </div>
               
               {/* Service */}
               <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">🤝</span>
-                  <span className="text-white font-medium">Service</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-bold text-white">
-                    {review.rating_service.toFixed(1)}
-                  </span>
-                  <div className="flex gap-0.5 text-lg">
-                    {renderFlames(review.rating_service)}
-                  </div>
+                <span className="text-white font-medium">Service</span>
+                <div className="flex gap-0.5 text-lg">
+                  {renderFlames(review.rating_service)}
                 </div>
               </div>
               
-              {/* Ästhetik */}
+              {/* Optik */}
               <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">✨</span>
-                  <span className="text-white font-medium">Ästhetik</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-bold text-white">
-                    {review.rating_aesthetics.toFixed(1)}
-                  </span>
-                  <div className="flex gap-0.5 text-lg">
-                    {renderFlames(review.rating_aesthetics)}
-                  </div>
+                <span className="text-white font-medium">Optik</span>
+                <div className="flex gap-0.5 text-lg">
+                  {renderFlames(review.rating_aesthetics)}
                 </div>
               </div>
               
-              {/* Brandsicherheit (optional) */}
+              {/* Gefahrenanalyse (optional) */}
               {review.rating_fire_safety !== null && review.rating_fire_safety !== undefined && (
                 <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">⚠️</span>
-                    <span className="text-white font-medium">Brandsicherheit</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl font-bold text-white">
-                      {review.rating_fire_safety.toFixed(1)}
-                    </span>
-                    <div className="flex gap-0.5 text-lg">
-                      {renderFlames(review.rating_fire_safety)}
-                    </div>
+                  <span className="text-white font-medium">Gefahrenanalyse</span>
+                  <div className="flex gap-0.5 text-lg">
+                    {renderFlames(review.rating_fire_safety)}
                   </div>
                 </div>
               )}
@@ -470,17 +430,9 @@ const ReviewDetail = () => {
               {/* Heizleistung (optional) */}
               {review.rating_heating_performance !== null && review.rating_heating_performance !== undefined && (
                 <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">🔥</span>
-                    <span className="text-white font-medium">Heizleistung</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl font-bold text-white">
-                      {review.rating_heating_performance.toFixed(1)}
-                    </span>
-                    <div className="flex gap-0.5 text-lg">
-                      {renderFlames(review.rating_heating_performance)}
-                    </div>
+                  <span className="text-white font-medium">Heizleistung</span>
+                  <div className="flex gap-0.5 text-lg">
+                    {renderFlames(review.rating_heating_performance)}
                   </div>
                 </div>
               )}
