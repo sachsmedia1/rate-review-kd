@@ -24,8 +24,10 @@ export type Database = {
           created_by: string | null
           customer_comment: string | null
           customer_firstname: string
+          customer_id: string | null
           customer_lastname: string
           customer_salutation: string
+          house_number: string | null
           id: string
           installation_date: string
           installed_by: string | null
@@ -45,6 +47,7 @@ export type Database = {
           rating_service: number | null
           slug: string
           status: string | null
+          street: string | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -57,8 +60,10 @@ export type Database = {
           created_by?: string | null
           customer_comment?: string | null
           customer_firstname: string
+          customer_id?: string | null
           customer_lastname: string
           customer_salutation: string
+          house_number?: string | null
           id?: string
           installation_date: string
           installed_by?: string | null
@@ -78,6 +83,7 @@ export type Database = {
           rating_service?: number | null
           slug: string
           status?: string | null
+          street?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -90,8 +96,10 @@ export type Database = {
           created_by?: string | null
           customer_comment?: string | null
           customer_firstname?: string
+          customer_id?: string | null
           customer_lastname?: string
           customer_salutation?: string
+          house_number?: string | null
           id?: string
           installation_date?: string
           installed_by?: string | null
@@ -111,6 +119,7 @@ export type Database = {
           rating_service?: number | null
           slug?: string
           status?: string | null
+          street?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
