@@ -37,7 +37,7 @@ const ReviewDetail = () => {
       } else if (i === fullFlames + 1 && hasHalfFlame) {
         flames.push(<span key={i} className="text-orange-300">🔥</span>);
       } else {
-        flames.push(<span key={i} className="text-gray-600">🔥</span>);
+        flames.push(<span key={i} className="text-gray-900 opacity-20">🔥</span>);
       }
     }
     return flames;
