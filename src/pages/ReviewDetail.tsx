@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
-import { renderFlames } from "@/lib/renderFlames";
 import { ArrowLeft, MapPin, Calendar } from "lucide-react";
 import { Review } from "@/types";
 
@@ -25,6 +24,23 @@ const ReviewDetail = () => {
   const [error, setError] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [beforeAfterView, setBeforeAfterView] = useState<'before' | 'after' | 'both'>('both');
+
+  const renderFlames = (rating: number) => {
+    const flames = [];
+    const fullFlames = Math.floor(rating);
+    const hasHalfFlame = rating % 1 !== 0;
+    
+    for (let i = 1; i <= 5; i++) {
+      if (i <= fullFlames) {
+        flames.push(<span key={i} className="text-orange-500">🔥</span>);
+      } else if (i === fullFlames + 1 && hasHalfFlame) {
+        flames.push(<span key={i} className="text-orange-300">🔥</span>);
+      } else {
+        flames.push(<span key={i} className="text-gray-600">🔥</span>);
+      }
+    }
+    return flames;
+  };
 
   useEffect(() => {
     const fetchReview = async () => {
