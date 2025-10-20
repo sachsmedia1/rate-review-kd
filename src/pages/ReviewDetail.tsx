@@ -1,3 +1,4 @@
+// Updated: 2025-01-20 - Fixed flame rendering bug with inline implementation
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
