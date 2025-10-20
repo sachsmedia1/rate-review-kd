@@ -18,9 +18,12 @@ export interface Review {
   is_published: boolean;
   
   // Customer data
+  customer_id?: string;
   customer_salutation: CustomerSalutation;
   customer_firstname: string;
   customer_lastname: string;
+  street?: string;
+  house_number?: string;
   postal_code: string;
   city: string;
   installation_date: string;
