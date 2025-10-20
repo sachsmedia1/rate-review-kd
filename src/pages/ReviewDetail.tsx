@@ -406,7 +406,11 @@ const ReviewDetail = () => {
               <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
                 <span className="text-white font-medium">Beratung</span>
                 <div className="flex gap-0.5 text-lg">
-                  {renderFlames(review.rating_consultation)}
+                  {(() => {
+                    const rating = Number(review.rating_consultation) || 0;
+                    console.log('🔥 Beratung rating:', rating, 'Type:', typeof rating);
+                    return renderFlames(rating);
+                  })()}
                 </div>
               </div>
               
@@ -414,7 +418,11 @@ const ReviewDetail = () => {
               <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
                 <span className="text-white font-medium">Professionalität</span>
                 <div className="flex gap-0.5 text-lg">
-                  {renderFlames(review.rating_installation_quality)}
+                  {(() => {
+                    const rating = Number(review.rating_installation_quality) || 0;
+                    console.log('🔥 Professionalität rating:', rating, 'Type:', typeof rating);
+                    return renderFlames(rating);
+                  })()}
                 </div>
               </div>
               
@@ -422,7 +430,11 @@ const ReviewDetail = () => {
               <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
                 <span className="text-white font-medium">Service</span>
                 <div className="flex gap-0.5 text-lg">
-                  {renderFlames(review.rating_service)}
+                  {(() => {
+                    const rating = Number(review.rating_service) || 0;
+                    console.log('🔥 Service rating:', rating, 'Type:', typeof rating);
+                    return renderFlames(rating);
+                  })()}
                 </div>
               </div>
               
@@ -430,7 +442,11 @@ const ReviewDetail = () => {
               <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
                 <span className="text-white font-medium">Optik</span>
                 <div className="flex gap-0.5 text-lg">
-                  {renderFlames(review.rating_aesthetics)}
+                  {(() => {
+                    const rating = Number(review.rating_aesthetics) || 0;
+                    console.log('🔥 Optik rating:', rating, 'Type:', typeof rating);
+                    return renderFlames(rating);
+                  })()}
                 </div>
               </div>
               
@@ -438,9 +454,13 @@ const ReviewDetail = () => {
               {review.rating_fire_safety !== null && review.rating_fire_safety !== undefined && (
                 <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
                   <span className="text-white font-medium">Gefahrenanalyse</span>
-                  <div className="flex gap-0.5 text-lg">
-                    {renderFlames(review.rating_fire_safety)}
-                  </div>
+                    <div className="flex gap-0.5 text-lg">
+                      {(() => {
+                        const rating = Number(review.rating_fire_safety) || 0;
+                        console.log('🔥 Gefahrenanalyse rating:', rating, 'Type:', typeof rating);
+                        return renderFlames(rating);
+                      })()}
+                    </div>
                 </div>
               )}
               
@@ -448,9 +468,13 @@ const ReviewDetail = () => {
               {review.rating_heating_performance !== null && review.rating_heating_performance !== undefined && (
                 <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
                   <span className="text-white font-medium">Heizleistung</span>
-                  <div className="flex gap-0.5 text-lg">
-                    {renderFlames(review.rating_heating_performance)}
-                  </div>
+                    <div className="flex gap-0.5 text-lg">
+                      {(() => {
+                        const rating = Number(review.rating_heating_performance) || 0;
+                        console.log('🔥 Heizleistung rating:', rating, 'Type:', typeof rating);
+                        return renderFlames(rating);
+                      })()}
+                    </div>
                 </div>
               )}
             </div>
