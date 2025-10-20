@@ -23,6 +23,11 @@ import { AdditionalInfoSection } from "@/components/review-form/AdditionalInfoSe
 import { Badge } from "@/components/ui/badge";
 
 const formSchema = z.object({
+  customer_id: z
+    .string()
+    .min(1, "Kunden-ID ist erforderlich")
+    .regex(/^\d+$/, "Kunden-ID darf nur Zahlen enthalten")
+    .max(50, "Kunden-ID ist zu lang"),
   customer_salutation: z.enum(["Herr", "Frau"], {
     required_error: "Bitte wählen Sie eine Anrede",
   }),
@@ -41,6 +46,16 @@ const formSchema = z.object({
     .string()
     .min(1, "Stadt ist erforderlich")
     .max(100, "Stadt ist zu lang"),
+  street: z
+    .string()
+    .max(200, "Straße ist zu lang")
+    .optional()
+    .or(z.literal("")),
+  house_number: z
+    .string()
+    .max(20, "Hausnummer ist zu lang")
+    .optional()
+    .or(z.literal("")),
   installation_date: z.string({
     required_error: "Montagedatum ist erforderlich",
   }).refine((dateStr) => {
@@ -145,11 +160,14 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
     mode: "onChange",
     defaultValues: existingData
       ? {
+          customer_id: existingData.customer_id || "",
           customer_salutation: existingData.customer_salutation,
           customer_firstname: existingData.customer_firstname,
           customer_lastname: existingData.customer_lastname,
           postal_code: existingData.postal_code,
           city: existingData.city,
+          street: existingData.street || "",
+          house_number: existingData.house_number || "",
           installation_date: existingData.installation_date,
           product_category: existingData.product_category,
         }
@@ -468,9 +486,12 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
       const reviewData = {
         slug,
         status,
+        customer_id: data.customer_id,
         customer_salutation: data.customer_salutation,
         customer_firstname: data.customer_firstname,
         customer_lastname: data.customer_lastname,
+        street: data.street || null,
+        house_number: data.house_number || null,
         postal_code: data.postal_code,
         city: data.city,
         installation_date: data.installation_date,
@@ -642,6 +663,24 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
               </CardHeader>
               <CardContent className="space-y-4">
                 
+                {/* Kunden-ID (Pflichtfeld) - ERSTES FELD */}
+                <div className="space-y-2">
+                  <Label htmlFor="customer_id">
+                    Kunden-ID <span className="text-destructive">*</span>
+                  </Label>
+                  <Input 
+                    id="customer_id" 
+                    placeholder="12345" 
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={50}
+                    {...register("customer_id")} 
+                  />
+                  {errors.customer_id && (
+                    <p className="text-sm text-destructive">{errors.customer_id.message}</p>
+                  )}
+                </div>
+
                 {/* Anrede */}
                 <div className="space-y-2">
                   <Label className="text-base">
@@ -696,8 +735,37 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
                   )}
                 </div>
 
-                {/* PLZ & Stadt */}
-                <div className="grid sm:grid-cols-2 gap-4">
+                {/* Straße & Hausnummer (optional) */}
+                <div className="grid sm:grid-cols-[1fr_120px] gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="street">Straße</Label>
+                    <Input 
+                      id="street" 
+                      placeholder="Musterstraße" 
+                      maxLength={200}
+                      {...register("street")} 
+                    />
+                    {errors.street && (
+                      <p className="text-sm text-destructive">{errors.street.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="house_number">Nr.</Label>
+                    <Input 
+                      id="house_number" 
+                      placeholder="42a" 
+                      maxLength={20}
+                      {...register("house_number")} 
+                    />
+                    {errors.house_number && (
+                      <p className="text-sm text-destructive">{errors.house_number.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* PLZ & Ort */}
+                <div className="grid sm:grid-cols-[120px_1fr] gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="postal_code">
                       PLZ <span className="text-destructive">*</span>
@@ -715,7 +783,7 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
 
                   <div className="space-y-2">
                     <Label htmlFor="city">
-                      Stadt <span className="text-destructive">*</span>
+                      Ort <span className="text-destructive">*</span>
                     </Label>
                     <Input id="city" placeholder="Berlin" {...register("city")} />
                     {errors.city && (
