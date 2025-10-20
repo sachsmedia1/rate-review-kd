@@ -7,15 +7,31 @@ import { Review } from "@/types";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface RecentReviewsTableProps {
   reviews: Review[];
   isLoading: boolean;
   userRole: string | null;
+  onReviewDeleted?: () => void;
 }
 
-const RecentReviewsTable = ({ reviews, isLoading, userRole }: RecentReviewsTableProps) => {
+const RecentReviewsTable = ({ reviews, isLoading, userRole, onReviewDeleted }: RecentReviewsTableProps) => {
   const navigate = useNavigate();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reviewToDelete, setReviewToDelete] = useState<string | null>(null);
   
   const getStatusIcon = (status: string) => {
     if (status === "published") {
@@ -37,6 +53,33 @@ const RecentReviewsTable = ({ reviews, isLoading, userRole }: RecentReviewsTable
       "Austausch Kachelofeneinsatz": "Kachel",
     };
     return map[category] || category;
+  };
+
+  const confirmDelete = (id: string) => {
+    setReviewToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!reviewToDelete) return;
+
+    const { error } = await supabase
+      .from("reviews")
+      .delete()
+      .eq("id", reviewToDelete);
+
+    if (!error) {
+      toast.success("Bewertung erfolgreich gelöscht");
+      setDeleteDialogOpen(false);
+      setReviewToDelete(null);
+      
+      if (onReviewDeleted) {
+        onReviewDeleted();
+      }
+    } else {
+      toast.error("Löschen fehlgeschlagen");
+      console.error("Delete error:", error);
+    }
   };
 
   if (isLoading) {
@@ -146,7 +189,12 @@ const RecentReviewsTable = ({ reviews, isLoading, userRole }: RecentReviewsTable
                         <Eye className="h-4 w-4" />
                       </Button>
                       {userRole === "admin" && (
-                        <Button variant="ghost" size="icon" title="Löschen">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          title="Löschen"
+                          onClick={() => confirmDelete(review.id)}
+                        >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       )}
@@ -158,6 +206,28 @@ const RecentReviewsTable = ({ reviews, isLoading, userRole }: RecentReviewsTable
           </Table>
         </div>
       </CardContent>
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bewertung löschen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Diese Aktion kann nicht rückgängig gemacht werden. Die Bewertung wird
+              dauerhaft aus der Datenbank gelöscht.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };

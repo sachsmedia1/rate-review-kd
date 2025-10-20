@@ -20,7 +20,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   
   const { stats, isLoading: statsLoading } = useDashboardStats();
-  const { reviews, isLoading: reviewsLoading } = useRecentReviews(5);
+  const { reviews, isLoading: reviewsLoading, refetch: refetchReviews } = useRecentReviews(5);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -159,6 +159,7 @@ const Dashboard = () => {
           reviews={reviews} 
           isLoading={reviewsLoading}
           userRole={userRole}
+          onReviewDeleted={refetchReviews}
         />
       </main>
     </div>

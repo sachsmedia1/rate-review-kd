@@ -7,8 +7,7 @@ export const useRecentReviews = (limit: number = 5) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    const fetchReviews = async () => {
+  const fetchReviews = async () => {
       try {
         setIsLoading(true);
         
@@ -30,6 +29,7 @@ export const useRecentReviews = (limit: number = 5) => {
       }
     };
 
+  useEffect(() => {
     fetchReviews();
 
     // Set up real-time subscription
@@ -53,5 +53,5 @@ export const useRecentReviews = (limit: number = 5) => {
     };
   }, [limit]);
 
-  return { reviews, isLoading, error };
+  return { reviews, isLoading, error, refetch: fetchReviews };
 };
