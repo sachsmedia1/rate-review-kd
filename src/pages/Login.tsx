@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { signIn, signUp, getCurrentSession } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
+import { signIn, getCurrentSession } from "@/lib/auth";
 import { Loader2, Flame } from "lucide-react";
 import { z } from "zod";
 
@@ -20,8 +18,6 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
-  const [hasUsers, setHasUsers] = useState<boolean | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -33,20 +29,7 @@ const Login = () => {
       }
     };
     checkAuth();
-    checkIfUsersExist();
   }, [navigate]);
-
-  const checkIfUsersExist = async () => {
-    try {
-      const { data } = await supabase.functions.invoke('setup-first-admin', {
-        body: { action: 'check' }
-      });
-      setHasUsers(data?.hasUsers ?? true);
-    } catch (error) {
-      console.error('Error checking users:', error);
-      setHasUsers(true); // Default to true on error
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,17 +51,13 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const result = activeTab === "login" 
-        ? await signIn(email, password)
-        : await signUp(email, password);
+      const result = await signIn(email, password);
 
       if (result.error) {
         let errorMessage = "Ein Fehler ist aufgetreten";
         
         if (result.error.message.includes("Invalid login credentials")) {
           errorMessage = "Ungültige E-Mail oder Passwort";
-        } else if (result.error.message.includes("User already registered")) {
-          errorMessage = "Diese E-Mail ist bereits registriert";
         } else if (result.error.message.includes("Email not confirmed")) {
           errorMessage = "Bitte bestätigen Sie Ihre E-Mail-Adresse";
         } else {
@@ -87,12 +66,12 @@ const Login = () => {
 
         toast({
           variant: "destructive",
-          title: activeTab === "login" ? "Anmeldung fehlgeschlagen" : "Registrierung fehlgeschlagen",
+          title: "Anmeldung fehlgeschlagen",
           description: errorMessage,
         });
       } else if (result.session) {
         toast({
-          title: activeTab === "login" ? "Erfolgreich angemeldet" : "Erfolgreich registriert",
+          title: "Erfolgreich angemeldet",
           description: "Sie werden weitergeleitet...",
         });
         navigate("/admin/dashboard");
@@ -118,106 +97,47 @@ const Login = () => {
             </div>
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold">Kamindoktor Admin</CardTitle>
+            <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
             <CardDescription className="text-muted-foreground">
-              Verwaltung des Bewertungssystems
+              Anmeldung für Administratoren
             </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "login" | "signup")}>
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Anmelden</TabsTrigger>
-              <TabsTrigger value="signup">Registrieren</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">E-Mail</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="ihre@email.de"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Passwort</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Anmelden
-                </Button>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="signup">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">E-Mail</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="ihre@email.de"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Passwort</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Registrieren
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-
-          {hasUsers === false && (
-            <div className="mt-6 pt-6 border-t border-border/50 text-center">
-              <p className="text-sm text-muted-foreground mb-3">
-                Noch kein Admin-Account vorhanden?
-              </p>
-              <Link to="/admin/setup">
-                <Button variant="outline" className="w-full">
-                  Erste Einrichtung starten
-                </Button>
-              </Link>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">E-Mail</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="ihre@email.de"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+                required
+              />
             </div>
-          )}
+            <div className="space-y-2">
+              <Label htmlFor="password">Passwort</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                required
+              />
+            </div>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Anmelden
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>
