@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { Review } from "@/types";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -161,7 +162,14 @@ const Customers = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
+    <>
+      <Helmet>
+        <title>Kundenkarte | Der Kamindoktor Admin</title>
+        <meta name="description" content="Übersicht und Analyse aller Kundenprojekte" />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      
+      <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header mit Zurück-Button */}
         <div className="mb-6">
@@ -403,6 +411,7 @@ const Customers = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

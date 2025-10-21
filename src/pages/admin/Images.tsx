@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from "react-helmet-async";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { Review } from '@/types';
@@ -214,7 +215,14 @@ const Images = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
+    <>
+      <Helmet>
+        <title>Bilderverwaltung | Der Kamindoktor Admin</title>
+        <meta name="description" content="Verwaltung aller Vorher- und Nachher-Bilder" />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      
+      <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
       {/* Header */}
       <div className="mb-6">
         <button
@@ -445,6 +453,7 @@ const Images = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

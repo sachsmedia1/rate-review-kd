@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,7 +89,14 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <>
+      <Helmet>
+        <title>Admin Login | Der Kamindoktor</title>
+        <meta name="description" content="Administrator-Login für das Bewertungssystem von Der Kamindoktor" />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md border-border/50">
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
@@ -141,6 +149,7 @@ const Login = () => {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 };
 

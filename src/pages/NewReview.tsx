@@ -1,11 +1,19 @@
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { ReviewForm } from "@/components/admin/ReviewForm";
 
 const NewReview = () => {
   const navigate = useNavigate();
   
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
+    <>
+      <Helmet>
+        <title>Neue Bewertung erstellen | Der Kamindoktor Admin</title>
+        <meta name="description" content="Neue Kundenbewertung erstellen" />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      
+      <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
       <div className="max-w-3xl mx-auto">
         {/* Header mit Zurück-Button */}
         <div className="mb-6">
@@ -27,6 +35,7 @@ const NewReview = () => {
         <ReviewForm mode="create" />
       </div>
     </div>
+    </>
   );
 };
 

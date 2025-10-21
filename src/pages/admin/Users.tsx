@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from "react-helmet-async";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { AdminOnly } from '@/components/AdminOnly';
@@ -289,7 +290,14 @@ const Users = () => {
 
   return (
     <AdminOnly>
-      <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
+      <>
+        <Helmet>
+          <title>Nutzerverwaltung | Der Kamindoktor Admin</title>
+          <meta name="description" content="Verwaltung aller Administrator- und Nutzer-Konten" />
+          <meta name="robots" content="noindex, nofollow" />
+        </Helmet>
+        
+        <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
         {/* Header */}
         <div className="mb-6">
           <button
@@ -556,6 +564,7 @@ const Users = () => {
           </div>
         )}
       </div>
+      </>
     </AdminOnly>
   );
 };

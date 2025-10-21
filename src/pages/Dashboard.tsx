@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -60,7 +61,14 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      <Helmet>
+        <title>Dashboard | Der Kamindoktor Admin</title>
+        <meta name="description" content="Administrator-Dashboard für Bewertungsverwaltung" />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      
+      <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border/50 bg-card/50 backdrop-blur sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
@@ -163,6 +171,7 @@ const Dashboard = () => {
         />
       </main>
     </div>
+    </>
   );
 };
 

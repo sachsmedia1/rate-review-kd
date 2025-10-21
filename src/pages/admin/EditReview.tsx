@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { checkUserRole } from "@/lib/auth";
@@ -77,7 +78,14 @@ const EditReview = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
+    <>
+      <Helmet>
+        <title>Bewertung bearbeiten | Der Kamindoktor Admin</title>
+        <meta name="description" content="Kundenbewertung bearbeiten" />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      
+      <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
       <div className="max-w-3xl mx-auto">
         {/* Header mit Zurück-Button */}
         <div className="mb-6">
@@ -103,6 +111,7 @@ const EditReview = () => {
         <ReviewForm mode="edit" existingData={existingReview} reviewId={id} />
       </div>
     </div>
+    </>
   );
 };
 
