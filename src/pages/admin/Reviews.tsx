@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,6 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,11 +40,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, MoreVertical, Edit, Eye, Trash2, Flame } from "lucide-react";
-import { format } from "date-fns";
+import { ArrowLeft, Plus, MoreVertical, Edit, Eye, Trash2, Flame, X, CalendarIcon, CheckCircle2, FileEdit, Archive } from "lucide-react";
+import { format, isSameDay } from "date-fns";
 import { de } from "date-fns/locale";
 import { checkUserRole } from "@/lib/auth";
 import { AppRole } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface Review {
   id: string;
@@ -61,6 +69,7 @@ const Reviews = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -73,7 +82,7 @@ const Reviews = () => {
 
   useEffect(() => {
     fetchReviews();
-  }, [statusFilter, categoryFilter, searchQuery, currentPage]);
+  }, [statusFilter, categoryFilter, searchQuery, selectedDate, currentPage]);
 
   const loadUserRole = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -120,10 +129,18 @@ const Reviews = () => {
       dataQuery,
     ]);
 
-    if (!error && data) {
-      setReviews(data);
-      setTotalCount(count || 0);
-    } else if (error) {
+    // Filter by exact date on client side (since SQL date comparison is more reliable this way)
+    let filteredData = data || [];
+    if (selectedDate && filteredData.length > 0) {
+      filteredData = filteredData.filter(review => 
+        isSameDay(new Date(review.installation_date), selectedDate)
+      );
+    }
+
+    if (!error) {
+      setReviews(filteredData);
+      setTotalCount(selectedDate ? filteredData.length : (count || 0));
+    } else {
       toast.error("Fehler beim Laden der Bewertungen");
       console.error(error);
     }
@@ -158,13 +175,41 @@ const Reviews = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "published":
-        return <Badge className="bg-green-500/20 text-green-500 hover:bg-green-500/30">✅ Veröffentlicht</Badge>;
+        return (
+          <Tooltip>
+            <TooltipTrigger>
+              <CheckCircle2 className="h-5 w-5 text-green-500" />
+            </TooltipTrigger>
+            <TooltipContent>Veröffentlicht</TooltipContent>
+          </Tooltip>
+        );
       case "draft":
-        return <Badge className="bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30">📝 Entwurf</Badge>;
+        return (
+          <Tooltip>
+            <TooltipTrigger>
+              <FileEdit className="h-5 w-5 text-yellow-500" />
+            </TooltipTrigger>
+            <TooltipContent>Entwurf</TooltipContent>
+          </Tooltip>
+        );
       case "archived":
-        return <Badge className="bg-gray-500/20 text-gray-500 hover:bg-gray-500/30">📦 Archiviert</Badge>;
+        return (
+          <Tooltip>
+            <TooltipTrigger>
+              <Archive className="h-5 w-5 text-gray-500" />
+            </TooltipTrigger>
+            <TooltipContent>Archiviert</TooltipContent>
+          </Tooltip>
+        );
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return (
+          <Tooltip>
+            <TooltipTrigger>
+              <span className="text-gray-400">{status}</span>
+            </TooltipTrigger>
+            <TooltipContent>{status}</TooltipContent>
+          </Tooltip>
+        );
     }
   };
 
@@ -175,8 +220,13 @@ const Reviews = () => {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
-      <div className="max-w-7xl mx-auto">
+    <>
+      <Helmet>
+        <title>Bewertungen verwalten | Der Kamindoktor Admin</title>
+        <meta name="description" content="Verwaltung aller Kundenbewertungen für Der Kamindoktor" />
+      </Helmet>
+      <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
+        <div className="max-w-7xl mx-auto">
         {/* Header mit Zurück-Button */}
         <div className="mb-6">
           <button
@@ -205,19 +255,57 @@ const Reviews = () => {
         <div className="border-t border-gray-800 mb-6"></div>
 
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           {/* Status Filter */}
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
               <SelectValue placeholder="Status wählen" />
             </SelectTrigger>
             <SelectContent className="bg-gray-800 border-gray-700">
-              <SelectItem value="all">Alle</SelectItem>
+              <SelectItem value="all">Alle nach Status</SelectItem>
               <SelectItem value="published">Veröffentlicht</SelectItem>
               <SelectItem value="draft">Entwurf</SelectItem>
               <SelectItem value="archived">Archiviert</SelectItem>
             </SelectContent>
           </Select>
+
+          {/* Date Filter */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "bg-gray-800 border-gray-700 text-white hover:bg-gray-700 justify-start text-left font-normal",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDate ? format(selectedDate, "dd.MM.yyyy", { locale: de }) : "Montagedatum"}
+                {selectedDate && (
+                  <X 
+                    className="ml-auto h-4 w-4 hover:text-destructive" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedDate(undefined);
+                      setCurrentPage(1);
+                    }}
+                  />
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  setSelectedDate(date);
+                  setCurrentPage(1);
+                }}
+                initialFocus
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
 
           {/* Category Filter */}
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -273,7 +361,7 @@ const Reviews = () => {
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Stadt</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Kategorie</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Durchschnitt</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Datum</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Montagedatum</th>
                       <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Aktionen</th>
                     </tr>
                   </thead>
@@ -287,7 +375,7 @@ const Reviews = () => {
                           {getStatusIcon(review.status)}
                         </td>
                         <td className="px-4 py-3">
-                          {review.customer_salutation} {review.customer_lastname}
+                          {review.customer_firstname} {review.customer_lastname}
                         </td>
                         <td className="px-4 py-3">{review.city}</td>
                         <td className="px-4 py-3">
@@ -412,8 +500,9 @@ const Reviews = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
