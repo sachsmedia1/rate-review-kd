@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AdditionalInfoSectionProps {
   customerComment: string;
@@ -47,15 +47,24 @@ export const AdditionalInfoSection = ({
             />
           </div>
 
-          {/* Einbau durchgeführt von */}
+          {/* Montagestandort */}
           <div className="space-y-2">
-            <Label htmlFor="installed_by">Einbau durchgeführt von</Label>
-            <Input
-              id="installed_by"
-              placeholder="z.B. Montageteam Nord, Max Meier"
+            <Label htmlFor="installed_by">Einbau durch Montage-Standort</Label>
+            <Select
               value={installedBy}
-              onChange={(e) => onInstalledByChange(e.target.value)}
-            />
+              onValueChange={onInstalledByChange}
+            >
+              <SelectTrigger id="installed_by">
+                <SelectValue placeholder="Bitte wählen (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Nicht zugewiesen</SelectItem>
+                <SelectItem value="Bamberg">Bamberg</SelectItem>
+                <SelectItem value="Essen">Essen</SelectItem>
+                <SelectItem value="Rödermark">Rödermark</SelectItem>
+                <SelectItem value="Hamburg">Hamburg</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Interne Notizen */}

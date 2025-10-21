@@ -2,11 +2,13 @@
 
 export type ReviewStatus = 'draft' | 'published' | 'archived';
 export type CustomerSalutation = 'Herr' | 'Frau';
+export type Montagestandort = 'Bamberg' | 'Essen' | 'Rödermark' | 'Hamburg';
 export type ProductCategory = 
   | 'Kaminofen' 
   | 'Neubau Kaminanlage' 
   | 'Austausch Kamineinsatz' 
-  | 'Kaminkassette' 
+  | 'Kaminkassette'
+  | 'Kaminkassette FreeStanding'
   | 'Austausch Kachelofeneinsatz';
 
 export type AppRole = 'user' | 'admin';
@@ -51,7 +53,7 @@ export interface Review {
   // Optional fields
   customer_comment?: string;
   internal_notes?: string;
-  installed_by?: string;
+  installed_by?: Montagestandort;
   meta_title?: string;
   meta_description?: string;
   

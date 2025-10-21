@@ -28,6 +28,7 @@ const Index = () => {
     "Neubau Kaminanlage",
     "Austausch Kamineinsatz",
     "Kaminkassette",
+    "Kaminkassette FreeStanding",
     "Austausch Kachelofeneinsatz",
   ];
 

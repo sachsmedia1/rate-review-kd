@@ -83,6 +83,7 @@ const formSchema = z.object({
       "Neubau Kaminanlage",
       "Austausch Kamineinsatz",
       "Kaminkassette",
+      "Kaminkassette FreeStanding",
       "Austausch Kachelofeneinsatz",
     ],
     {
@@ -855,6 +856,7 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
                     "Neubau Kaminanlage",
                     "Austausch Kamineinsatz",
                     "Kaminkassette",
+                    "Kaminkassette FreeStanding",
                     "Austausch Kachelofeneinsatz",
                   ].map((cat) => (
                     <div key={cat} className="flex items-center space-x-2">

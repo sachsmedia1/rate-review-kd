@@ -26,11 +26,6 @@ const Customers = () => {
     setReviews((data as Review[]) || []);
   };
 
-  const uniqueTeams = [...new Set(reviews
-    .map(r => r.installed_by)
-    .filter(Boolean)
-  )];
-
   const filteredReviews = reviews.filter(review => {
     if (categoryFilter !== "all" && review.product_category !== categoryFilter) {
       return false;
@@ -190,6 +185,7 @@ const Customers = () => {
             <option value="Neubau Kaminanlage">Neubau Kaminanlage</option>
             <option value="Austausch Kamineinsatz">Austausch Kamineinsatz</option>
             <option value="Kaminkassette">Kaminkassette</option>
+            <option value="Kaminkassette FreeStanding">Kaminkassette FreeStanding</option>
             <option value="Austausch Kachelofeneinsatz">Austausch Kachelofeneinsatz</option>
           </select>
           
@@ -215,10 +211,11 @@ const Customers = () => {
             onChange={(e) => setTeamFilter(e.target.value)}
             className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
           >
-            <option value="all">Alle Teams</option>
-            {uniqueTeams.map(team => (
-              <option key={team} value={team}>{team}</option>
-            ))}
+            <option value="all">Alle</option>
+            <option value="Bamberg">Bamberg</option>
+            <option value="Essen">Essen</option>
+            <option value="Rödermark">Rödermark</option>
+            <option value="Hamburg">Hamburg</option>
           </select>
           
           <select
