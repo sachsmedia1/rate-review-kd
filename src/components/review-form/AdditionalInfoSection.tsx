@@ -51,14 +51,14 @@ export const AdditionalInfoSection = ({
           <div className="space-y-2">
             <Label htmlFor="installed_by">Einbau durch Montage-Standort</Label>
             <Select
-              value={installedBy}
+              value={installedBy || "none"}
               onValueChange={onInstalledByChange}
             >
               <SelectTrigger id="installed_by">
                 <SelectValue placeholder="Bitte wählen (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nicht zugewiesen</SelectItem>
+                <SelectItem value="none">Nicht zugewiesen</SelectItem>
                 <SelectItem value="Bamberg">Bamberg</SelectItem>
                 <SelectItem value="Essen">Essen</SelectItem>
                 <SelectItem value="Rödermark">Rödermark</SelectItem>

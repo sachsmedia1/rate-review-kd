@@ -141,7 +141,7 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
 
   // Additional info states
   const [customerComment, setCustomerComment] = useState(existingData?.customer_comment || "");
-  const [installedBy, setInstalledBy] = useState(existingData?.installed_by || "");
+  const [installedBy, setInstalledBy] = useState(existingData?.installed_by || "none");
   const [internalNotes, setInternalNotes] = useState(existingData?.internal_notes || "");
   const [status, setStatus] = useState<"draft" | "published">(
     existingData?.status || "published"
@@ -509,7 +509,7 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
         rating_service: ratings.service,
         customer_comment: customerComment || null,
         internal_notes: internalNotes || null,
-        installed_by: installedBy || null,
+        installed_by: installedBy === "none" ? null : installedBy,
         ...(mode === "create"
           ? { created_by: user.id }
           : { updated_by: user.id, updated_at: new Date().toISOString() }),
