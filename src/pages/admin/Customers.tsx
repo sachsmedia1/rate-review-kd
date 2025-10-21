@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Review } from "@/types";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { startOfMonth, endOfMonth, subMonths } from "date-fns";
 
 const Customers = () => {
   const navigate = useNavigate();
@@ -57,6 +58,17 @@ const Customers = () => {
         case "lastYear":
           if (installDate.getFullYear() !== now.getFullYear() - 1) return false;
           break;
+        case "currentMonth":
+          const monthStart = startOfMonth(now);
+          const monthEnd = endOfMonth(now);
+          if (installDate < monthStart || installDate > monthEnd) return false;
+          break;
+        case "lastMonth":
+          const lastMonth = subMonths(now, 1);
+          const lastMonthStart = startOfMonth(lastMonth);
+          const lastMonthEnd = endOfMonth(lastMonth);
+          if (installDate < lastMonthStart || installDate > lastMonthEnd) return false;
+          break;
       }
     }
     
@@ -68,6 +80,8 @@ const Customers = () => {
     neubau: filteredReviews.filter(r => r.product_category === "Neubau Kaminanlage").length,
     austauschKamineinsatz: filteredReviews.filter(r => r.product_category === "Austausch Kamineinsatz").length,
     kaminkassette: filteredReviews.filter(r => r.product_category === "Kaminkassette").length,
+    kaminkassetteFreeStanding: filteredReviews.filter(r => r.product_category === "Kaminkassette FreeStanding").length,
+    austauschKachelofeneinsatz: filteredReviews.filter(r => r.product_category === "Austausch Kachelofeneinsatz").length,
   };
 
   const groupByPlzRange = (reviews: Review[]) => {
@@ -211,7 +225,7 @@ const Customers = () => {
             onChange={(e) => setTeamFilter(e.target.value)}
             className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white"
           >
-            <option value="all">Alle</option>
+            <option value="all">Alle Montage-Standorte</option>
             <option value="Bamberg">Bamberg</option>
             <option value="Essen">Essen</option>
             <option value="Rödermark">Rödermark</option>
@@ -228,6 +242,8 @@ const Customers = () => {
             <option value="last90">Letzte 90 Tage</option>
             <option value="thisYear">Dieses Jahr</option>
             <option value="lastYear">Letztes Jahr</option>
+            <option value="currentMonth">Dieser Monat</option>
+            <option value="lastMonth">Letzter Monat</option>
           </select>
         </div>
 
@@ -240,7 +256,7 @@ const Customers = () => {
         </button>
 
         {/* Statistik-Karten */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           <div className="bg-gray-800 rounded-lg p-4">
             <div className="text-3xl font-bold text-orange-500">{stats.kaminofen}</div>
             <div className="text-sm text-gray-400">Kaminofen</div>
@@ -259,6 +275,16 @@ const Customers = () => {
           <div className="bg-gray-800 rounded-lg p-4">
             <div className="text-3xl font-bold text-orange-500">{stats.kaminkassette}</div>
             <div className="text-sm text-gray-400">Kaminkassette</div>
+          </div>
+          
+          <div className="bg-gray-800 rounded-lg p-4">
+            <div className="text-3xl font-bold text-orange-500">{stats.kaminkassetteFreeStanding}</div>
+            <div className="text-sm text-gray-400">Kaminkassette FreeStanding</div>
+          </div>
+          
+          <div className="bg-gray-800 rounded-lg p-4">
+            <div className="text-3xl font-bold text-orange-500">{stats.austauschKachelofeneinsatz}</div>
+            <div className="text-sm text-gray-400">Austausch Kachelofeneinsatz</div>
           </div>
         </div>
 
