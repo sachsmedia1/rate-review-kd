@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { S3Client, PutObjectCommand, DeleteObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 
 // Storage Provider Interface
 export interface StorageProvider {
@@ -72,64 +71,37 @@ class SupabaseStorage implements StorageProvider {
   }
 }
 
-// Cloudflare R2 Storage Implementation
+// Cloudflare R2 Storage Implementation (via Edge Functions)
 class CloudflareR2Storage implements StorageProvider {
-  private client: S3Client;
-  private bucketName: string;
-  private accountId: string;
+  private edgeFunctionUrl: string;
 
   constructor() {
-    this.accountId = import.meta.env.VITE_R2_ACCOUNT_ID || "";
-    this.bucketName = import.meta.env.VITE_R2_BUCKET_NAME || "";
-    
-    console.log(`[CloudflareR2Storage] Initializing with account: ${this.accountId}, bucket: ${this.bucketName}`);
-
-    this.client = new S3Client({
-      region: "auto",
-      endpoint: `https://${this.accountId}.r2.cloudflarestorage.com`,
-      credentials: {
-        accessKeyId: import.meta.env.VITE_R2_ACCESS_KEY_ID || "",
-        secretAccessKey: import.meta.env.VITE_R2_SECRET_ACCESS_KEY || "",
-      },
-    });
-  }
-
-  private guessContentType(filename: string): string {
-    const ext = filename.split(".").pop()?.toLowerCase();
-    const mimeTypes: Record<string, string> = {
-      jpg: "image/jpeg",
-      jpeg: "image/jpeg",
-      png: "image/png",
-      gif: "image/gif",
-      webp: "image/webp",
-      svg: "image/svg+xml",
-      pdf: "application/pdf",
-      txt: "text/plain",
-      json: "application/json",
-      html: "text/html",
-      css: "text/css",
-      js: "application/javascript",
-    };
-    return mimeTypes[ext || ""] || "application/octet-stream";
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    this.edgeFunctionUrl = `${supabaseUrl}/functions/v1`;
+    console.log(`[CloudflareR2Storage] Initialized with Edge Functions at: ${this.edgeFunctionUrl}`);
   }
 
   async upload(file: File, path: string): Promise<string> {
-    console.log(`[CloudflareR2Storage] Uploading file to: ${path}`);
+    console.log(`[CloudflareR2Storage] Uploading file via Edge Function: ${path}`);
     
-    const buffer = await file.arrayBuffer();
-    const contentType = file.type || this.guessContentType(file.name);
-
-    const command = new PutObjectCommand({
-      Bucket: this.bucketName,
-      Key: path,
-      Body: new Uint8Array(buffer),
-      ContentType: contentType,
-    });
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('path', path);
 
     try {
-      await this.client.send(command);
-      console.log(`[CloudflareR2Storage] Upload successful: ${path}`);
-      return this.getPublicUrl(path);
+      const response = await fetch(`${this.edgeFunctionUrl}/r2-upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Upload failed');
+      }
+
+      const { url } = await response.json();
+      console.log(`[CloudflareR2Storage] Upload successful: ${url}`);
+      return url;
     } catch (error) {
       console.error("[CloudflareR2Storage] Upload error:", error);
       throw error;
@@ -137,23 +109,35 @@ class CloudflareR2Storage implements StorageProvider {
   }
 
   getPublicUrl(path: string): string {
-    const publicUrl = import.meta.env.VITE_R2_PUBLIC_URL || 
-      `https://pub-${this.accountId}.r2.dev`;
-    const url = `${publicUrl}/${path}`;
-    console.log(`[CloudflareR2Storage] Public URL generated: ${url}`);
+    // For R2, we need to call the edge function to get the properly formatted URL
+    // However, getPublicUrl is synchronous, so we return a constructed URL
+    // This assumes VITE_R2_PUBLIC_URL is configured in edge function
+    console.log(`[CloudflareR2Storage] Generating public URL for: ${path}`);
+    
+    // Return a placeholder that will be resolved by the edge function
+    // In practice, you might want to fetch this asynchronously
+    const url = `${this.edgeFunctionUrl}/r2-get-url?path=${encodeURIComponent(path)}`;
+    console.log(`[CloudflareR2Storage] Public URL: ${url}`);
     return url;
   }
 
   async delete(path: string): Promise<void> {
-    console.log(`[CloudflareR2Storage] Deleting file: ${path}`);
+    console.log(`[CloudflareR2Storage] Deleting file via Edge Function: ${path}`);
     
-    const command = new DeleteObjectCommand({
-      Bucket: this.bucketName,
-      Key: path,
-    });
-
     try {
-      await this.client.send(command);
+      const response = await fetch(`${this.edgeFunctionUrl}/r2-delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ path }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Delete failed');
+      }
+
       console.log(`[CloudflareR2Storage] Delete successful: ${path}`);
     } catch (error) {
       console.error("[CloudflareR2Storage] Delete error:", error);
@@ -162,17 +146,21 @@ class CloudflareR2Storage implements StorageProvider {
   }
 
   async exists(path: string): Promise<boolean> {
-    console.log(`[CloudflareR2Storage] Checking if file exists: ${path}`);
+    console.log(`[CloudflareR2Storage] Checking if file exists via Edge Function: ${path}`);
     
-    const command = new HeadObjectCommand({
-      Bucket: this.bucketName,
-      Key: path,
-    });
-
     try {
-      await this.client.send(command);
-      console.log(`[CloudflareR2Storage] File exists: true`);
-      return true;
+      // We can use the get-url endpoint and check if it returns successfully
+      const response = await fetch(`${this.edgeFunctionUrl}/r2-get-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ path }),
+      });
+
+      const exists = response.ok;
+      console.log(`[CloudflareR2Storage] File exists: ${exists}`);
+      return exists;
     } catch (error) {
       console.log(`[CloudflareR2Storage] File exists: false`);
       return false;
