@@ -109,16 +109,21 @@ class CloudflareR2Storage implements StorageProvider {
   }
 
   getPublicUrl(path: string): string {
-    // For R2, we need to call the edge function to get the properly formatted URL
-    // However, getPublicUrl is synchronous, so we return a constructed URL
-    // This assumes VITE_R2_PUBLIC_URL is configured in edge function
+    // Prefer frontend-configured public base URL
+    const base = import.meta.env.VITE_R2_PUBLIC_URL as string | undefined;
+    console.log(`[CloudflareR2Storage] getPublicUrl base:`, base);
     console.log(`[CloudflareR2Storage] Generating public URL for: ${path}`);
-    
-    // Return a placeholder that will be resolved by the edge function
-    // In practice, you might want to fetch this asynchronously
-    const url = `${this.edgeFunctionUrl}/r2-get-url?path=${encodeURIComponent(path)}`;
-    console.log(`[CloudflareR2Storage] Public URL: ${url}`);
-    return url;
+
+    if (base && base.length > 0) {
+      const full = `${base.replace(/\/$/, '')}/${path}`;
+      console.log(`[CloudflareR2Storage] Public URL (from VITE_R2_PUBLIC_URL): ${full}`);
+      return full;
+    }
+
+    // Fallback: use Edge Function (ensure it supports POST elsewhere when used asynchronously)
+    const placeholder = `${this.edgeFunctionUrl}/r2-get-url?path=${encodeURIComponent(path)}`;
+    console.warn(`[CloudflareR2Storage] VITE_R2_PUBLIC_URL missing. Using edge placeholder URL: ${placeholder}`);
+    return placeholder;
   }
 
   async delete(path: string): Promise<void> {
@@ -176,6 +181,7 @@ export function createStorageProvider(): StorageProvider {
   console.log(`[Storage] Creating storage provider: ${provider}`);
   console.log(`[Storage] Environment check - VITE_STORAGE_PROVIDER:`, import.meta.env.VITE_STORAGE_PROVIDER);
   console.log(`[Storage] Environment check - VITE_SUPABASE_URL:`, import.meta.env.VITE_SUPABASE_URL);
+  console.log(`[Storage] Environment check - VITE_R2_PUBLIC_URL:`, import.meta.env.VITE_R2_PUBLIC_URL);
 
   if (provider === "r2" || provider === "cloudflare") {
     return new CloudflareR2Storage();

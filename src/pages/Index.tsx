@@ -5,6 +5,7 @@ import { Search, MapPin, Calendar, TrendingUp } from "lucide-react";
 import { renderFlames } from "@/lib/renderFlames";
 import { Helmet } from "react-helmet-async";
 import { Review } from "@/types";
+import { extractPathFromUrl, storage } from "@/lib/storage";
 
 interface LocationStats {
   location: string;
