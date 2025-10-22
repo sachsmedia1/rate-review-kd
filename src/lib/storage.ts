@@ -109,8 +109,8 @@ class CloudflareR2Storage implements StorageProvider {
   }
 
   getPublicUrl(path: string): string {
-    // Prefer frontend-configured public base URL
-    const base = import.meta.env.VITE_R2_PUBLIC_URL as string | undefined;
+    // Prefer frontend-configured public base URL, fallback to hardcoded R2 public URL
+    const base = import.meta.env.VITE_R2_PUBLIC_URL || "https://pub-aeb5ccfc05b1477992c95e0ac034ecde.r2.dev";
     console.log(`[CloudflareR2Storage] getPublicUrl base:`, base);
     console.log(`[CloudflareR2Storage] Generating public URL for: ${path}`);
 
