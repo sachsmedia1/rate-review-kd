@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.r2-get-url]
 verify_jwt = false
+
+[functions.test-r2-url]
+verify_jwt = false
