@@ -13,33 +13,24 @@ interface LinkedReview {
   city: string;
 }
 
-interface StorageImage {
-  name: string;
+interface ReviewImage {
   id: string;
-  created_at: string;
-  updated_at: string;
-  last_accessed_at: string;
-  metadata: {
-    size?: number;
-    mimetype?: string;
-  };
+  imageUrl: string;
   type: 'before' | 'after';
-  folder: string;
-  publicUrl: string;
-  isUsed: boolean;
-  linkedReview: LinkedReview | null;
-  size: number;
+  reviewId: string;
+  reviewInfo: LinkedReview;
+  created_at: string;
 }
 
 const Images = () => {
   const navigate = useNavigate();
-  const [images, setImages] = useState<StorageImage[]>([]);
-  const [reviews, setReviews] = useState<LinkedReview[]>([]);
+  const [images, setImages] = useState<ReviewImage[]>([]);
   const [typeFilter, setTypeFilter] = useState('all');
-  const [usageFilter, setUsageFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [lightboxImage, setLightboxImage] = useState<StorageImage | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<ReviewImage | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   useEffect(() => {
     loadData();
@@ -48,53 +39,55 @@ const Images = () => {
   const loadData = async () => {
     setLoading(true);
     
-    // 1. Lade alle Bewertungen (um Verwendung zu prüfen)
+    // Lade alle Bewertungen mit Bildern aus der Datenbank
     const { data: reviewsData } = await supabase
       .from('reviews')
-      .select('id, customer_salutation, customer_lastname, city, before_image_url, after_image_url');
+      .select('id, customer_salutation, customer_lastname, city, before_image_url, after_image_url, created_at')
+      .order('created_at', { ascending: false });
     
-    setReviews((reviewsData as LinkedReview[]) || []);
+    if (!reviewsData) {
+      setLoading(false);
+      return;
+    }
     
-    // 2. Lade Bilder aus Storage
-    const { data: beforeFiles } = await supabase.storage
-      .from('review-images')
-      .list('before', { limit: 1000 });
+    // Extrahiere alle Bilder aus den Reviews
+    const allImages: ReviewImage[] = [];
     
-    const { data: afterFiles } = await supabase.storage
-      .from('review-images')
-      .list('after', { limit: 1000 });
-    
-    // 3. Kombiniere und reichere Daten an
-    const allImages = [
-      ...(beforeFiles || []).map(f => ({ ...f, type: 'before' as const, folder: 'before' })),
-      ...(afterFiles || []).map(f => ({ ...f, type: 'after' as const, folder: 'after' }))
-    ];
-    
-    // 4. Prüfe für jedes Bild ob es verwendet wird
-    const enrichedImages = await Promise.all(allImages.map(async img => {
-      const publicUrl = await storage.getPublicUrl(`${img.folder}/${img.name}`);
+    reviewsData.forEach(review => {
+      if (review.before_image_url) {
+        allImages.push({
+          id: `${review.id}-before`,
+          imageUrl: review.before_image_url,
+          type: 'before',
+          reviewId: review.id,
+          reviewInfo: {
+            id: review.id,
+            customer_salutation: review.customer_salutation,
+            customer_lastname: review.customer_lastname,
+            city: review.city
+          },
+          created_at: review.created_at
+        });
+      }
       
-      // Prüfe ob URL in irgendeiner Review vorkommt
-      const linkedReview = reviewsData?.find(r => 
-        r.before_image_url?.includes(img.name) || 
-        r.after_image_url?.includes(img.name)
-      );
-      
-      return {
-        ...img,
-        publicUrl,
-        isUsed: !!linkedReview,
-        linkedReview: linkedReview ? {
-          id: linkedReview.id,
-          customer_salutation: linkedReview.customer_salutation,
-          customer_lastname: linkedReview.customer_lastname,
-          city: linkedReview.city
-        } : null,
-        size: img.metadata?.size || 0
-      };
-    }));
+      if (review.after_image_url) {
+        allImages.push({
+          id: `${review.id}-after`,
+          imageUrl: review.after_image_url,
+          type: 'after',
+          reviewId: review.id,
+          reviewInfo: {
+            id: review.id,
+            customer_salutation: review.customer_salutation,
+            customer_lastname: review.customer_lastname,
+            city: review.city
+          },
+          created_at: review.created_at
+        });
+      }
+    });
     
-    setImages(enrichedImages);
+    setImages(allImages);
     setLoading(false);
   };
 
@@ -104,13 +97,12 @@ const Images = () => {
     if (typeFilter === 'before' && img.type !== 'before') return false;
     if (typeFilter === 'after' && img.type !== 'after') return false;
     
-    // Verwendung-Filter
-    if (usageFilter === 'used' && !img.isUsed) return false;
-    if (usageFilter === 'unused' && img.isUsed) return false;
-    
-    // Suche
-    if (searchQuery && !img.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
+    // Suche (in Review-Info)
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
+      const matchesCustomer = img.reviewInfo.customer_lastname.toLowerCase().includes(searchLower);
+      const matchesCity = img.reviewInfo.city.toLowerCase().includes(searchLower);
+      if (!matchesCustomer && !matchesCity) return false;
     }
     
     return true;
@@ -119,80 +111,23 @@ const Images = () => {
   // Statistiken berechnen
   const stats = {
     total: images.length,
-    used: images.filter(i => i.isUsed).length,
-    unused: images.filter(i => !i.isUsed).length,
-    totalSize: images.reduce((sum, i) => sum + (i.size || 0), 0)
+    before: images.filter(i => i.type === 'before').length,
+    after: images.filter(i => i.type === 'after').length,
   };
 
-  const unusedCount = stats.unused;
+  // Pagination
+  const totalPages = Math.ceil(filteredImages.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedImages = filteredImages.slice(startIndex, endIndex);
 
-  // Nicht verwendete Bilder löschen
-  const handleDeleteUnused = async () => {
-    const unusedImages = images.filter(i => !i.isUsed);
-    
-    if (unusedImages.length === 0) {
-      toast({
-        title: 'Keine nicht verwendeten Bilder vorhanden',
-        variant: 'default'
-      });
-      return;
-    }
-    
-    const confirmed = confirm(
-      `Möchten Sie wirklich ${unusedImages.length} nicht verwendete Bilder löschen? Dies kann nicht rückgängig gemacht werden.`
-    );
-    
-    if (!confirmed) return;
-    
-    let deleted = 0;
-    
-    for (const img of unusedImages) {
-      try {
-        await storage.delete(`${img.folder}/${img.name}`);
-        deleted++;
-      } catch (error) {
-        console.error('Delete error:', error);
-      }
-    }
-    
-    toast({
-      title: `${deleted} Bilder erfolgreich gelöscht`,
-      variant: 'default'
-    });
-    loadData();
-  };
-
-  // Einzelnes Bild löschen
-  const handleDeleteImage = async (image: StorageImage) => {
-    if (image.isUsed) {
-      const confirmed = confirm(
-        'Dieses Bild wird in einer Bewertung verwendet. Wirklich löschen? Die Bewertung verliert dann das Bild.'
-      );
-      if (!confirmed) return;
-    } else {
-      const confirmed = confirm('Bild wirklich löschen?');
-      if (!confirmed) return;
-    }
-    
-    try {
-      await storage.delete(`${image.folder}/${image.name}`);
-      toast({
-        title: 'Bild erfolgreich gelöscht',
-        variant: 'default'
-      });
-      loadData();
-    } catch (error: any) {
-      toast({
-        title: 'Fehler beim Löschen',
-        description: error.message,
-        variant: 'destructive'
-      });
-      return;
-    }
-  };
+  // Bei Filter-Änderung auf Seite 1 zurück
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [typeFilter, searchQuery]);
 
   // Lightbox
-  const openLightbox = (image: StorageImage) => {
+  const openLightbox = (image: ReviewImage) => {
     setLightboxImage(image);
   };
 
@@ -201,14 +136,6 @@ const Images = () => {
   };
 
   // Helper-Funktionen
-  function formatBytes(bytes: number) {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-  }
-
   function formatDate(dateString: string) {
     return new Date(dateString).toLocaleDateString('de-DE');
   }
@@ -241,53 +168,29 @@ const Images = () => {
       
       <div className="border-t border-gray-800 mb-6"></div>
       
-      {/* Aktionen & Filter */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        {/* Linke Seite: Filter */}
-        <div className="flex flex-wrap gap-4">
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white"
-          >
-            <option value="all">Alle Bilder</option>
-            <option value="before">Nur Vorher-Bilder</option>
-            <option value="after">Nur Nachher-Bilder</option>
-          </select>
-          
-          <select
-            value={usageFilter}
-            onChange={(e) => setUsageFilter(e.target.value)}
-            className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white"
-          >
-            <option value="all">Alle Status</option>
-            <option value="used">Verwendet</option>
-            <option value="unused">Nicht verwendet</option>
-          </select>
-          
-          <input
-            type="text"
-            placeholder="Suche nach Dateiname..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white"
-          />
-        </div>
+      {/* Filter */}
+      <div className="flex flex-wrap items-center gap-4 mb-6">
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white"
+        >
+          <option value="all">Alle Bilder</option>
+          <option value="before">Nur Vorher-Bilder</option>
+          <option value="after">Nur Nachher-Bilder</option>
+        </select>
         
-        {/* Rechte Seite: Aktionen */}
-        <div className="flex gap-4">
-          <button
-            onClick={handleDeleteUnused}
-            disabled={unusedCount === 0}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg transition-colors"
-          >
-            Nicht verwendete löschen ({unusedCount})
-          </button>
-        </div>
+        <input
+          type="text"
+          placeholder="Suche nach Kunde oder Stadt..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white"
+        />
       </div>
       
       {/* Statistiken */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-gray-800 rounded-lg p-4">
           <div className="text-3xl font-bold text-orange-500">
             {stats.total}
@@ -296,27 +199,27 @@ const Images = () => {
         </div>
         
         <div className="bg-gray-800 rounded-lg p-4">
-          <div className="text-3xl font-bold text-green-500">
-            {stats.used}
-          </div>
-          <div className="text-sm text-gray-400">Verwendet</div>
-        </div>
-        
-        <div className="bg-gray-800 rounded-lg p-4">
-          <div className="text-3xl font-bold text-red-500">
-            {stats.unused}
-          </div>
-          <div className="text-sm text-gray-400">Nicht verwendet</div>
-        </div>
-        
-        <div className="bg-gray-800 rounded-lg p-4">
           <div className="text-3xl font-bold text-blue-500">
-            {formatBytes(stats.totalSize)}
+            {stats.before}
           </div>
-          <div className="text-sm text-gray-400">Speicher belegt</div>
+          <div className="text-sm text-gray-400">Vorher-Bilder</div>
+        </div>
+        
+        <div className="bg-gray-800 rounded-lg p-4">
+          <div className="text-3xl font-bold text-green-500">
+            {stats.after}
+          </div>
+          <div className="text-sm text-gray-400">Nachher-Bilder</div>
         </div>
       </div>
       
+      {/* Pagination Info */}
+      {!loading && filteredImages.length > 0 && (
+        <div className="mb-4 text-center text-gray-400">
+          Seite {currentPage} von {totalPages} ({filteredImages.length} Bilder)
+        </div>
+      )}
+
       {/* Bild-Galerie */}
       {loading ? (
         <div className="text-center py-12">
@@ -328,14 +231,15 @@ const Images = () => {
           <p className="text-xl">Keine Bilder gefunden</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filteredImages.map((image) => (
-            <div key={image.name} className="bg-gray-800 rounded-lg overflow-hidden">
+        <>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-8">
+          {paginatedImages.map((image) => (
+            <div key={image.id} className="bg-gray-800 rounded-lg overflow-hidden">
               {/* Bild-Vorschau */}
               <div className="relative aspect-video bg-gray-900">
                 <img
-                  src={image.publicUrl}
-                  alt={image.name}
+                  src={image.imageUrl}
+                  alt={`${image.type === 'before' ? 'Vorher' : 'Nachher'} - ${image.reviewInfo.customer_lastname}`}
                   className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity"
                   onClick={() => openLightbox(image)}
                   loading="lazy"
@@ -347,58 +251,66 @@ const Images = () => {
                 }`}>
                   {image.type === 'before' ? 'Vorher' : 'Nachher'}
                 </div>
-                
-                {/* Badge: Verwendet Status */}
-                <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-semibold ${
-                  image.isUsed ? 'bg-green-600' : 'bg-red-600'
-                }`}>
-                  {image.isUsed ? '✓ Verwendet' : '✗ Frei'}
-                </div>
               </div>
               
               {/* Info & Aktionen */}
               <div className="p-3">
-                <div className="text-xs text-gray-400 truncate mb-2" title={image.name}>
-                  {image.name}
+                <div className="text-xs text-gray-400 mb-1">
+                  {image.reviewInfo.customer_salutation} {image.reviewInfo.customer_lastname}
                 </div>
                 
                 <div className="text-xs text-gray-500 mb-3">
-                  {formatBytes(image.size)} • {formatDate(image.created_at)}
+                  {image.reviewInfo.city} • {formatDate(image.created_at)}
                 </div>
                 
-                {/* Verknüpfte Bewertung (falls verwendet) */}
-                {image.linkedReview && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/admin/reviews/${image.linkedReview.id}/edit`);
-                    }}
-                    className="text-xs text-blue-400 hover:text-blue-300 mb-2 truncate w-full text-left transition-colors underline"
-                  >
-                    → {image.linkedReview.customer_salutation} {image.linkedReview.customer_lastname}, {image.linkedReview.city}
-                  </button>
-                )}
+                {/* Verknüpfte Bewertung */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/admin/reviews/${image.reviewId}/edit`);
+                  }}
+                  className="text-xs text-blue-400 hover:text-blue-300 mb-2 w-full text-left transition-colors underline"
+                >
+                  → Bewertung bearbeiten
+                </button>
                 
-                {/* Aktionen */}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => openLightbox(image)}
-                    className="flex-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors"
-                  >
-                    Ansehen
-                  </button>
-                  
-                  <button
-                    onClick={() => handleDeleteImage(image)}
-                    className="px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-xs transition-colors"
-                  >
-                    Löschen
-                  </button>
-                </div>
+                {/* Aktion */}
+                <button
+                  onClick={() => openLightbox(image)}
+                  className="w-full px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs transition-colors"
+                >
+                  Ansehen
+                </button>
               </div>
             </div>
           ))}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:bg-gray-900 disabled:cursor-not-allowed rounded-lg transition-colors"
+            >
+              ← Vorherige
+            </button>
+            
+            <span className="text-gray-400">
+              Seite {currentPage} von {totalPages}
+            </span>
+            
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:bg-gray-900 disabled:cursor-not-allowed rounded-lg transition-colors"
+            >
+              Nächste →
+            </button>
+          </div>
+        )}
+        </>
       )}
       
       {/* Lightbox */}
@@ -418,35 +330,33 @@ const Images = () => {
             
             {/* Bild */}
             <img
-              src={lightboxImage.publicUrl}
-              alt={lightboxImage.name}
+              src={lightboxImage.imageUrl}
+              alt={`${lightboxImage.type === 'before' ? 'Vorher' : 'Nachher'} - ${lightboxImage.reviewInfo.customer_lastname}`}
               className="max-w-full max-h-[90vh] object-contain"
               onClick={(e) => e.stopPropagation()}
             />
             
             {/* Info-Bar unten */}
             <div className="absolute bottom-0 left-0 right-0 bg-black/80 p-4">
-              <div className="text-white font-semibold">{lightboxImage.name}</div>
-              <div className="text-gray-400 text-sm">
-                {formatBytes(lightboxImage.size)} • 
-                {lightboxImage.type === 'before' ? ' Vorher-Bild' : ' Nachher-Bild'} • 
-                {lightboxImage.isUsed ? ' Verwendet' : ' Nicht verwendet'}
+              <div className="text-white font-semibold">
+                {lightboxImage.reviewInfo.customer_salutation} {lightboxImage.reviewInfo.customer_lastname}
               </div>
-              {lightboxImage.linkedReview && (
-                <div className="text-blue-400 text-sm mt-1">
-                  Verknüpft mit: 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      closeLightbox();
-                      navigate(`/admin/reviews/${lightboxImage.linkedReview.id}/edit`);
-                    }}
-                    className="ml-1 hover:text-blue-300 transition-colors underline"
-                  >
-                    {lightboxImage.linkedReview.customer_salutation} {lightboxImage.linkedReview.customer_lastname}, {lightboxImage.linkedReview.city}
-                  </button>
-                </div>
-              )}
+              <div className="text-gray-400 text-sm">
+                {lightboxImage.reviewInfo.city} • 
+                {lightboxImage.type === 'before' ? ' Vorher-Bild' : ' Nachher-Bild'}
+              </div>
+              <div className="text-blue-400 text-sm mt-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    closeLightbox();
+                    navigate(`/admin/reviews/${lightboxImage.reviewId}/edit`);
+                  }}
+                  className="hover:text-blue-300 transition-colors underline"
+                >
+                  → Bewertung bearbeiten
+                </button>
+              </div>
             </div>
           </div>
         </div>
