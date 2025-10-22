@@ -38,10 +38,20 @@ Deno.serve(async (req) => {
 
     console.log(`[R2 Upload] Uploading ${file.name} to ${path}`);
 
-    // Initialize S3 client
+    // Initialize S3 client with EU endpoint
+    const endpoint = `https://${accountId}.eu.r2.cloudflarestorage.com`;
+    const region = "auto";
+    
+    console.log(`[R2 Upload] S3 Configuration:`, {
+      endpoint,
+      region,
+      bucket: bucketName,
+      accountId: accountId.substring(0, 8) + '...',
+    });
+
     const client = new S3Client({
-      region: "auto",
-      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      region,
+      endpoint,
       credentials: {
         accessKeyId,
         secretAccessKey,
