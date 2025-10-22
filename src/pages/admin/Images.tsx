@@ -71,8 +71,8 @@ const Images = () => {
     ];
     
     // 4. Prüfe für jedes Bild ob es verwendet wird
-    const enrichedImages = allImages.map(img => {
-      const publicUrl = storage.getPublicUrl(`${img.folder}/${img.name}`);
+    const enrichedImages = await Promise.all(allImages.map(async img => {
+      const publicUrl = await storage.getPublicUrl(`${img.folder}/${img.name}`);
       
       // Prüfe ob URL in irgendeiner Review vorkommt
       const linkedReview = reviewsData?.find(r => 
@@ -92,7 +92,7 @@ const Images = () => {
         } : null,
         size: img.metadata?.size || 0
       };
-    });
+    }));
     
     setImages(enrichedImages);
     setLoading(false);

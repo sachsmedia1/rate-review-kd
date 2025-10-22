@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 // Storage Provider Interface
 export interface StorageProvider {
   upload(file: File, path: string): Promise<string>;
-  getPublicUrl(path: string): string;
+  getPublicUrl(path: string): Promise<string>;
   delete(path: string): Promise<void>;
   exists(path: string): Promise<boolean>;
 }
@@ -28,10 +28,10 @@ class SupabaseStorage implements StorageProvider {
     }
 
     console.log(`[SupabaseStorage] Upload successful: ${data.path}`);
-    return this.getPublicUrl(data.path);
+    return await this.getPublicUrl(data.path);
   }
 
-  getPublicUrl(path: string): string {
+  async getPublicUrl(path: string): Promise<string> {
     const { data } = supabase.storage
       .from(this.bucketName)
       .getPublicUrl(path);
@@ -108,22 +108,41 @@ class CloudflareR2Storage implements StorageProvider {
     }
   }
 
-  getPublicUrl(path: string): string {
-    // Prefer frontend-configured public base URL, fallback to hardcoded R2 public URL
-    const base = import.meta.env.VITE_R2_PUBLIC_URL || "https://pub-aeb5ccfc05b1477992c95e0ac034ecde.r2.dev";
-    console.log(`[CloudflareR2Storage] getPublicUrl base:`, base);
-    console.log(`[CloudflareR2Storage] Generating public URL for: ${path}`);
-
-    if (base && base.length > 0) {
-      const full = `${base.replace(/\/$/, '')}/${path}`;
-      console.log(`[CloudflareR2Storage] Public URL (from VITE_R2_PUBLIC_URL): ${full}`);
-      return full;
+  async getPublicUrl(path: string): Promise<string> {
+    const accountId = "aeb5ccfc05b1477992c95e0ac034ecde";
+    const bucketName = "flame-force";
+    
+    // Primäre URL (r2.dev)
+    const primaryUrl = `https://pub-${accountId}.r2.dev/${path}`;
+    
+    // Fallback URL (eu.r2.cloudflarestorage.com) für alte Bilder
+    const fallbackUrl = `https://${accountId}.eu.r2.cloudflarestorage.com/${bucketName}/${path}`;
+    
+    console.log(`[CloudflareR2Storage] Checking primary URL: ${primaryUrl}`);
+    
+    try {
+      // Prüfe ob primäre URL erreichbar ist
+      const response = await fetch(primaryUrl, { method: 'HEAD' });
+      
+      if (response.ok) {
+        console.log(`[CloudflareR2Storage] Primary URL accessible: ${primaryUrl}`);
+        return primaryUrl;
+      }
+      
+      if (response.status === 404) {
+        console.log(`[CloudflareR2Storage] Primary URL not found (404), using fallback: ${fallbackUrl}`);
+        return fallbackUrl;
+      }
+      
+      // Bei anderen Fehlern, versuche Fallback
+      console.warn(`[CloudflareR2Storage] Primary URL returned ${response.status}, using fallback: ${fallbackUrl}`);
+      return fallbackUrl;
+      
+    } catch (error) {
+      console.error(`[CloudflareR2Storage] Error checking primary URL:`, error);
+      console.log(`[CloudflareR2Storage] Using fallback: ${fallbackUrl}`);
+      return fallbackUrl;
     }
-
-    // Fallback: use Edge Function (ensure it supports POST elsewhere when used asynchronously)
-    const placeholder = `${this.edgeFunctionUrl}/r2-get-url?path=${encodeURIComponent(path)}`;
-    console.warn(`[CloudflareR2Storage] VITE_R2_PUBLIC_URL missing. Using edge placeholder URL: ${placeholder}`);
-    return placeholder;
   }
 
   async delete(path: string): Promise<void> {
