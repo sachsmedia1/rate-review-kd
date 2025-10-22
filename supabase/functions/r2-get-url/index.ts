@@ -29,10 +29,17 @@ Deno.serve(async (req) => {
 
     console.log(`[R2 Get URL] Generating URL for: ${path}`);
 
-    // Generate public URL
+    // Get bucket name for URL generation
+    const bucketName = Deno.env.get('VITE_R2_BUCKET_NAME');
+    
+    if (!bucketName) {
+      throw new Error('Missing R2 bucket name');
+    }
+
+    // Generate public URL using EU endpoint with bucket name
     const url = publicUrl 
       ? `${publicUrl}/${path}`
-      : `https://pub-${accountId}.r2.dev/${path}`;
+      : `https://${accountId}.eu.r2.cloudflarestorage.com/${bucketName}/${path}`;
 
     console.log(`[R2 Get URL] Generated URL: ${url}`);
 

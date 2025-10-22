@@ -71,10 +71,10 @@ Deno.serve(async (req) => {
 
     await client.send(command);
 
-    // Generate public URL
+    // Generate public URL using EU endpoint with bucket name
     const url = publicUrl 
       ? `${publicUrl}/${path}`
-      : `https://pub-${accountId}.r2.dev/${path}`;
+      : `https://${accountId}.eu.r2.cloudflarestorage.com/${bucketName}/${path}`;
 
     console.log(`[R2 Upload] Upload successful: ${url}`);
 
