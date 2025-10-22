@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from "react-helmet-async";
 import { supabase } from '@/integrations/supabase/client';
+import { storage } from '@/lib/storage';
 import { toast } from '@/hooks/use-toast';
 import type { Review } from '@/types';
 
@@ -71,9 +72,7 @@ const Images = () => {
     
     // 4. Prüfe für jedes Bild ob es verwendet wird
     const enrichedImages = allImages.map(img => {
-      const { data: { publicUrl } } = supabase.storage
-        .from('review-images')
-        .getPublicUrl(`${img.folder}/${img.name}`);
+      const publicUrl = storage.getPublicUrl(`${img.folder}/${img.name}`);
       
       // Prüfe ob URL in irgendeiner Review vorkommt
       const linkedReview = reviewsData?.find(r => 
@@ -148,11 +147,12 @@ const Images = () => {
     let deleted = 0;
     
     for (const img of unusedImages) {
-      const { error } = await supabase.storage
-        .from('review-images')
-        .remove([`${img.folder}/${img.name}`]);
-      
-      if (!error) deleted++;
+      try {
+        await storage.delete(`${img.folder}/${img.name}`);
+        deleted++;
+      } catch (error) {
+        console.error('Delete error:', error);
+      }
     }
     
     toast({
@@ -174,21 +174,20 @@ const Images = () => {
       if (!confirmed) return;
     }
     
-    const { error } = await supabase.storage
-      .from('review-images')
-      .remove([`${image.folder}/${image.name}`]);
-    
-    if (!error) {
+    try {
+      await storage.delete(`${image.folder}/${image.name}`);
       toast({
-        title: 'Bild gelöscht',
+        title: 'Bild erfolgreich gelöscht',
         variant: 'default'
       });
       loadData();
-    } else {
+    } catch (error: any) {
       toast({
-        title: 'Löschen fehlgeschlagen',
+        title: 'Fehler beim Löschen',
+        description: error.message,
         variant: 'destructive'
       });
+      return;
     }
   };
 
