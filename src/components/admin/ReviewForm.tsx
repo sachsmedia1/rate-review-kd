@@ -15,6 +15,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { storage } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import { CustomerSalutation, ProductCategory } from "@/types";
 import { ImageUploadSection } from "@/components/review-form/ImageUploadSection";
@@ -389,26 +390,19 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
         if (mode === "edit" && existingData?.before_image_url) {
           const oldPath = extractPathFromUrl(existingData.before_image_url);
           if (oldPath) {
-            await supabase.storage.from("review-images").remove([oldPath]);
+            await storage.delete(oldPath);
             console.log("Old before image deleted:", oldPath);
           }
         }
 
         // Upload new image
         const beforePath = `before/${Date.now()}-${beforeImage.name}`;
-        const { error: beforeError } = await supabase.storage
-          .from("review-images")
-          .upload(beforePath, beforeImage);
-
-        if (beforeError) {
-          throw new Error(`Vorher-Bild Upload fehlgeschlagen: ${beforeError.message}`);
+        try {
+          beforeImageUrl = await storage.upload(beforeImage, beforePath);
+          console.log("Before image uploaded:", beforeImageUrl);
+        } catch (error) {
+          throw new Error(`Vorher-Bild Upload fehlgeschlagen: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`);
         }
-
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("review-images").getPublicUrl(beforePath);
-        beforeImageUrl = publicUrl;
-        console.log("Before image uploaded:", beforeImageUrl);
       }
 
       // Handle after image
@@ -417,26 +411,19 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
         if (mode === "edit" && existingData?.after_image_url) {
           const oldPath = extractPathFromUrl(existingData.after_image_url);
           if (oldPath) {
-            await supabase.storage.from("review-images").remove([oldPath]);
+            await storage.delete(oldPath);
             console.log("Old after image deleted:", oldPath);
           }
         }
 
         // Upload new image
         const afterPath = `after/${Date.now()}-${afterImage.name}`;
-        const { error: afterError } = await supabase.storage
-          .from("review-images")
-          .upload(afterPath, afterImage);
-
-        if (afterError) {
-          throw new Error(`Nachher-Bild Upload fehlgeschlagen: ${afterError.message}`);
+        try {
+          afterImageUrl = await storage.upload(afterImage, afterPath);
+          console.log("After image uploaded:", afterImageUrl);
+        } catch (error) {
+          throw new Error(`Nachher-Bild Upload fehlgeschlagen: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`);
         }
-
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("review-images").getPublicUrl(afterPath);
-        afterImageUrl = publicUrl;
-        console.log("After image uploaded:", afterImageUrl);
       }
 
       // 2. Slug generieren und unique machen
