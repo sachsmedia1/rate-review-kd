@@ -112,36 +112,52 @@ class CloudflareR2Storage implements StorageProvider {
     const accountId = "aeb5ccfc05b1477992c95e0ac034ecde";
     const bucketName = "flame-force";
     
-    // Primäre URL (r2.dev)
+    // 1. Primäre URL (r2.dev)
     const primaryUrl = `https://pub-${accountId}.r2.dev/${path}`;
     
-    // Fallback URL (eu.r2.cloudflarestorage.com) für alte Bilder
-    const fallbackUrl = `https://${accountId}.eu.r2.cloudflarestorage.com/${bucketName}/${path}`;
+    // 2. Fallback URL (eu.r2.cloudflarestorage.com) für ältere R2-Uploads
+    const r2FallbackUrl = `https://${accountId}.eu.r2.cloudflarestorage.com/${bucketName}/${path}`;
+    
+    // 3. Supabase Storage Fallback für alte Lovable Cloud files
+    const supabaseUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/review-images/${path}`;
     
     console.log(`[CloudflareR2Storage] Checking primary URL: ${primaryUrl}`);
     
     try {
-      // Prüfe ob primäre URL erreichbar ist
-      const response = await fetch(primaryUrl, { method: 'HEAD' });
+      // Prüfe primäre URL (r2.dev)
+      const primaryResponse = await fetch(primaryUrl, { method: 'HEAD' });
       
-      if (response.ok) {
+      if (primaryResponse.ok) {
         console.log(`[CloudflareR2Storage] Primary URL accessible: ${primaryUrl}`);
         return primaryUrl;
       }
       
-      if (response.status === 404) {
-        console.log(`[CloudflareR2Storage] Primary URL not found (404), using fallback: ${fallbackUrl}`);
-        return fallbackUrl;
+      // Prüfe R2 Fallback URL
+      console.log(`[CloudflareR2Storage] Primary not found, checking R2 fallback: ${r2FallbackUrl}`);
+      const r2Response = await fetch(r2FallbackUrl, { method: 'HEAD' });
+      
+      if (r2Response.ok) {
+        console.log(`[CloudflareR2Storage] R2 fallback URL accessible: ${r2FallbackUrl}`);
+        return r2FallbackUrl;
       }
       
-      // Bei anderen Fehlern, versuche Fallback
-      console.warn(`[CloudflareR2Storage] Primary URL returned ${response.status}, using fallback: ${fallbackUrl}`);
-      return fallbackUrl;
+      // Prüfe Supabase Storage Fallback
+      console.log(`[CloudflareR2Storage] R2 fallback not found, checking Supabase Storage: ${supabaseUrl}`);
+      const supabaseResponse = await fetch(supabaseUrl, { method: 'HEAD' });
+      
+      if (supabaseResponse.ok) {
+        console.log(`[CloudflareR2Storage] Supabase Storage fallback accessible: ${supabaseUrl}`);
+        return supabaseUrl;
+      }
+      
+      // Alle Fallbacks fehlgeschlagen, verwende primäre URL als letzte Option
+      console.warn(`[CloudflareR2Storage] All URLs failed, returning primary URL: ${primaryUrl}`);
+      return primaryUrl;
       
     } catch (error) {
-      console.error(`[CloudflareR2Storage] Error checking primary URL:`, error);
-      console.log(`[CloudflareR2Storage] Using fallback: ${fallbackUrl}`);
-      return fallbackUrl;
+      console.error(`[CloudflareR2Storage] Error checking URLs:`, error);
+      console.log(`[CloudflareR2Storage] Using primary URL as fallback: ${primaryUrl}`);
+      return primaryUrl;
     }
   }
 
