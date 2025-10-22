@@ -170,8 +170,12 @@ class CloudflareR2Storage implements StorageProvider {
 
 // Factory Function
 export function createStorageProvider(): StorageProvider {
-  const provider = import.meta.env.VITE_STORAGE_PROVIDER || "supabase";
+  // HARDCODED: Use R2 storage via Edge Functions
+  // Cloud Secrets (VITE_STORAGE_PROVIDER) sind nur für Edge Functions verfügbar
+  const provider = "r2";
   console.log(`[Storage] Creating storage provider: ${provider}`);
+  console.log(`[Storage] Environment check - VITE_STORAGE_PROVIDER:`, import.meta.env.VITE_STORAGE_PROVIDER);
+  console.log(`[Storage] Environment check - VITE_SUPABASE_URL:`, import.meta.env.VITE_SUPABASE_URL);
 
   if (provider === "r2" || provider === "cloudflare") {
     return new CloudflareR2Storage();
