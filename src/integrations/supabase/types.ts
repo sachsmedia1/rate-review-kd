@@ -25,7 +25,7 @@ export type Database = {
           customer_comment: string | null
           customer_firstname: string | null
           customer_id: string | null
-          customer_lastname: string
+          customer_lastname: string | null
           customer_salutation: string
           house_number: string | null
           id: string
@@ -38,7 +38,7 @@ export type Database = {
           longitude: number | null
           meta_description: string | null
           meta_title: string | null
-          postal_code: string
+          postal_code: string | null
           product_category: string
           rating_aesthetics: number | null
           rating_consultation: number | null
@@ -62,7 +62,7 @@ export type Database = {
           customer_comment?: string | null
           customer_firstname?: string | null
           customer_id?: string | null
-          customer_lastname: string
+          customer_lastname?: string | null
           customer_salutation: string
           house_number?: string | null
           id?: string
@@ -75,7 +75,7 @@ export type Database = {
           longitude?: number | null
           meta_description?: string | null
           meta_title?: string | null
-          postal_code: string
+          postal_code?: string | null
           product_category: string
           rating_aesthetics?: number | null
           rating_consultation?: number | null
@@ -99,7 +99,7 @@ export type Database = {
           customer_comment?: string | null
           customer_firstname?: string | null
           customer_id?: string | null
-          customer_lastname?: string
+          customer_lastname?: string | null
           customer_salutation?: string
           house_number?: string | null
           id?: string
@@ -112,7 +112,7 @@ export type Database = {
           longitude?: number | null
           meta_description?: string | null
           meta_title?: string | null
-          postal_code?: string
+          postal_code?: string | null
           product_category?: string
           rating_aesthetics?: number | null
           rating_consultation?: number | null
