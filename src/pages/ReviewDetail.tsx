@@ -419,52 +419,60 @@ const ReviewDetail = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Beratung */}
-              <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
-                <span className="text-white font-medium">Beratung</span>
-                <div className="flex gap-0.5 text-lg">
-                  {(() => {
-                    const rating = Number(review.rating_consultation) || 0;
-                    console.log('🔥 Beratung rating:', rating, 'Type:', typeof rating);
-                    return renderFlames(rating);
-                  })()}
+              {review.rating_consultation !== null && review.rating_consultation !== undefined && review.rating_consultation !== 0 && (
+                <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
+                  <span className="text-white font-medium">Beratung</span>
+                  <div className="flex gap-0.5 text-lg">
+                    {(() => {
+                      const rating = Number(review.rating_consultation) || 0;
+                      console.log('🔥 Beratung rating:', rating, 'Type:', typeof rating);
+                      return renderFlames(rating);
+                    })()}
+                  </div>
                 </div>
-              </div>
+              )}
               
               {/* Professionalität */}
-              <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
-                <span className="text-white font-medium">Professionalität</span>
-                <div className="flex gap-0.5 text-lg">
-                  {(() => {
-                    const rating = Number(review.rating_installation_quality) || 0;
-                    console.log('🔥 Professionalität rating:', rating, 'Type:', typeof rating);
-                    return renderFlames(rating);
-                  })()}
+              {review.rating_installation_quality !== null && review.rating_installation_quality !== undefined && review.rating_installation_quality !== 0 && (
+                <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
+                  <span className="text-white font-medium">Professionalität</span>
+                  <div className="flex gap-0.5 text-lg">
+                    {(() => {
+                      const rating = Number(review.rating_installation_quality) || 0;
+                      console.log('🔥 Professionalität rating:', rating, 'Type:', typeof rating);
+                      return renderFlames(rating);
+                    })()}
+                  </div>
                 </div>
-              </div>
+              )}
               
               {/* Service */}
-              <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
-                <span className="text-white font-medium">Service</span>
-                <div className="flex gap-0.5 text-lg">
-                  {(() => {
-                    const rating = Number(review.rating_service) || 0;
-                    console.log('🔥 Service rating:', rating, 'Type:', typeof rating);
-                    return renderFlames(rating);
-                  })()}
+              {review.rating_service !== null && review.rating_service !== undefined && review.rating_service !== 0 && (
+                <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
+                  <span className="text-white font-medium">Service</span>
+                  <div className="flex gap-0.5 text-lg">
+                    {(() => {
+                      const rating = Number(review.rating_service) || 0;
+                      console.log('🔥 Service rating:', rating, 'Type:', typeof rating);
+                      return renderFlames(rating);
+                    })()}
+                  </div>
                 </div>
-              </div>
+              )}
               
               {/* Optik */}
-              <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
-                <span className="text-white font-medium">Optik</span>
-                <div className="flex gap-0.5 text-lg">
-                  {(() => {
-                    const rating = Number(review.rating_aesthetics) || 0;
-                    console.log('🔥 Optik rating:', rating, 'Type:', typeof rating);
-                    return renderFlames(rating);
-                  })()}
+              {review.rating_aesthetics !== null && review.rating_aesthetics !== undefined && review.rating_aesthetics !== 0 && (
+                <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
+                  <span className="text-white font-medium">Optik</span>
+                  <div className="flex gap-0.5 text-lg">
+                    {(() => {
+                      const rating = Number(review.rating_aesthetics) || 0;
+                      console.log('🔥 Optik rating:', rating, 'Type:', typeof rating);
+                      return renderFlames(rating);
+                    })()}
+                  </div>
                 </div>
-              </div>
+              )}
               
               {/* Gefahrenanalyse (optional) */}
               {review.rating_fire_safety !== null && review.rating_fire_safety !== undefined && review.rating_fire_safety !== 0 && (
