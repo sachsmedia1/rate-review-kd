@@ -26,6 +26,14 @@ const ReviewDetail = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [beforeAfterView, setBeforeAfterView] = useState<'before' | 'after' | 'both'>('both');
 
+  // Helper function to format ratings safely
+  const formatRating = (rating: number | null | undefined): string => {
+    if (rating === null || rating === undefined) {
+      return 'Nicht bewertet';
+    }
+    return rating.toFixed(1);
+  };
+
   const renderFlames = (rating: number) => {
     const flames = [];
     const fullFlames = Math.floor(rating);
@@ -161,14 +169,14 @@ const ReviewDetail = () => {
         {/* Primary Meta Tags */}
         <title>{review.customer_salutation} {review.customer_lastname} - {review.product_category} in {review.city} | Der Kamindoktor</title>
         <meta name="title" content={`${review.customer_salutation} ${review.customer_lastname} - ${review.product_category} in ${review.city} | Der Kamindoktor`} />
-        <meta name="description" content={`⭐ ${review.average_rating.toFixed(1)}/5.0 - ${review.customer_comment?.substring(0, 150) || 'Kundenbewertung für ' + review.product_category}...`} />
+        <meta name="description" content={`⭐ ${formatRating(review.average_rating)}/5.0 - ${review.customer_comment?.substring(0, 150) || 'Kundenbewertung für ' + review.product_category}...`} />
         <meta name="keywords" content={`${review.product_category}, Kundenbewertung, ${review.city}, ${review.postal_code}, Kaminbau, Der Kamindoktor`} />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://yourdomain.com/bewertung/${review.slug}`} />
         <meta property="og:title" content={`${review.customer_salutation} ${review.customer_lastname} - ${review.product_category} in ${review.city}`} />
-        <meta property="og:description" content={`⭐ ${review.average_rating.toFixed(1)}/5.0 - ${review.customer_comment?.substring(0, 150) || 'Kundenbewertung'}...`} />
+        <meta property="og:description" content={`⭐ ${formatRating(review.average_rating)}/5.0 - ${review.customer_comment?.substring(0, 150) || 'Kundenbewertung'}...`} />
         <meta property="og:image" content={review.after_image_url || review.before_image_url || 'https://yourdomain.com/default-og-image.jpg'} />
         <meta property="article:published_time" content={review.installation_date} />
         <meta property="article:author" content="Der Kamindoktor" />
@@ -178,7 +186,7 @@ const ReviewDetail = () => {
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content={`https://yourdomain.com/bewertung/${review.slug}`} />
         <meta property="twitter:title" content={`${review.customer_salutation} ${review.customer_lastname} - ${review.product_category}`} />
-        <meta property="twitter:description" content={`⭐ ${review.average_rating.toFixed(1)}/5.0 - ${review.customer_comment || 'Kundenbewertung'}`} />
+        <meta property="twitter:description" content={`⭐ ${formatRating(review.average_rating)}/5.0 - ${review.customer_comment || 'Kundenbewertung'}`} />
         <meta property="twitter:image" content={review.after_image_url || review.before_image_url || 'https://yourdomain.com/default-twitter-image.jpg'} />
         
         {/* Schema.org JSON-LD */}
@@ -197,7 +205,7 @@ const ReviewDetail = () => {
               },
               "aggregateRating": {
                 "@type": "AggregateRating",
-                "ratingValue": review.average_rating.toFixed(1),
+                "ratingValue": formatRating(review.average_rating),
                 "bestRating": "5",
                 "worstRating": "1"
               }
@@ -210,7 +218,7 @@ const ReviewDetail = () => {
             "reviewBody": review.customer_comment || "",
             "reviewRating": {
               "@type": "Rating",
-              "ratingValue": review.average_rating.toFixed(1),
+              "ratingValue": formatRating(review.average_rating),
               "bestRating": "5",
               "worstRating": "1"
             }
@@ -281,7 +289,7 @@ const ReviewDetail = () => {
             {/* Gesamtbewertung */}
             <div className="flex items-center gap-4">
               <div className="text-6xl font-bold text-white">
-                {review.average_rating.toFixed(1)}
+                {formatRating(review.average_rating)}
               </div>
               <div className="flex flex-col">
                 <div className="flex gap-1 text-3xl">
@@ -300,18 +308,26 @@ const ReviewDetail = () => {
             <p>
               Diese Kundenbewertung wurde von {review.customer_salutation} {review.customer_lastname} aus {review.city} ({review.postal_code}) 
               am {new Date(review.installation_date).toLocaleDateString('de-DE')} abgegeben. 
-              Die Dienstleistung "{review.product_category}" von Der Kamindoktor wurde mit durchschnittlich {review.average_rating.toFixed(1)} von 5.0 Punkten bewertet.
+              Die Dienstleistung "{review.product_category}" von Der Kamindoktor wurde mit durchschnittlich {formatRating(review.average_rating)} von 5.0 Punkten bewertet.
             </p>
             <ul>
-              <li>Beratungsqualität: {review.rating_consultation.toFixed(1)} von 5.0</li>
-              <li>Verarbeitungsqualität: {review.rating_installation_quality.toFixed(1)} von 5.0</li>
-              <li>Service: {review.rating_service.toFixed(1)} von 5.0</li>
-              <li>Ästhetik: {review.rating_aesthetics.toFixed(1)} von 5.0</li>
+              {review.rating_consultation !== null && review.rating_consultation !== undefined && (
+                <li>Beratungsqualität: {formatRating(review.rating_consultation)} von 5.0</li>
+              )}
+              {review.rating_installation_quality !== null && review.rating_installation_quality !== undefined && (
+                <li>Verarbeitungsqualität: {formatRating(review.rating_installation_quality)} von 5.0</li>
+              )}
+              {review.rating_service !== null && review.rating_service !== undefined && (
+                <li>Service: {formatRating(review.rating_service)} von 5.0</li>
+              )}
+              {review.rating_aesthetics !== null && review.rating_aesthetics !== undefined && (
+                <li>Ästhetik: {formatRating(review.rating_aesthetics)} von 5.0</li>
+              )}
               {review.rating_fire_safety !== null && review.rating_fire_safety !== undefined && (
-                <li>Brandsicherheit: {review.rating_fire_safety.toFixed(1)} von 5.0</li>
+                <li>Brandsicherheit: {formatRating(review.rating_fire_safety)} von 5.0</li>
               )}
               {review.rating_heating_performance !== null && review.rating_heating_performance !== undefined && (
-                <li>Heizleistung: {review.rating_heating_performance.toFixed(1)} von 5.0</li>
+                <li>Heizleistung: {formatRating(review.rating_heating_performance)} von 5.0</li>
               )}
             </ul>
           </section>
@@ -375,7 +391,7 @@ const ReviewDetail = () => {
                   >
                     <img
                       src={review.after_image_url}
-                      alt={`Nachher-Zustand - ${review.product_category} in ${review.city} - Bewertet mit ${review.average_rating.toFixed(1)} Sternen`}
+                      alt={`Nachher-Zustand - ${review.product_category} in ${review.city} - Bewertet mit ${formatRating(review.average_rating)} Sternen`}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
                     />
@@ -487,14 +503,16 @@ const ReviewDetail = () => {
             </h2>
             
             <div className="space-y-4">
-              <div className="border-b border-[#2a2a2a] pb-4">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Wie wurde die Beratungsqualität bewertet?
-                </h3>
-                <p className="text-gray-300">
-                  {review.rating_consultation.toFixed(1)} von 5.0 Punkten
-                </p>
-              </div>
+              {review.rating_consultation !== null && review.rating_consultation !== undefined && (
+                <div className="border-b border-[#2a2a2a] pb-4">
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Wie wurde die Beratungsqualität bewertet?
+                  </h3>
+                  <p className="text-gray-300">
+                    {formatRating(review.rating_consultation)} von 5.0 Punkten
+                  </p>
+                </div>
+              )}
               
               <div className="border-b border-[#2a2a2a] pb-4">
                 <h3 className="text-lg font-semibold text-white mb-2">
@@ -519,7 +537,7 @@ const ReviewDetail = () => {
                   Wie ist die Gesamtbewertung?
                 </h3>
                 <p className="text-gray-300">
-                  {review.average_rating.toFixed(1)} von 5.0 Punkten - {getRatingLabel(review.average_rating)}
+                  {formatRating(review.average_rating)} von 5.0 Punkten - {getRatingLabel(review.average_rating)}
                 </p>
               </div>
               
@@ -558,7 +576,7 @@ const ReviewDetail = () => {
                         {similar.customer_salutation} {similar.customer_lastname}
                       </span>
                       <span className="text-orange-500 font-bold">
-                        {similar.average_rating.toFixed(1)}
+                        {formatRating(similar.average_rating)}
                       </span>
                     </div>
                     <div className="text-gray-400 text-sm flex items-center gap-2">
