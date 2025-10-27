@@ -1,6 +1,6 @@
 // Type definitions for the Kamindoktor app
 
-export type ReviewStatus = 'draft' | 'published' | 'archived';
+export type ReviewStatus = 'draft' | 'published' | 'pending';
 export type CustomerSalutation = 'Herr' | 'Frau';
 export type Montagestandort = 'Bamberg' | 'Essen' | 'Rödermark' | 'Hamburg';
 export type ProductCategory = 
@@ -22,13 +22,13 @@ export interface Review {
   // Customer data
   customer_id?: string;
   customer_salutation: CustomerSalutation;
-  customer_firstname: string;
-  customer_lastname: string;
+  customer_firstname?: string;
+  customer_lastname?: string;
   street?: string;
   house_number?: string;
-  postal_code: string;
+  postal_code?: string;
   city: string;
-  installation_date: string;
+  installation_date?: string;
   
   // Geo data
   latitude?: number;
