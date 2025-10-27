@@ -28,7 +28,7 @@ const ReviewDetail = () => {
 
   // Helper function to format ratings safely
   const formatRating = (rating: number | null | undefined): string => {
-    if (rating === null || rating === undefined) {
+    if (rating === null || rating === undefined || rating === 0) {
       return 'Nicht bewertet';
     }
     return rating.toFixed(1);
@@ -311,22 +311,22 @@ const ReviewDetail = () => {
               Die Dienstleistung "{review.product_category}" von Der Kamindoktor wurde mit durchschnittlich {formatRating(review.average_rating)} von 5.0 Punkten bewertet.
             </p>
             <ul>
-              {review.rating_consultation !== null && review.rating_consultation !== undefined && (
+              {review.rating_consultation !== null && review.rating_consultation !== undefined && review.rating_consultation !== 0 && (
                 <li>Beratungsqualität: {formatRating(review.rating_consultation)} von 5.0</li>
               )}
-              {review.rating_installation_quality !== null && review.rating_installation_quality !== undefined && (
+              {review.rating_installation_quality !== null && review.rating_installation_quality !== undefined && review.rating_installation_quality !== 0 && (
                 <li>Verarbeitungsqualität: {formatRating(review.rating_installation_quality)} von 5.0</li>
               )}
-              {review.rating_service !== null && review.rating_service !== undefined && (
+              {review.rating_service !== null && review.rating_service !== undefined && review.rating_service !== 0 && (
                 <li>Service: {formatRating(review.rating_service)} von 5.0</li>
               )}
-              {review.rating_aesthetics !== null && review.rating_aesthetics !== undefined && (
+              {review.rating_aesthetics !== null && review.rating_aesthetics !== undefined && review.rating_aesthetics !== 0 && (
                 <li>Ästhetik: {formatRating(review.rating_aesthetics)} von 5.0</li>
               )}
-              {review.rating_fire_safety !== null && review.rating_fire_safety !== undefined && (
+              {review.rating_fire_safety !== null && review.rating_fire_safety !== undefined && review.rating_fire_safety !== 0 && (
                 <li>Brandsicherheit: {formatRating(review.rating_fire_safety)} von 5.0</li>
               )}
-              {review.rating_heating_performance !== null && review.rating_heating_performance !== undefined && (
+              {review.rating_heating_performance !== null && review.rating_heating_performance !== undefined && review.rating_heating_performance !== 0 && (
                 <li>Heizleistung: {formatRating(review.rating_heating_performance)} von 5.0</li>
               )}
             </ul>
@@ -467,7 +467,7 @@ const ReviewDetail = () => {
               </div>
               
               {/* Gefahrenanalyse (optional) */}
-              {review.rating_fire_safety !== null && review.rating_fire_safety !== undefined && (
+              {review.rating_fire_safety !== null && review.rating_fire_safety !== undefined && review.rating_fire_safety !== 0 && (
                 <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
                   <span className="text-white font-medium">Gefahrenanalyse</span>
                     <div className="flex gap-0.5 text-lg">
@@ -481,7 +481,7 @@ const ReviewDetail = () => {
               )}
               
               {/* Heizleistung (optional) */}
-              {review.rating_heating_performance !== null && review.rating_heating_performance !== undefined && (
+              {review.rating_heating_performance !== null && review.rating_heating_performance !== undefined && review.rating_heating_performance !== 0 && (
                 <div className="flex items-center justify-between p-4 bg-[#0a0a0a] rounded-lg">
                   <span className="text-white font-medium">Heizleistung</span>
                     <div className="flex gap-0.5 text-lg">
@@ -503,7 +503,7 @@ const ReviewDetail = () => {
             </h2>
             
             <div className="space-y-4">
-              {review.rating_consultation !== null && review.rating_consultation !== undefined && (
+              {review.rating_consultation !== null && review.rating_consultation !== undefined && review.rating_consultation !== 0 && (
                 <div className="border-b border-[#2a2a2a] pb-4">
                   <h3 className="text-lg font-semibold text-white mb-2">
                     Wie wurde die Beratungsqualität bewertet?
