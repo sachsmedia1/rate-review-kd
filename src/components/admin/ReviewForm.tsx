@@ -144,8 +144,8 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
   const [customerComment, setCustomerComment] = useState(existingData?.customer_comment || "");
   const [installedBy, setInstalledBy] = useState(existingData?.installed_by || "none");
   const [internalNotes, setInternalNotes] = useState(existingData?.internal_notes || "");
-  const [status, setStatus] = useState<"draft" | "published">(
-    existingData?.status || "published"
+  const [status, setStatus] = useState<"draft" | "published" | "pending">(
+    existingData?.status || "pending"
   );
 
   const {

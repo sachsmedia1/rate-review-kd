@@ -8,11 +8,11 @@ interface AdditionalInfoSectionProps {
   customerComment: string;
   installedBy: string;
   internalNotes: string;
-  status: "draft" | "published";
+  status: "draft" | "published" | "pending";
   onCustomerCommentChange: (value: string) => void;
   onInstalledByChange: (value: string) => void;
   onInternalNotesChange: (value: string) => void;
-  onStatusChange: (value: "draft" | "published") => void;
+  onStatusChange: (value: "draft" | "published" | "pending") => void;
 }
 
 export const AdditionalInfoSection = ({
@@ -95,19 +95,25 @@ export const AdditionalInfoSection = ({
         <CardContent>
           <RadioGroup
             value={status}
-            onValueChange={(value) => onStatusChange(value as "draft" | "published")}
+            onValueChange={(value) => onStatusChange(value as "draft" | "published" | "pending")}
             className="space-y-3"
           >
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="draft" id="draft" />
-              <Label htmlFor="draft" className="cursor-pointer font-normal">
-                Als Entwurf speichern
+              <RadioGroupItem value="published" id="published" />
+              <Label htmlFor="published" className="cursor-pointer font-normal">
+                ✅ Veröffentlicht
               </Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="published" id="published" />
-              <Label htmlFor="published" className="cursor-pointer font-normal">
-                Sofort veröffentlichen
+              <RadioGroupItem value="draft" id="draft" />
+              <Label htmlFor="draft" className="cursor-pointer font-normal">
+                ❌ Nicht veröffentlicht
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="pending" id="pending" />
+              <Label htmlFor="pending" className="cursor-pointer font-normal">
+                ⏸️ Unbearbeitet
               </Label>
             </div>
           </RadioGroup>

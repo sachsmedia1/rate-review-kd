@@ -187,18 +187,18 @@ const Reviews = () => {
         return (
           <Tooltip>
             <TooltipTrigger>
-              <FileEdit className="h-5 w-5 text-yellow-500" />
+              <X className="h-5 w-5 text-red-500" />
             </TooltipTrigger>
-            <TooltipContent>Entwurf</TooltipContent>
+            <TooltipContent>Nicht veröffentlicht</TooltipContent>
           </Tooltip>
         );
-      case "archived":
+      case "pending":
         return (
           <Tooltip>
             <TooltipTrigger>
-              <Archive className="h-5 w-5 text-gray-500" />
+              <FileEdit className="h-5 w-5 text-yellow-500" />
             </TooltipTrigger>
-            <TooltipContent>Archiviert</TooltipContent>
+            <TooltipContent>Unbearbeitet</TooltipContent>
           </Tooltip>
         );
       default:
@@ -264,8 +264,8 @@ const Reviews = () => {
             <SelectContent className="bg-gray-800 border-gray-700">
               <SelectItem value="all">Alle nach Status</SelectItem>
               <SelectItem value="published">Veröffentlicht</SelectItem>
-              <SelectItem value="draft">Entwurf</SelectItem>
-              <SelectItem value="archived">Archiviert</SelectItem>
+              <SelectItem value="draft">Nicht veröffentlicht</SelectItem>
+              <SelectItem value="pending">Unbearbeitet</SelectItem>
             </SelectContent>
           </Select>
 
