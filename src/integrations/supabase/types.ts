@@ -23,13 +23,13 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           customer_comment: string | null
-          customer_firstname: string
+          customer_firstname: string | null
           customer_id: string | null
           customer_lastname: string
           customer_salutation: string
           house_number: string | null
           id: string
-          installation_date: string
+          installation_date: string | null
           installed_by: string | null
           internal_notes: string | null
           is_published: boolean | null
@@ -60,13 +60,13 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           customer_comment?: string | null
-          customer_firstname: string
+          customer_firstname?: string | null
           customer_id?: string | null
           customer_lastname: string
           customer_salutation: string
           house_number?: string | null
           id?: string
-          installation_date: string
+          installation_date?: string | null
           installed_by?: string | null
           internal_notes?: string | null
           is_published?: boolean | null
@@ -97,13 +97,13 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           customer_comment?: string | null
-          customer_firstname?: string
+          customer_firstname?: string | null
           customer_id?: string | null
           customer_lastname?: string
           customer_salutation?: string
           house_number?: string | null
           id?: string
-          installation_date?: string
+          installation_date?: string | null
           installed_by?: string | null
           internal_notes?: string | null
           is_published?: boolean | null
