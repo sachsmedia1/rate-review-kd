@@ -34,6 +34,7 @@ export type Database = {
           internal_notes: string | null
           is_published: boolean | null
           latitude: number | null
+          legacy_id: number | null
           longitude: number | null
           meta_description: string | null
           meta_title: string | null
@@ -70,6 +71,7 @@ export type Database = {
           internal_notes?: string | null
           is_published?: boolean | null
           latitude?: number | null
+          legacy_id?: number | null
           longitude?: number | null
           meta_description?: string | null
           meta_title?: string | null
@@ -106,6 +108,7 @@ export type Database = {
           internal_notes?: string | null
           is_published?: boolean | null
           latitude?: number | null
+          legacy_id?: number | null
           longitude?: number | null
           meta_description?: string | null
           meta_title?: string | null
