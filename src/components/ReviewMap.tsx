@@ -16,21 +16,13 @@ interface ReviewMapProps {
 }
 
 export const ReviewMap = ({ reviews }: ReviewMapProps) => {
-  console.log('ReviewMap received:', reviews);
-  console.log('Is array?', Array.isArray(reviews));
-  console.log('Length:', reviews?.length);
-  
   // Nur veröffentlichte Reviews mit Koordinaten - with error handling
   const reviewsWithLocation = (reviews || []).filter(
-    (review) => {
-      console.log('Checking review:', review.id, review.latitude, review.longitude, review.is_published);
-      return review.latitude && 
-        review.longitude && 
-        review.is_published === true;
-    }
+    (review) => 
+      review.latitude && 
+      review.longitude && 
+      review.is_published === true
   );
-  
-  console.log('Reviews with location:', reviewsWithLocation.length);
 
   // Wenn keine Reviews mit Koordinaten vorhanden sind
   if (reviewsWithLocation.length === 0) {
