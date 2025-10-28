@@ -6,6 +6,7 @@ import { renderFlames } from "@/lib/renderFlames";
 import { Helmet } from "react-helmet-async";
 import { Review } from "@/types";
 import { extractPathFromUrl, storage } from "@/lib/storage";
+import { GoogleReviewMap } from "@/components/GoogleReviewMap";
 
 interface LocationStats {
   location: string;
@@ -489,6 +490,13 @@ const Index = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Bewertungs-Karte */}
+        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 mb-8">
+          <h2 className="text-2xl font-bold mb-4">Bewertungen auf der Karte</h2>
+          <p className="text-gray-400 mb-6">Entdecke wo unsere Kunden in ganz Deutschland zufrieden sind</p>
+          <GoogleReviewMap reviews={reviews} />
         </div>
 
         {/* Bewertungs-Grid */}
