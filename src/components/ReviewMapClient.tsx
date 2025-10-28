@@ -1,6 +1,6 @@
-import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import "@/lib/leafletConfig";
 import "leaflet/dist/leaflet.css";
-import "../lib/leafletConfig";
+import { MapContainer, TileLayer, Marker } from "react-leaflet";
 
 interface ReviewMapClientProps {
   reviews: any[];
