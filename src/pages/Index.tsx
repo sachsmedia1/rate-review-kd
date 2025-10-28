@@ -504,9 +504,9 @@ const Index = () => {
             <p className="text-gray-400 text-sm mt-2">
               Entdecke wo unsere Kunden in ganz Deutschland zufrieden sind
             </p>
-      </div>
-      <ReviewMap reviews={filteredReviews} />
-    </div>
+          </div>
+          <ReviewMap reviews={filteredReviews} />
+        </div>
 
         {/* Bewertungs-Grid */}
         {displayedReviews.length === 0 ? (
