@@ -23,6 +23,8 @@ const Index = () => {
   const [displayedReviews, setDisplayedReviews] = useState<Review[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [liveCounters, setLiveCounters] = useState({ total: 0, avg: 0, year2025: 0 });
+  const [countersLoading, setCountersLoading] = useState(true);
 
   const categories = [
     "Kaminofen",
@@ -37,6 +39,50 @@ const Index = () => {
     loadReviews();
   }, []);
 
+  useEffect(() => {
+    const fetchCounters = async () => {
+      try {
+        setCountersLoading(true);
+        const [totalRes, avgRes, yearRes] = await Promise.all([
+          supabase
+            .from("reviews")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "published"),
+          supabase
+            .from("reviews")
+            .select("average_rating")
+            .eq("status", "published"),
+          supabase
+            .from("reviews")
+            .select("*", { count: "exact", head: true })
+            .eq("status", "published")
+            .gte("installation_date", "2025-01-01"),
+        ]);
+
+        if (totalRes.error) throw totalRes.error;
+        if (avgRes.error) throw avgRes.error;
+        if (yearRes.error) throw yearRes.error;
+
+        const ratings = (avgRes.data || [])
+          .map((r: any) => r.average_rating)
+          .filter((n: number | null) => typeof n === "number");
+        const avg = ratings.length
+          ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length
+          : 0;
+
+        setLiveCounters({
+          total: totalRes.count || 0,
+          avg: Math.round(avg * 10) / 10,
+          year2025: yearRes.count || 0,
+        });
+      } catch (e) {
+        console.error("Error fetching live counters:", e);
+      } finally {
+        setCountersLoading(false);
+      }
+    };
+    fetchCounters();
+  }, []);
   const loadReviews = async () => {
     try {
       const { data, error } = await supabase
@@ -230,14 +276,14 @@ const Index = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
             <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6">
               <div className="text-3xl font-bold text-orange-500 mb-2">
-                {stats.total}
+                {countersLoading ? "..." : liveCounters.total}
               </div>
               <div className="text-sm text-gray-400">Bewertungen gesamt</div>
             </div>
 
             <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6">
               <div className="text-3xl font-bold text-orange-500 mb-2 flex items-center gap-2">
-                {stats.avgRating.toFixed(1)} 🔥
+                {countersLoading ? "..." : liveCounters.avg.toFixed(1)} 🔥
               </div>
               <div className="text-sm text-gray-400">
                 Durchschnittsbewertung
@@ -246,7 +292,7 @@ const Index = () => {
 
             <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6">
               <div className="text-3xl font-bold text-orange-500 mb-2">
-                {stats.thisYear}
+                {countersLoading ? "..." : liveCounters.year2025}
               </div>
               <div className="text-sm text-gray-400">
                 Bewertungen 2025
