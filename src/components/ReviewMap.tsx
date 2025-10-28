@@ -14,9 +14,9 @@ interface ReviewMapProps {
 }
 
 export const ReviewMap = ({ reviews }: ReviewMapProps) => {
-  // Nur Reviews mit Koordinaten
+  // Nur veröffentlichte Reviews mit Koordinaten
   const reviewsWithLocation = reviews.filter(
-    (r) => r.latitude && r.longitude
+    (r) => r.latitude && r.longitude && r.is_published
   );
 
   // Wenn keine Reviews mit Koordinaten vorhanden sind
