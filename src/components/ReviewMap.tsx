@@ -96,7 +96,7 @@ export const ReviewMap = ({ reviews }: ReviewMapProps) => {
                   {/* Rating */}
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-lg font-bold text-orange-500">
-                      {review.average_rating.toFixed(1)}
+                      {(review.average_rating || 0).toFixed(1)}
                     </span>
                     <span className="text-sm">
                       {renderFlames(review.average_rating)}
