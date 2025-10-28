@@ -4,8 +4,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { Search, MapPin, Calendar, TrendingUp } from "lucide-react";
 import { renderFlames } from "@/lib/renderFlames";
 import { Helmet } from "react-helmet-async";
-import { Review } from "@/types";
+import type { Database } from "@/integrations/supabase/types";
 import { extractPathFromUrl, storage } from "@/lib/storage";
+
+type Review = Database['public']['Tables']['reviews']['Row'];
 import { ReviewMap } from "@/components/ReviewMap";
 import "leaflet/dist/leaflet.css";
 

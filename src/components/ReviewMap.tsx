@@ -1,8 +1,10 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import { Link } from "react-router-dom";
-import { Review } from "@/types";
+import type { Database } from "@/integrations/supabase/types";
 import { renderFlames } from "@/lib/renderFlames";
+
+type Review = Database['public']['Tables']['reviews']['Row'];
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
