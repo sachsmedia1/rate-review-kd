@@ -78,3 +78,42 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Leaflet Map Custom Styles */
+.leaflet-popup-content-wrapper {
+  background-color: #1a1a1a !important;
+  border: 1px solid #2a2a2a !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #fff !important;
+}
+
+.leaflet-popup-tip {
+  background-color: #1a1a1a !important;
+  border: 1px solid #2a2a2a !important;
+}
+
+.custom-popup .leaflet-popup-content-wrapper {
+  padding: 0.75rem !important;
+}
+
+/* Leaflet Cluster Styles */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background-color: rgba(255, 98, 0, 0.3) !important;
+}
+
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background-color: rgb(255, 98, 0) !important;
+  color: white !important;
+  font-weight: bold !important;
+}
+
