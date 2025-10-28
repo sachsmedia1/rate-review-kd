@@ -6,6 +6,7 @@ import { renderFlames } from "@/lib/renderFlames";
 import { Helmet } from "react-helmet-async";
 import { Review } from "@/types";
 import { extractPathFromUrl, storage } from "@/lib/storage";
+import { ReviewMap } from "@/components/ReviewMap";
 
 interface LocationStats {
   location: string;
@@ -463,6 +464,20 @@ const Index = () => {
             </div>
           </div>
         )}
+
+        {/* Bewertungs-Karte */}
+        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg overflow-hidden mb-8">
+          <div className="p-6 border-b border-[#2a2a2a]">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <MapPin className="h-6 w-6 text-orange-500" />
+              Bewertungen auf der Karte
+            </h2>
+            <p className="text-gray-400 text-sm mt-2">
+              Entdecke wo unsere Kunden in ganz Deutschland zufrieden sind
+            </p>
+          </div>
+          <ReviewMap reviews={displayedReviews} />
+        </div>
 
         {/* Gesamtscore-Dashboard */}
         <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 md:p-8 mb-8">
