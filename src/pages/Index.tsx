@@ -335,13 +335,6 @@ const Index = () => {
 
       {/* Content Container */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 pb-12">
-        {/* Bewertungs-Karte */}
-        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-4">Bewertungen auf der Karte</h2>
-          <p className="text-gray-400 mb-6">Entdecke wo unsere Kunden in ganz Deutschland zufrieden sind</p>
-          <GoogleReviewMap reviews={filteredReviews} />
-        </div>
-
         {/* Filter-Bereich */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
@@ -497,6 +490,13 @@ const Index = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Bewertungs-Karte */}
+        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 mb-8">
+          <h2 className="text-2xl font-bold mb-4">Bewertungen auf der Karte</h2>
+          <p className="text-gray-400 mb-6">Entdecke wo unsere Kunden in ganz Deutschland zufrieden sind</p>
+          <GoogleReviewMap reviews={filteredReviews} />
         </div>
 
         {/* Bewertungs-Grid */}
