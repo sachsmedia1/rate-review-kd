@@ -42,7 +42,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from("reviews")
         .select("*")
-        .eq("is_published", true)
+        .eq("status", "published")
         .order("installation_date", { ascending: false });
 
       if (error) throw error;
