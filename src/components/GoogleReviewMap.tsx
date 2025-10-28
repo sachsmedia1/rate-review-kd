@@ -131,7 +131,8 @@ export const GoogleReviewMap = ({ reviews }: GoogleReviewMapProps) => {
                   to={`/bewertung/${selectedReview.slug}`}
                   className="block w-full bg-orange-500 hover:bg-orange-600 text-white text-center py-2 sm:py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-colors"
                 >
-                  Vollständige Bewertung ansehen →
+                  <span className="hidden sm:inline">Vollständige Bewertung ansehen →</span>
+                  <span className="sm:hidden">Bewertung ansehen →</span>
                 </Link>
               </div>
             </InfoWindow>
