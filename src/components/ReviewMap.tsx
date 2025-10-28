@@ -62,11 +62,15 @@ export const ReviewMap = ({ reviews }: ReviewMapProps) => {
         />
 
         <MarkerClusterGroup maxClusterRadius={50}>
-          {reviewsWithLocation.map((review) => (
-            <Marker
-              key={review.id}
-              position={[review.latitude!, review.longitude!]}
-            >
+          {reviewsWithLocation.map((review) => {
+            // Safety check - skip if coordinates are invalid
+            if (!review.latitude || !review.longitude) return null;
+            
+            return (
+              <Marker
+                key={review.id}
+                position={[Number(review.latitude), Number(review.longitude)]}
+              >
               <Popup className="custom-popup">
                 <div className="min-w-[250px]">
                   {/* Nachher-Bild */}
@@ -99,7 +103,7 @@ export const ReviewMap = ({ reviews }: ReviewMapProps) => {
                       {(review.average_rating || 0).toFixed(1)}
                     </span>
                     <span className="text-sm">
-                      {renderFlames(review.average_rating)}
+                      {renderFlames((review.average_rating || 0))}
                     </span>
                   </div>
 
@@ -122,7 +126,8 @@ export const ReviewMap = ({ reviews }: ReviewMapProps) => {
                 </div>
               </Popup>
             </Marker>
-          ))}
+            );
+          })}
         </MarkerClusterGroup>
       </MapContainer>
     );
