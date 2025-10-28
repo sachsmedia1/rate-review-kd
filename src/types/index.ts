@@ -48,7 +48,7 @@ export interface Review {
   rating_aesthetics?: number;
   rating_installation_quality?: number;
   rating_service?: number;
-  average_rating?: number | null;
+  average_rating: number;
   
   // Optional fields
   customer_comment?: string;

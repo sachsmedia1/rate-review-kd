@@ -6,7 +6,6 @@ import { renderFlames } from "@/lib/renderFlames";
 import { Helmet } from "react-helmet-async";
 import { Review } from "@/types";
 import { extractPathFromUrl, storage } from "@/lib/storage";
-import { ReviewMap } from "@/components/ReviewMap";
 
 interface LocationStats {
   location: string;
@@ -432,6 +431,38 @@ const Index = () => {
           )}
         </div>
 
+        {/* Standort-Übersicht */}
+        {locationGroups.length > 0 && (
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 mb-8">
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <MapPin className="h-6 w-6 text-orange-500" />
+              Bewertungen aus folgenden Standorten
+            </h2>
+            <div className="flex flex-wrap gap-3">
+              {locationGroups.map((loc) => {
+                const opacity =
+                  loc.count >= 6 ? "100" : loc.count >= 3 ? "50" : "30";
+                const bgColor =
+                  loc.count >= 3
+                    ? `bg-orange-500/${opacity}`
+                    : "bg-gray-700/50";
+                const borderColor =
+                  loc.count >= 3 ? "border-orange-500/50" : "border-gray-600";
+
+                return (
+                  <button
+                    key={loc.location}
+                    onClick={() => handleLocationClick(loc.postalCode)}
+                    className={`px-4 py-2 ${bgColor} border ${borderColor} rounded-lg text-sm hover:border-orange-500 transition-all`}
+                  >
+                    {loc.location} - {loc.count} Bewertung
+                    {loc.count !== 1 ? "en" : ""}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Gesamtscore-Dashboard */}
         <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 md:p-8 mb-8">
@@ -490,20 +521,6 @@ const Index = () => {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Bewertungs-Karte */}
-        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg overflow-hidden mb-8">
-          <div className="p-6 border-b border-[#2a2a2a]">
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <MapPin className="h-6 w-6 text-orange-500" />
-              Bewertungen auf der Karte
-            </h2>
-            <p className="text-gray-400 text-sm mt-2">
-              Entdecke wo unsere Kunden in ganz Deutschland zufrieden sind
-            </p>
-          </div>
-          <ReviewMap reviews={displayedReviews} />
         </div>
 
         {/* Bewertungs-Grid */}
