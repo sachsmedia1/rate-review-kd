@@ -435,13 +435,19 @@ const Index = () => {
       {/* Bewertungs-Karte */}
         <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 mb-8">
           <h2 className="text-2xl font-bold mb-4">Bewertungen auf der Karte</h2>
-          <p className="text-gray-400 text-sm mt-2">
+          <p className="text-gray-400 text-sm mt-2 mb-4">
             {(() => {
               const reviewsWithLocation = filteredReviews.filter(
                 r => r.latitude && r.longitude && !isNaN(Number(r.latitude)) && !isNaN(Number(r.longitude))
               );
               return reviewsWithLocation.length > 0 
-                ? `${reviewsWithLocation.length} Bewertungen mit Standortdaten in ganz Deutschland`
+                ? (
+                    <>
+                      <span className="font-semibold text-orange-500">{reviewsWithLocation.length}</span>
+                      {' '}Bewertungen mit Standortdaten
+                      <span className="hidden sm:inline"> in ganz Deutschland</span>
+                    </>
+                  )
                 : 'Lade Bewertungsdaten...';
             })()}
           </p>
