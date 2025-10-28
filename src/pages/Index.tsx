@@ -90,7 +90,8 @@ const Index = () => {
         .from("reviews")
         .select("*")
         .eq("status", "published")
-        .order("installation_date", { ascending: false });
+        .order("installation_date", { ascending: false })
+        .limit(10000);  // Load all reviews (max 10k)
 
       if (error) throw error;
 
