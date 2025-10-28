@@ -1,0 +1,1 @@
+UPDATE reviews SET latitude = NULL, longitude = NULL;
