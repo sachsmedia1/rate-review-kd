@@ -17,6 +17,7 @@ const EditReview = lazy(() => import("./pages/admin/EditReview"));
 const Customers = lazy(() => import("./pages/admin/Customers"));
 const Images = lazy(() => import("./pages/admin/Images"));
 const Users = lazy(() => import("./pages/admin/Users"));
+const DataQuality = lazy(() => import("./pages/admin/DataQuality"));
 const ReviewDetail = lazy(() => import("./pages/ReviewDetail"));
 const Sitemap = lazy(() => import("./pages/Sitemap"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -95,6 +96,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Users />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/data-quality"
+                  element={
+                    <ProtectedRoute>
+                      <DataQuality />
                     </ProtectedRoute>
                   }
                 />

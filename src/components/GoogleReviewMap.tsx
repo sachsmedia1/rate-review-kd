@@ -14,14 +14,28 @@ const GOOGLE_MAPS_API_KEY = "AIzaSyCwuop_lzv-uC1A_X7DRQ3RkVYx69SuSgo";
 export const GoogleReviewMap = ({ reviews }: GoogleReviewMapProps) => {
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
 
-  // Filter reviews with valid coordinates and published status
-  const reviewsWithLocation = reviews.filter(
-    (review) =>
-      review.latitude &&
-      review.longitude &&
-      !isNaN(Number(review.latitude)) &&
-      !isNaN(Number(review.longitude))
-  );
+  // Filter reviews with valid coordinates (not null, not 0, inside Germany)
+  const reviewsWithLocation = reviews.filter((review) => {
+    // Check 1: Koordinaten vorhanden
+    if (!review.latitude || !review.longitude) return false;
+    
+    const lat = Number(review.latitude);
+    const lng = Number(review.longitude);
+    
+    // Check 2: Valide Zahlen
+    if (isNaN(lat) || isNaN(lng)) return false;
+    
+    // Check 3: Nicht 0
+    if (lat === 0 || lng === 0) return false;
+    
+    // Check 4: Innerhalb Deutschland (Bounding Box)
+    // Deutschland: 47.0°N - 55.5°N, 5.5°E - 15.5°E
+    if (lat < 47.0 || lat > 55.5 || lng < 5.5 || lng > 15.5) {
+      return false;
+    }
+    
+    return true;
+  });
 
   if (reviewsWithLocation.length === 0) {
     return (

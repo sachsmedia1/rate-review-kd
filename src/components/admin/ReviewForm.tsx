@@ -545,7 +545,7 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
         }
       }
 
-      // 8. Automatisches Geocoding
+      // 8. Automatisches Geocoding mit User-Feedback
       const needsGeocoding = 
         mode === "create" || 
         (mode === "edit" && (
@@ -569,13 +569,14 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
 
           if (geocodeError) {
             console.error("Geocoding error:", geocodeError);
-            // Don't throw - geocoding is not critical
+            toast.warning("Review gespeichert, aber Geocoding fehlgeschlagen. Bitte später erneut versuchen.");
           } else if (geocodeResult) {
             console.log("✅ Geocoding erfolgreich:", geocodeResult);
+            toast.success(`Review gespeichert! Standort: ${data.city} (${data.postal_code}) wurde geocoded.`);
           }
         } catch (geocodeError) {
           console.error("Geocoding failed:", geocodeError);
-          // Don't throw - geocoding is not critical
+          toast.warning("Review gespeichert, Geocoding wird im Hintergrund verarbeitet.");
         }
       } else {
         console.log("8. Geocoding übersprungen (Adresse unverändert)");

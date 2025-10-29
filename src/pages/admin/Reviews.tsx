@@ -40,7 +40,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, MoreVertical, Edit, Eye, Trash2, Flame, X, CalendarIcon, CheckCircle2, FileEdit, Archive } from "lucide-react";
+import { ArrowLeft, Plus, MoreVertical, Edit, Eye, Trash2, Flame, X, CalendarIcon, CheckCircle2, FileEdit, Archive, MapPin, XCircle } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { de } from "date-fns/locale";
 import { checkUserRole } from "@/lib/auth";
@@ -58,6 +58,9 @@ interface Review {
   average_rating: number | null;
   installation_date: string;
   slug: string;
+  latitude: number | null;
+  longitude: number | null;
+  geocoding_status: string | null;
 }
 
 const ITEMS_PER_PAGE = 30;
@@ -361,6 +364,7 @@ const Reviews = () => {
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Stadt</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Kategorie</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Durchschnitt</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Standort</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Montagedatum</th>
                       <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Aktionen</th>
                     </tr>
@@ -395,6 +399,45 @@ const Reviews = () => {
                               {review.average_rating?.toFixed(1) || "—"}
                             </span>
                           </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          {review.latitude && review.longitude ? (
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Badge variant="outline" className="text-green-500 border-green-500">
+                                  <MapPin className="h-3 w-3 mr-1" />
+                                  Geocoded
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {review.latitude.toFixed(4)}, {review.longitude.toFixed(4)}
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : review.geocoding_status === 'failed' ? (
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Badge variant="outline" className="text-red-500 border-red-500">
+                                  <XCircle className="h-3 w-3 mr-1" />
+                                  Fehlgeschlagen
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Geocoding fehlgeschlagen - Bitte Adresse prüfen
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : (
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Badge variant="outline" className="text-gray-500 border-gray-500">
+                                  <MapPin className="h-3 w-3 mr-1 opacity-50" />
+                                  Fehlt
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Noch nicht geocoded
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           {format(new Date(review.installation_date), "dd.MM.yyyy", {
