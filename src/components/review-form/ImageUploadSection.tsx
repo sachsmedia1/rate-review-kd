@@ -104,22 +104,32 @@ export const ImageUploadSection = ({
               </p>
             </div>
           ) : (
-            <div className="relative">
-              <img
-                src={beforePreview}
-                alt="Vorher"
-                className="w-full max-w-md h-48 object-cover rounded-lg"
-              />
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                className="absolute top-2 right-2"
-                onClick={() => onBeforeImageChange(null)}
-              >
-                <X className="h-4 w-4 mr-1" />
-                Entfernen
-              </Button>
+            <div className="space-y-3">
+              <div className="relative group">
+                <img
+                  src={beforePreview}
+                  alt="Vorher-Bild Vorschau"
+                  className="w-full h-auto max-h-[500px] object-contain rounded-lg border-2 border-border bg-muted/30"
+                />
+                {/* Overlay with remove button */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 rounded-lg flex items-start justify-end p-2">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => onBeforeImageChange(null)}
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Entfernen
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Image info */}
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>✓ Bild hochgeladen</span>
+              </div>
             </div>
           )}
         </div>
@@ -147,22 +157,32 @@ export const ImageUploadSection = ({
               </p>
             </div>
           ) : (
-            <div className="relative">
-              <img
-                src={afterPreview}
-                alt="Nachher"
-                className="w-full max-w-md h-48 object-cover rounded-lg"
-              />
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                className="absolute top-2 right-2"
-                onClick={() => onAfterImageChange(null)}
-              >
-                <X className="h-4 w-4 mr-1" />
-                Entfernen
-              </Button>
+            <div className="space-y-3">
+              <div className="relative group">
+                <img
+                  src={afterPreview}
+                  alt="Nachher-Bild Vorschau"
+                  className="w-full h-auto max-h-[500px] object-contain rounded-lg border-2 border-border bg-muted/30"
+                />
+                {/* Overlay with remove button */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 rounded-lg flex items-start justify-end p-2">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => onAfterImageChange(null)}
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Entfernen
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Image info */}
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>✓ Bild hochgeladen</span>
+              </div>
             </div>
           )}
         </div>

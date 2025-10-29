@@ -89,20 +89,27 @@ export const AddressAutocomplete = ({
       <Label htmlFor="address-autocomplete" className="flex items-center gap-2">
         <MapPin className="h-4 w-4" />
         Adresse suchen
-        <span className="text-muted-foreground font-normal">(schnellere Eingabe)</span>
+        <span className="text-destructive">*</span>
       </Label>
       <Input
         id="address-autocomplete"
         ref={inputRef}
         type="text"
-        placeholder={isLoading ? "Google Maps lädt..." : "z.B. Bamberg, Litzendorf, Hauptstraße..."}
+        placeholder={isLoading ? "Google Maps lädt..." : "Beginnen Sie mit der Eingabe (z.B. Bamberg, Litzendorf...)"}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         disabled={isLoading}
+        className="w-full"
       />
       <p className="text-xs text-muted-foreground">
-        💡 Wählen Sie eine Adresse aus den Vorschlägen, um alle Felder automatisch auszufüllen
+        💡 <strong>Wichtig:</strong> Wählen Sie eine Adresse aus den Google-Vorschlägen aus. 
+        Dies füllt automatisch alle Felder aus und ermittelt die Koordinaten für die Karte.
       </p>
+      {isLoading && (
+        <p className="text-xs text-amber-600">
+          ⏳ Google Maps API wird geladen...
+        </p>
+      )}
     </div>
   );
 };

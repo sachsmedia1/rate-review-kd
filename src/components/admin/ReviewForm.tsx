@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { CalendarIcon, ArrowLeft, Eye, Save, X } from "lucide-react";
+import { CalendarIcon, ArrowLeft, Eye, Save, X, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -43,16 +43,16 @@ const formSchema = z.object({
     .max(100, "Nachname ist zu lang"),
   postal_code: z
     .string()
-    .regex(/^\d{5}$/, "PLZ muss genau 5 Ziffern enthalten"),
+    .min(1, "Bitte wählen Sie eine Adresse aus der Suche")
+    .regex(/^\d{5}$/, "Ungültige PLZ"),
   city: z
     .string()
-    .min(1, "Stadt ist erforderlich")
+    .min(1, "Bitte wählen Sie eine Adresse aus der Suche")
     .max(100, "Stadt ist zu lang"),
   street: z
     .string()
-    .max(200, "Straße ist zu lang")
-    .optional()
-    .or(z.literal("")),
+    .min(1, "Bitte wählen Sie eine Adresse aus der Suche")
+    .max(200, "Straße ist zu lang"),
   house_number: z
     .string()
     .max(20, "Hausnummer ist zu lang")
@@ -551,11 +551,11 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
         }
       }
 
-      // 8. Geocoding: Nutze Autocomplete-Koordinaten falls vorhanden
+      // 8. Save coordinates from Google Places Autocomplete
       if (geocodedCoordinates) {
-        console.log("8. Verwende Koordinaten aus Google Places Autocomplete");
+        console.log("8. Speichere Koordinaten aus Google Places Autocomplete");
         
-        await supabase
+        const { error: updateError } = await supabase
           .from('reviews')
           .update({
             latitude: geocodedCoordinates.latitude,
@@ -564,45 +564,14 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
             geocoded_at: new Date().toISOString()
           })
           .eq('id', savedReviewId);
-          
-        toast.success(`Review gespeichert! Standort wurde automatisch erkannt.`);
-      } else {
-        // Fallback: Geocoding Edge Function
-        const needsGeocoding = 
-          mode === "create" || 
-          (mode === "edit" && (
-            existingData?.city !== data.city || 
-            existingData?.postal_code !== data.postal_code
-          ));
 
-        if (needsGeocoding) {
-          console.log("8. Starte Geocoding Edge Function...");
-          try {
-            const { data: geocodeResult, error: geocodeError } = await supabase.functions.invoke(
-              'geocode-address',
-              {
-                body: {
-                  city: data.city,
-                  postal_code: data.postal_code,
-                  review_id: savedReviewId
-                }
-              }
-            );
-
-            if (geocodeError) {
-              console.error("Geocoding error:", geocodeError);
-              toast.warning("Review gespeichert, aber Geocoding fehlgeschlagen. Bitte später erneut versuchen.");
-            } else if (geocodeResult) {
-              console.log("✅ Geocoding erfolgreich:", geocodeResult);
-              toast.success(`Review gespeichert! Standort: ${data.city} (${data.postal_code}) wurde geocoded.`);
-            }
-          } catch (geocodeError) {
-            console.error("Geocoding failed:", geocodeError);
-            toast.warning("Review gespeichert, Geocoding wird im Hintergrund verarbeitet.");
-          }
+        if (updateError) {
+          console.error("Fehler beim Speichern der Koordinaten:", updateError);
         } else {
-          console.log("8. Geocoding übersprungen (Adresse unverändert)");
+          console.log("✅ Koordinaten erfolgreich gespeichert");
         }
+      } else {
+        console.warn("⚠️ Keine Koordinaten verfügbar - Adresse wurde möglicherweise nicht über Autocomplete ausgewählt");
       }
 
       console.log("=== SPEICHER-PROZESS ENDE ===");
@@ -787,78 +756,65 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
                   )}
                 </div>
 
-                {/* Google Places Autocomplete */}
+              </CardContent>
+            </Card>
+
+            {/* Google Places Autocomplete - ONLY INPUT METHOD */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Adresse
+                </CardTitle>
+                <CardDescription>
+                  Suchen Sie die Adresse über Google Maps für automatische Vervollständigung
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <AddressAutocomplete
-                  defaultValue={existingData ? `${existingData.street || ""} ${existingData.house_number || ""}, ${existingData.postal_code} ${existingData.city}`.trim() : ""}
+                  defaultValue={
+                    existingData
+                      ? `${existingData.street || ""} ${existingData.house_number || ""}, ${existingData.postal_code} ${existingData.city}`.trim()
+                      : ""
+                  }
                   onAddressSelect={(address) => {
+                    console.log("📍 Adresse ausgewählt:", address);
+
+                    // Update form fields
                     setValue("street", address.street, { shouldValidate: true });
                     setValue("house_number", address.houseNumber, { shouldValidate: true });
                     setValue("postal_code", address.postalCode, { shouldValidate: true });
                     setValue("city", address.city, { shouldValidate: true });
-                    setGeocodedCoordinates({ latitude: address.latitude, longitude: address.longitude });
+
+                    // Store coordinates for database
+                    setGeocodedCoordinates({
+                      latitude: address.latitude,
+                      longitude: address.longitude,
+                    });
                   }}
                 />
 
-                <div className="text-sm text-muted-foreground mt-2 mb-4">
-                  Oder manuell eingeben:
-                </div>
-
-                {/* Straße & Hausnummer (optional) */}
-                <div className="grid sm:grid-cols-[1fr_120px] gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="street">Straße</Label>
-                    <Input 
-                      id="street" 
-                      placeholder="Musterstraße" 
-                      maxLength={200}
-                      {...register("street")} 
-                    />
-                    {errors.street && (
-                      <p className="text-sm text-destructive">{errors.street.message}</p>
-                    )}
+                {/* Read-only display of selected values */}
+                {watch("street") && (
+                  <div className="p-3 bg-muted/50 rounded-lg space-y-1">
+                    <p className="text-sm font-medium">Ausgewählte Adresse:</p>
+                    <p className="text-sm">
+                      {watch("street")} {watch("house_number")}
+                    </p>
+                    <p className="text-sm">
+                      {watch("postal_code")} {watch("city")}
+                    </p>
                   </div>
+                )}
+              </CardContent>
+            </Card>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="house_number">Nr.</Label>
-                    <Input 
-                      id="house_number" 
-                      placeholder="42a" 
-                      maxLength={20}
-                      {...register("house_number")} 
-                    />
-                    {errors.house_number && (
-                      <p className="text-sm text-destructive">{errors.house_number.message}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* PLZ & Ort */}
-                <div className="grid sm:grid-cols-[120px_1fr] gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="postal_code">
-                      PLZ <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="postal_code"
-                      placeholder="12345"
-                      maxLength={5}
-                      {...register("postal_code")}
-                    />
-                    {errors.postal_code && (
-                      <p className="text-sm text-destructive">{errors.postal_code.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="city">
-                      Ort <span className="text-destructive">*</span>
-                    </Label>
-                    <Input id="city" placeholder="Berlin" {...register("city")} />
-                    {errors.city && (
-                      <p className="text-sm text-destructive">{errors.city.message}</p>
-                    )}
-                  </div>
-                </div>
+            {/* Montagedatum Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Montagedatum</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
 
                 {/* Montagedatum */}
                 <div className="space-y-2">
