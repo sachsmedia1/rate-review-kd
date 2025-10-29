@@ -84,9 +84,45 @@ class CloudflareR2Storage implements StorageProvider {
   async upload(file: File, path: string): Promise<string> {
     console.log(`[CloudflareR2Storage] Uploading file via Edge Function: ${path}`);
     
+    // Get R2 credentials from Vite environment variables
+    const accountId = import.meta.env.VITE_R2_ACCOUNT_ID;
+    const bucketName = import.meta.env.VITE_R2_BUCKET_NAME;
+    const accessKeyId = import.meta.env.VITE_R2_ACCESS_KEY_ID;
+    const secretAccessKey = import.meta.env.VITE_R2_SECRET_ACCESS_KEY;
+    const publicUrl = import.meta.env.VITE_R2_PUBLIC_URL;
+
+    console.log('[CloudflareR2Storage] Using credentials from environment:', {
+      hasAccountId: !!accountId,
+      hasBucketName: !!bucketName,
+      hasAccessKeyId: !!accessKeyId,
+      hasSecretAccessKey: !!secretAccessKey,
+      hasPublicUrl: !!publicUrl,
+    });
+
+    // Validate credentials are available
+    if (!accountId || !bucketName || !accessKeyId || !secretAccessKey) {
+      const missing = [];
+      if (!accountId) missing.push('VITE_R2_ACCOUNT_ID');
+      if (!bucketName) missing.push('VITE_R2_BUCKET_NAME');
+      if (!accessKeyId) missing.push('VITE_R2_ACCESS_KEY_ID');
+      if (!secretAccessKey) missing.push('VITE_R2_SECRET_ACCESS_KEY');
+      
+      console.error('[CloudflareR2Storage] Missing environment variables:', missing.join(', '));
+      throw new Error(`Missing R2 environment variables: ${missing.join(', ')}`);
+    }
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('path', path);
+    
+    // Pass credentials to Edge Function
+    formData.append('accountId', accountId);
+    formData.append('bucketName', bucketName);
+    formData.append('accessKeyId', accessKeyId);
+    formData.append('secretAccessKey', secretAccessKey);
+    if (publicUrl) {
+      formData.append('publicUrl', publicUrl);
+    }
 
     try {
       const response = await fetch(`${this.edgeFunctionUrl}/r2-upload`, {

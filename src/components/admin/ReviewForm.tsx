@@ -22,6 +22,7 @@ import { ImageUploadSection } from "@/components/review-form/ImageUploadSection"
 import { RatingsSection } from "@/components/review-form/RatingSliders";
 import { AdditionalInfoSection } from "@/components/review-form/AdditionalInfoSection";
 import { Badge } from "@/components/ui/badge";
+import { AddressAutocomplete } from "@/components/admin/AddressAutocomplete";
 
 const formSchema = z.object({
   customer_id: z
@@ -142,6 +143,16 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
   const [internalNotes, setInternalNotes] = useState(existingData?.internal_notes || "");
   const [status, setStatus] = useState<"draft" | "published" | "pending">(
     existingData?.status || "pending"
+  );
+
+  // Geocoded coordinates from Google Places Autocomplete
+  const [geocodedCoordinates, setGeocodedCoordinates] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(
+    existingData?.latitude && existingData?.longitude
+      ? { latitude: existingData.latitude, longitude: existingData.longitude }
+      : null
   );
 
   const {
@@ -540,41 +551,58 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
         }
       }
 
-      // 8. Automatisches Geocoding mit User-Feedback
-      const needsGeocoding = 
-        mode === "create" || 
-        (mode === "edit" && (
-          existingData?.city !== data.city || 
-          existingData?.postal_code !== data.postal_code
-        ));
-
-      if (needsGeocoding) {
-        console.log("8. Starte Geocoding...");
-        try {
-          const { data: geocodeResult, error: geocodeError } = await supabase.functions.invoke(
-            'geocode-address',
-            {
-              body: {
-                city: data.city,
-                postal_code: data.postal_code,
-                review_id: savedReviewId
-              }
-            }
-          );
-
-          if (geocodeError) {
-            console.error("Geocoding error:", geocodeError);
-            toast.warning("Review gespeichert, aber Geocoding fehlgeschlagen. Bitte später erneut versuchen.");
-          } else if (geocodeResult) {
-            console.log("✅ Geocoding erfolgreich:", geocodeResult);
-            toast.success(`Review gespeichert! Standort: ${data.city} (${data.postal_code}) wurde geocoded.`);
-          }
-        } catch (geocodeError) {
-          console.error("Geocoding failed:", geocodeError);
-          toast.warning("Review gespeichert, Geocoding wird im Hintergrund verarbeitet.");
-        }
+      // 8. Geocoding: Nutze Autocomplete-Koordinaten falls vorhanden
+      if (geocodedCoordinates) {
+        console.log("8. Verwende Koordinaten aus Google Places Autocomplete");
+        
+        await supabase
+          .from('reviews')
+          .update({
+            latitude: geocodedCoordinates.latitude,
+            longitude: geocodedCoordinates.longitude,
+            geocoding_status: 'success',
+            geocoded_at: new Date().toISOString()
+          })
+          .eq('id', savedReviewId);
+          
+        toast.success(`Review gespeichert! Standort wurde automatisch erkannt.`);
       } else {
-        console.log("8. Geocoding übersprungen (Adresse unverändert)");
+        // Fallback: Geocoding Edge Function
+        const needsGeocoding = 
+          mode === "create" || 
+          (mode === "edit" && (
+            existingData?.city !== data.city || 
+            existingData?.postal_code !== data.postal_code
+          ));
+
+        if (needsGeocoding) {
+          console.log("8. Starte Geocoding Edge Function...");
+          try {
+            const { data: geocodeResult, error: geocodeError } = await supabase.functions.invoke(
+              'geocode-address',
+              {
+                body: {
+                  city: data.city,
+                  postal_code: data.postal_code,
+                  review_id: savedReviewId
+                }
+              }
+            );
+
+            if (geocodeError) {
+              console.error("Geocoding error:", geocodeError);
+              toast.warning("Review gespeichert, aber Geocoding fehlgeschlagen. Bitte später erneut versuchen.");
+            } else if (geocodeResult) {
+              console.log("✅ Geocoding erfolgreich:", geocodeResult);
+              toast.success(`Review gespeichert! Standort: ${data.city} (${data.postal_code}) wurde geocoded.`);
+            }
+          } catch (geocodeError) {
+            console.error("Geocoding failed:", geocodeError);
+            toast.warning("Review gespeichert, Geocoding wird im Hintergrund verarbeitet.");
+          }
+        } else {
+          console.log("8. Geocoding übersprungen (Adresse unverändert)");
+        }
       }
 
       console.log("=== SPEICHER-PROZESS ENDE ===");
@@ -757,6 +785,22 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
                   {errors.customer_lastname && (
                     <p className="text-sm text-destructive">{errors.customer_lastname.message}</p>
                   )}
+                </div>
+
+                {/* Google Places Autocomplete */}
+                <AddressAutocomplete
+                  defaultValue={existingData ? `${existingData.street || ""} ${existingData.house_number || ""}, ${existingData.postal_code} ${existingData.city}`.trim() : ""}
+                  onAddressSelect={(address) => {
+                    setValue("street", address.street, { shouldValidate: true });
+                    setValue("house_number", address.houseNumber, { shouldValidate: true });
+                    setValue("postal_code", address.postalCode, { shouldValidate: true });
+                    setValue("city", address.city, { shouldValidate: true });
+                    setGeocodedCoordinates({ latitude: address.latitude, longitude: address.longitude });
+                  }}
+                />
+
+                <div className="text-sm text-muted-foreground mt-2 mb-4">
+                  Oder manuell eingeben:
                 </div>
 
                 {/* Straße & Hausnummer (optional) */}

@@ -14,14 +14,17 @@ Deno.serve(async (req) => {
   try {
     console.log('[R2 Upload] Processing upload request');
 
-    // Get environment variables
-    const accountId = Deno.env.get('VITE_R2_ACCOUNT_ID');
-    const bucketName = Deno.env.get('VITE_R2_BUCKET_NAME');
-    const accessKeyId = Deno.env.get('VITE_R2_ACCESS_KEY_ID');
-    const secretAccessKey = Deno.env.get('VITE_R2_SECRET_ACCESS_KEY');
-    const publicUrl = Deno.env.get('VITE_R2_PUBLIC_URL');
+    // Get credentials from request body (sent from frontend where VITE_ vars are available)
+    const formData = await req.formData();
+    const file = formData.get('file') as File;
+    const path = formData.get('path') as string;
+    const accountId = formData.get('accountId') as string;
+    const bucketName = formData.get('bucketName') as string;
+    const accessKeyId = formData.get('accessKeyId') as string;
+    const secretAccessKey = formData.get('secretAccessKey') as string;
+    const publicUrl = formData.get('publicUrl') as string;
 
-    console.log('[R2 Upload] Environment check:', {
+    console.log('[R2 Upload] Credentials received from frontend:', {
       hasAccountId: !!accountId,
       hasBucketName: !!bucketName,
       hasAccessKeyId: !!accessKeyId,
@@ -31,21 +34,16 @@ Deno.serve(async (req) => {
 
     if (!accountId || !bucketName || !accessKeyId || !secretAccessKey) {
       const missing = [];
-      if (!accountId) missing.push('VITE_R2_ACCOUNT_ID');
-      if (!bucketName) missing.push('VITE_R2_BUCKET_NAME');
-      if (!accessKeyId) missing.push('VITE_R2_ACCESS_KEY_ID');
-      if (!secretAccessKey) missing.push('VITE_R2_SECRET_ACCESS_KEY');
+      if (!accountId) missing.push('accountId');
+      if (!bucketName) missing.push('bucketName');
+      if (!accessKeyId) missing.push('accessKeyId');
+      if (!secretAccessKey) missing.push('secretAccessKey');
       
-      console.error('[R2 Upload] Missing environment variables:', missing.join(', '));
-      throw new Error(`Missing R2 configuration: ${missing.join(', ')}`);
+      console.error('[R2 Upload] Missing credentials from frontend:', missing.join(', '));
+      throw new Error(`Missing R2 credentials: ${missing.join(', ')}`);
     }
 
     console.log(`[R2 Upload] Using bucket: ${bucketName}`);
-
-    // Parse multipart form data
-    const formData = await req.formData();
-    const file = formData.get('file') as File;
-    const path = formData.get('path') as string;
 
     if (!file || !path) {
       console.error('[R2 Upload] Missing parameters:', { hasFile: !!file, hasPath: !!path });
