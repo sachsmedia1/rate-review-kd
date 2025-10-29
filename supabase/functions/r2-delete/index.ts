@@ -14,11 +14,11 @@ Deno.serve(async (req) => {
   try {
     console.log('[R2 Delete] Processing delete request');
 
-    // Get environment variables
-    const accountId = Deno.env.get('VITE_R2_ACCOUNT_ID');
-    const bucketName = Deno.env.get('VITE_R2_BUCKET_NAME');
-    const accessKeyId = Deno.env.get('VITE_R2_ACCESS_KEY_ID');
-    const secretAccessKey = Deno.env.get('VITE_R2_SECRET_ACCESS_KEY');
+    // Get environment variables (without VITE_ prefix)
+    const accountId = Deno.env.get('R2_ACCOUNT_ID');
+    const bucketName = Deno.env.get('R2_BUCKET_NAME');
+    const accessKeyId = Deno.env.get('R2_ACCESS_KEY_ID');
+    const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY');
 
     if (!accountId || !bucketName || !accessKeyId || !secretAccessKey) {
       throw new Error('Missing R2 configuration');

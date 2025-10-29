@@ -12,9 +12,9 @@ Deno.serve(async (req) => {
   try {
     console.log('[R2 Get URL] Processing get-url request');
 
-    // Get environment variables
-    const accountId = Deno.env.get('VITE_R2_ACCOUNT_ID');
-    const publicUrl = Deno.env.get('VITE_R2_PUBLIC_URL');
+    // Get environment variables (without VITE_ prefix)
+    const accountId = Deno.env.get('R2_ACCOUNT_ID');
+    const publicUrl = Deno.env.get('R2_PUBLIC_URL');
 
     if (!accountId) {
       throw new Error('Missing R2 account ID');
@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
     console.log(`[R2 Get URL] Generating URL for: ${path}`);
 
     // Get bucket name for URL generation
-    const bucketName = Deno.env.get('VITE_R2_BUCKET_NAME');
+    const bucketName = Deno.env.get('R2_BUCKET_NAME');
     
     if (!bucketName) {
       throw new Error('Missing R2 bucket name');
