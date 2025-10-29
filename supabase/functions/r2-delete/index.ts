@@ -1,4 +1,4 @@
-import { S3Client, DeleteObjectCommand } from "npm:@aws-sdk/client-s3@^3.614.0";
+import { S3Client, DeleteObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.614.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

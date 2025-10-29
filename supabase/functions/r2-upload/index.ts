@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from "npm:@aws-sdk/client-s3@^3.614.0";
+import { S3Client, PutObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.614.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
