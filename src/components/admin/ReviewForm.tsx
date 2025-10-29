@@ -507,6 +507,8 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
       // 6. In Datenbank speichern/aktualisieren
       console.log(`6. ${mode === "create" ? "Speichere" : "Aktualisiere"} in Datenbank...`);
 
+      let savedReviewId: string;
+      
       if (mode === "create") {
         const { data: insertedData, error: insertError } = await supabase
           .from("reviews")
@@ -519,6 +521,7 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
           throw new Error(`Datenbank-Fehler: ${insertError.message}`);
         }
 
+        savedReviewId = insertedData.id;
         console.log("7. Erfolgreich gespeichert:", insertedData);
         toast.success("Bewertung erfolgreich gespeichert!");
       } else {
@@ -532,6 +535,7 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
           throw new Error(`Datenbank-Fehler: ${updateError.message}`);
         }
 
+        savedReviewId = reviewId!;
         console.log("7. Erfolgreich aktualisiert");
         
         if (slugChanged) {
@@ -539,6 +543,42 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
         } else {
           toast.success("Bewertung erfolgreich aktualisiert!");
         }
+      }
+
+      // 8. Automatisches Geocoding
+      const needsGeocoding = 
+        mode === "create" || 
+        (mode === "edit" && (
+          existingData?.city !== data.city || 
+          existingData?.postal_code !== data.postal_code
+        ));
+
+      if (needsGeocoding) {
+        console.log("8. Starte Geocoding...");
+        try {
+          const { data: geocodeResult, error: geocodeError } = await supabase.functions.invoke(
+            'geocode-address',
+            {
+              body: {
+                city: data.city,
+                postal_code: data.postal_code,
+                review_id: savedReviewId
+              }
+            }
+          );
+
+          if (geocodeError) {
+            console.error("Geocoding error:", geocodeError);
+            // Don't throw - geocoding is not critical
+          } else if (geocodeResult) {
+            console.log("✅ Geocoding erfolgreich:", geocodeResult);
+          }
+        } catch (geocodeError) {
+          console.error("Geocoding failed:", geocodeError);
+          // Don't throw - geocoding is not critical
+        }
+      } else {
+        console.log("8. Geocoding übersprungen (Adresse unverändert)");
       }
 
       console.log("=== SPEICHER-PROZESS ENDE ===");
