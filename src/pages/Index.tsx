@@ -86,15 +86,16 @@ const Index = () => {
   }, []);
   const loadReviews = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from("reviews")
-        .select("*")
+        .select("*", { count: "exact" })
         .eq("status", "published")
         .order("installation_date", { ascending: false })
         .limit(10000);  // Load all reviews (max 10k)
 
       if (error) throw error;
 
+      console.log('📊 Reviews loaded:', data?.length, 'Total in DB:', count);
       setReviews((data || []) as Review[]);
     } catch (error) {
       console.error("Error loading reviews:", error);
