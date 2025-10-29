@@ -21,8 +21,23 @@ Deno.serve(async (req) => {
     const secretAccessKey = Deno.env.get('VITE_R2_SECRET_ACCESS_KEY');
     const publicUrl = Deno.env.get('VITE_R2_PUBLIC_URL');
 
+    console.log('[R2 Upload] Environment check:', {
+      hasAccountId: !!accountId,
+      hasBucketName: !!bucketName,
+      hasAccessKeyId: !!accessKeyId,
+      hasSecretAccessKey: !!secretAccessKey,
+      hasPublicUrl: !!publicUrl
+    });
+
     if (!accountId || !bucketName || !accessKeyId || !secretAccessKey) {
-      throw new Error('Missing R2 configuration');
+      const missing = [];
+      if (!accountId) missing.push('VITE_R2_ACCOUNT_ID');
+      if (!bucketName) missing.push('VITE_R2_BUCKET_NAME');
+      if (!accessKeyId) missing.push('VITE_R2_ACCESS_KEY_ID');
+      if (!secretAccessKey) missing.push('VITE_R2_SECRET_ACCESS_KEY');
+      
+      console.error('[R2 Upload] Missing environment variables:', missing.join(', '));
+      throw new Error(`Missing R2 configuration: ${missing.join(', ')}`);
     }
 
     console.log(`[R2 Upload] Using bucket: ${bucketName}`);
@@ -33,10 +48,11 @@ Deno.serve(async (req) => {
     const path = formData.get('path') as string;
 
     if (!file || !path) {
+      console.error('[R2 Upload] Missing parameters:', { hasFile: !!file, hasPath: !!path });
       throw new Error('Missing file or path parameter');
     }
 
-    console.log(`[R2 Upload] Uploading ${file.name} to ${path}`);
+    console.log(`[R2 Upload] Uploading ${file.name} (${file.size} bytes) to ${path}`);
 
     // Initialize S3 client with EU endpoint
     const endpoint = `https://${accountId}.eu.r2.cloudflarestorage.com`;
@@ -60,16 +76,19 @@ Deno.serve(async (req) => {
 
     // Convert file to buffer
     const buffer = await file.arrayBuffer();
+    console.log(`[R2 Upload] File converted to buffer: ${buffer.byteLength} bytes`);
     
     // Upload to R2
     const command = new PutObjectCommand({
       Bucket: bucketName,
       Key: path,
       Body: new Uint8Array(buffer),
-      ContentType: file.type,
+      ContentType: file.type || 'application/octet-stream',
     });
 
-    await client.send(command);
+    console.log('[R2 Upload] Sending upload command...');
+    const uploadResult = await client.send(command);
+    console.log('[R2 Upload] Upload command completed:', uploadResult);
 
     // Generate public URL using EU endpoint with bucket name
     const url = publicUrl 
@@ -87,8 +106,12 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error('[R2 Upload] Error:', error);
+    console.error('[R2 Upload] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        details: error instanceof Error ? error.stack : undefined
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,

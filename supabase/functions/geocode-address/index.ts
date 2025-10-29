@@ -48,7 +48,7 @@ serve(async (req) => {
     if (geocodeData.status !== 'OK' || !geocodeData.results?.[0]) {
       console.error('❌ Geocoding failed:', geocodeData.status);
       
-      // Update review with failed status if review_id provided
+      // Update review with failed status if review_id provided (using SERVICE_ROLE to bypass RLS)
       if (review_id) {
         const supabase = createClient(
           Deno.env.get('SUPABASE_URL') ?? '',
@@ -74,9 +74,20 @@ serve(async (req) => {
     const latitude = location.lat;
     const longitude = location.lng;
 
+    // Validate coordinates are in Germany
+    const GERMANY_BOUNDS = { north: 55.5, south: 47.0, east: 15.5, west: 5.5 };
+    if (latitude < GERMANY_BOUNDS.south || latitude > GERMANY_BOUNDS.north || 
+        longitude < GERMANY_BOUNDS.west || longitude > GERMANY_BOUNDS.east) {
+      console.error('❌ Coordinates outside Germany:', { latitude, longitude });
+      return new Response(
+        JSON.stringify({ error: 'Location outside Germany' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log('✅ Geocoding successful:', { latitude, longitude });
 
-    // Update review with geocoded coordinates if review_id provided
+    // Update review with geocoded coordinates if review_id provided (using SERVICE_ROLE to bypass RLS)
     if (review_id) {
       const supabase = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
@@ -95,6 +106,10 @@ serve(async (req) => {
 
       if (updateError) {
         console.error('❌ Failed to update review:', updateError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to update review with coordinates' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       } else {
         console.log('✅ Review updated with coordinates');
       }

@@ -67,16 +67,12 @@ const formSchema = z.object({
     message: "Ungültiges Datum",
   }).refine((dateStr) => {
     const date = new Date(dateStr);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date <= today;
+    const minDate = new Date('2000-01-01');
+    const maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear() + 1); // Allow up to 1 year in future
+    return date >= minDate && date <= maxDate;
   }, {
-    message: "Das Datum darf nicht in der Zukunft liegen",
-  }).refine((dateStr) => {
-    const date = new Date(dateStr);
-    return date.getFullYear() >= 1900;
-  }, {
-    message: "Das Datum ist zu weit in der Vergangenheit",
+    message: "Datum muss zwischen 2000 und einem Jahr in der Zukunft liegen",
   }),
   product_category: z.enum(
     [
@@ -224,13 +220,12 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
     const date = new Date(`${year}-${month}-${day}`);
     if (isNaN(date.getTime())) return null;
 
-    // Check if not in future
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (date > today) return null;
-
-    // Check if not too old
-    if (date.getFullYear() < 1900) return null;
+    // Check date range: between 2000 and 1 year in future
+    const minDate = new Date('2000-01-01');
+    const maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear() + 1);
+    
+    if (date < minDate || date > maxDate) return null;
 
     return `${year}-${month}-${day}`;
   };
@@ -932,12 +927,14 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
               onBeforeImageChange={(file) => {
                 setBeforeImage(file);
                 if (file === null) {
+                  setBeforePreview(null);
                   setKeepExistingBeforeImage(false);
                 }
               }}
               onAfterImageChange={(file) => {
                 setAfterImage(file);
                 if (file === null) {
+                  setAfterPreview(null);
                   setKeepExistingAfterImage(false);
                 }
               }}
