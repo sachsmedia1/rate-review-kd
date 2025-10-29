@@ -86,17 +86,42 @@ const Index = () => {
   }, []);
   const loadReviews = async () => {
     try {
-      const { data, error, count } = await supabase
+      const PAGE_SIZE = 1000;
+      const allReviews: Review[] = [];
+      
+      // Get total count first
+      const { count } = await supabase
         .from("reviews")
-        .select("*", { count: "exact" })
-        .eq("status", "published")
-        .order("installation_date", { ascending: false })
-        .limit(10000);  // Load all reviews (max 10k)
-
-      if (error) throw error;
-
-      console.log('📊 Reviews loaded:', data?.length, 'Total in DB:', count);
-      setReviews((data || []) as Review[]);
+        .select("*", { count: "exact", head: true })
+        .eq("status", "published");
+      
+      const totalCount = count || 0;
+      const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+      
+      console.log(`📊 Loading ${totalCount} reviews in ${totalPages} pages...`);
+      
+      // Load all pages
+      for (let page = 0; page < totalPages; page++) {
+        const from = page * PAGE_SIZE;
+        const to = from + PAGE_SIZE - 1;
+        
+        const { data, error } = await supabase
+          .from("reviews")
+          .select("*")
+          .eq("status", "published")
+          .order("installation_date", { ascending: false })
+          .range(from, to);
+        
+        if (error) throw error;
+        if (data) {
+          allReviews.push(...(data as Review[]));
+          console.log(`✅ Loaded page ${page + 1}/${totalPages} (${allReviews.length} total)`);
+        }
+      }
+      
+      console.log(`🎉 All ${allReviews.length} reviews loaded!`);
+      setReviews(allReviews as Review[]);
+      
     } catch (error) {
       console.error("Error loading reviews:", error);
     } finally {
