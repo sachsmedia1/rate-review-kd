@@ -27,6 +27,8 @@ export type Database = {
           customer_id: string | null
           customer_lastname: string | null
           customer_salutation: string
+          geocoded_at: string | null
+          geocoding_status: string | null
           house_number: string | null
           id: string
           installation_date: string | null
@@ -64,6 +66,8 @@ export type Database = {
           customer_id?: string | null
           customer_lastname?: string | null
           customer_salutation: string
+          geocoded_at?: string | null
+          geocoding_status?: string | null
           house_number?: string | null
           id?: string
           installation_date?: string | null
@@ -101,6 +105,8 @@ export type Database = {
           customer_id?: string | null
           customer_lastname?: string | null
           customer_salutation?: string
+          geocoded_at?: string | null
+          geocoding_status?: string | null
           house_number?: string | null
           id?: string
           installation_date?: string | null
