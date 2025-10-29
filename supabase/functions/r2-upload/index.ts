@@ -14,17 +14,26 @@ Deno.serve(async (req) => {
   try {
     console.log('[R2 Upload] Processing upload request');
 
-    // Get credentials from request body (sent from frontend where VITE_ vars are available)
+    // Parse multipart form data
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const path = formData.get('path') as string;
-    const accountId = formData.get('accountId') as string;
-    const bucketName = formData.get('bucketName') as string;
-    const accessKeyId = formData.get('accessKeyId') as string;
-    const secretAccessKey = formData.get('secretAccessKey') as string;
-    const publicUrl = formData.get('publicUrl') as string;
 
-    console.log('[R2 Upload] Credentials received from frontend:', {
+    if (!file || !path) {
+      console.error('[R2 Upload] Missing parameters:', { hasFile: !!file, hasPath: !!path });
+      throw new Error('Missing file or path parameter');
+    }
+
+    console.log(`[R2 Upload] Uploading ${file.name} (${file.size} bytes) to ${path}`);
+
+    // Get R2 credentials from Supabase Secrets (without VITE_ prefix)
+    const accountId = Deno.env.get('R2_ACCOUNT_ID');
+    const bucketName = Deno.env.get('R2_BUCKET_NAME');
+    const accessKeyId = Deno.env.get('R2_ACCESS_KEY_ID');
+    const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY');
+    const publicUrl = Deno.env.get('R2_PUBLIC_URL');
+
+    console.log('[R2 Upload] Environment check:', {
       hasAccountId: !!accountId,
       hasBucketName: !!bucketName,
       hasAccessKeyId: !!accessKeyId,
@@ -34,23 +43,16 @@ Deno.serve(async (req) => {
 
     if (!accountId || !bucketName || !accessKeyId || !secretAccessKey) {
       const missing = [];
-      if (!accountId) missing.push('accountId');
-      if (!bucketName) missing.push('bucketName');
-      if (!accessKeyId) missing.push('accessKeyId');
-      if (!secretAccessKey) missing.push('secretAccessKey');
+      if (!accountId) missing.push('R2_ACCOUNT_ID');
+      if (!bucketName) missing.push('R2_BUCKET_NAME');
+      if (!accessKeyId) missing.push('R2_ACCESS_KEY_ID');
+      if (!secretAccessKey) missing.push('R2_SECRET_ACCESS_KEY');
       
-      console.error('[R2 Upload] Missing credentials from frontend:', missing.join(', '));
-      throw new Error(`Missing R2 credentials: ${missing.join(', ')}`);
+      console.error('[R2 Upload] Missing Supabase secrets:', missing.join(', '));
+      throw new Error(`Missing R2 configuration in Supabase secrets: ${missing.join(', ')}`);
     }
 
     console.log(`[R2 Upload] Using bucket: ${bucketName}`);
-
-    if (!file || !path) {
-      console.error('[R2 Upload] Missing parameters:', { hasFile: !!file, hasPath: !!path });
-      throw new Error('Missing file or path parameter');
-    }
-
-    console.log(`[R2 Upload] Uploading ${file.name} (${file.size} bytes) to ${path}`);
 
     // Initialize S3 client with EU endpoint
     const endpoint = `https://${accountId}.eu.r2.cloudflarestorage.com`;
