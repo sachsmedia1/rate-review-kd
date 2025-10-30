@@ -86,11 +86,17 @@ const Dashboard = () => {
         heatingPerformance: calculateDetailAvg("rating_heating_performance"),
       };
 
-      // Status Distribution
+      // Status Distribution (server-side exact counts to avoid 1,000 row limit)
+      const [{ count: publishedCount }, { count: pendingCount }, { count: draftCount }] = await Promise.all([
+        supabase.from("reviews").select("*", { count: "exact", head: true }).eq("status", "published"),
+        supabase.from("reviews").select("*", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("reviews").select("*", { count: "exact", head: true }).eq("status", "draft"),
+      ]);
+
       const statusCounts = {
-        published: allReviews.filter(r => r.status === "published").length,
-        pending: allReviews.filter(r => r.status === "pending").length,
-        draft: allReviews.filter(r => r.status === "draft").length,
+        published: publishedCount || 0,
+        pending: pendingCount || 0,
+        draft: draftCount || 0,
       };
 
       return {
