@@ -31,9 +31,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
         {/* Global Robots Meta Tag */}
-        <Helmet>
-          <RobotsMetaTag />
-        </Helmet>
+        <RobotsMetaTag />
         
         <TooltipProvider>
           <Toaster />

@@ -115,7 +115,6 @@ const Settings = () => {
       <Helmet>
         <title>SEO-Einstellungen | Der Kamindoktor Admin</title>
         <meta name="description" content="SEO-Content und Unternehmensinformationen verwalten" />
-        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
       <div className="min-h-screen bg-[#0a0a0a] text-white">
