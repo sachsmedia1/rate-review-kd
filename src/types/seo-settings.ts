@@ -41,6 +41,7 @@ export interface SEOSettings {
   canonical_base_url?: string;
   google_analytics_id?: string;
   google_tag_manager_id?: string;
+  enable_indexing: boolean;
   created_at?: string;
   updated_at?: string;
 }

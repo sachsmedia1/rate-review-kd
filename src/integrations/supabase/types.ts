@@ -154,6 +154,7 @@ export type Database = {
           created_at: string
           default_meta_description: string | null
           default_og_image_url: string | null
+          enable_indexing: boolean
           google_analytics_id: string | null
           google_tag_manager_id: string | null
           id: string
@@ -185,6 +186,7 @@ export type Database = {
           created_at?: string
           default_meta_description?: string | null
           default_og_image_url?: string | null
+          enable_indexing?: boolean
           google_analytics_id?: string | null
           google_tag_manager_id?: string | null
           id?: string
@@ -216,6 +218,7 @@ export type Database = {
           created_at?: string
           default_meta_description?: string | null
           default_og_image_url?: string | null
+          enable_indexing?: boolean
           google_analytics_id?: string | null
           google_tag_manager_id?: string | null
           id?: string

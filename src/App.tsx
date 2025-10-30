@@ -3,9 +3,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { HelmetProvider } from "react-helmet-async";
+import { HelmetProvider, Helmet } from "react-helmet-async";
 import { lazy, Suspense } from "react";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { RobotsMetaTag } from "./components/seo/RobotsMetaTag";
 
 const Index = lazy(() => import("./pages/Index"));
 const Login = lazy(() => import("./pages/Login"));
@@ -29,6 +30,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
+        {/* Global Robots Meta Tag */}
+        <Helmet>
+          <RobotsMetaTag />
+        </Helmet>
+        
         <TooltipProvider>
           <Toaster />
           <Sonner />

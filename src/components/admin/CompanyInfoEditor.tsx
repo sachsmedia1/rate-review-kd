@@ -32,6 +32,7 @@ const CompanyInfoEditor = ({ settings, onUpdate, onReload }: CompanyInfoEditorPr
     social_youtube: '',
     service_areas: [] as string[]
   });
+  const [enableIndexing, setEnableIndexing] = useState(true);
   const [newServiceArea, setNewServiceArea] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -59,6 +60,7 @@ const CompanyInfoEditor = ({ settings, onUpdate, onReload }: CompanyInfoEditorPr
       social_youtube: settings.social_youtube || '',
       service_areas: settings.service_areas || []
     });
+    setEnableIndexing(settings.enable_indexing ?? true);
     setHasUnsavedChanges(false);
   };
 
@@ -89,7 +91,10 @@ const CompanyInfoEditor = ({ settings, onUpdate, onReload }: CompanyInfoEditorPr
   const saveCompanyData = async () => {
     try {
       setIsSaving(true);
-      await onUpdate(companyData);
+      await onUpdate({
+        ...companyData,
+        enable_indexing: enableIndexing
+      });
       setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Error saving company data:', error);
@@ -253,6 +258,109 @@ const CompanyInfoEditor = ({ settings, onUpdate, onReload }: CompanyInfoEditorPr
               className="bg-gray-800 border-gray-700 text-white"
             />
           </div>
+        </div>
+      </div>
+
+      {/* SEO-Indexierung */}
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+        <h3 className="text-xl font-semibold mb-4">Suchmaschinen-Indexierung</h3>
+        
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={enableIndexing}
+                onChange={(e) => {
+                  setEnableIndexing(e.target.checked);
+                  setHasUnsavedChanges(true);
+                }}
+                className="w-5 h-5 text-orange-500 bg-gray-900 border-gray-600 rounded focus:ring-orange-500"
+              />
+              <div>
+                <span className="text-lg font-medium">
+                  Diese Subdomain in Suchmaschinen sichtbar machen
+                </span>
+                <p className="text-sm text-gray-400 mt-1">
+                  Wenn aktiviert: Google indexiert <code className="text-orange-400">bewertungen.der-kamindoktor.de</code>
+                </p>
+              </div>
+            </label>
+
+            {!enableIndexing && (
+              <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-600/50 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <span className="text-yellow-500 text-xl">⚠️</span>
+                  <div>
+                    <p className="font-semibold text-yellow-500 mb-1">
+                      Indexierung deaktiviert
+                    </p>
+                    <p className="text-sm text-gray-300">
+                      Alle Seiten dieser Subdomain werden mit <code className="text-orange-400">noindex</code> Meta-Tag ausgeliefert. 
+                      Google wird diese Seiten <strong>nicht</strong> in den Suchergebnissen anzeigen.
+                    </p>
+                    <p className="text-sm text-gray-400 mt-2">
+                      <strong>Verwende diese Option wenn:</strong> Das WordPress-Plugin auf der Hauptdomain 
+                      (<code className="text-orange-400">der-kamindoktor.de/bewertungen</code>) die primäre SEO-Quelle ist.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {enableIndexing && (
+              <div className="mt-4 p-4 bg-green-900/20 border border-green-600/50 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <span className="text-green-500 text-xl">✓</span>
+                  <div>
+                    <p className="font-semibold text-green-500 mb-1">
+                      Indexierung aktiviert
+                    </p>
+                    <p className="text-sm text-gray-300">
+                      Diese Subdomain wird normal von Suchmaschinen indexiert. 
+                      Stelle sicher, dass keine Duplicate Content Probleme mit anderen Domains existieren.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Zusatz-Info */}
+        <div className="mt-6 pt-6 border-t border-gray-700">
+          <h4 className="font-semibold mb-3">Was bewirkt diese Einstellung?</h4>
+          <div className="space-y-2 text-sm text-gray-300">
+            <div className="flex items-start gap-2">
+              <span className="text-orange-500 mt-0.5">•</span>
+              <span>
+                <strong>Aktiviert:</strong> Meta-Tag <code className="text-orange-400">{'<meta name="robots" content="index, follow" />'}</code> 
+                wird gesetzt → Google indexiert alle Seiten
+              </span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-orange-500 mt-0.5">•</span>
+              <span>
+                <strong>Deaktiviert:</strong> Meta-Tag <code className="text-orange-400">{'<meta name="robots" content="noindex, nofollow" />'}</code> 
+                wird gesetzt → Google indexiert KEINE Seiten
+              </span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-orange-500 mt-0.5">•</span>
+              <span>
+                Die Einstellung gilt für <strong>alle Seiten</strong> dieser Subdomain (Index, Review-Details, etc.)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Canonical URL Hinweis */}
+        <div className="mt-4 p-3 bg-blue-900/20 border border-blue-600/50 rounded">
+          <p className="text-sm text-gray-300">
+            <strong>💡 Tipp:</strong> Wenn du das WordPress-Plugin verwendest, kannst du dort 
+            Canonical-URLs auf die Hauptdomain setzen und diese Subdomain deaktivieren. 
+            So vermeidest du Duplicate Content.
+          </p>
         </div>
       </div>
 
