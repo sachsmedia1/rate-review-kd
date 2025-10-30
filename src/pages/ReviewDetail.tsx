@@ -540,65 +540,6 @@ const ReviewDetail = () => {
             </div>
           </section>
 
-          {/* FAQ Section */}
-          <section className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 md:p-8 mb-8">
-            <h2 className="text-2xl font-bold text-white mb-6">
-              Häufig gestellte Fragen zu dieser Bewertung
-            </h2>
-            
-            <div className="space-y-4">
-              {review.rating_consultation !== null && review.rating_consultation !== undefined && review.rating_consultation !== 0 && (
-                <div className="border-b border-[#2a2a2a] pb-4">
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    Wie wurde die Beratungsqualität bewertet?
-                  </h3>
-                  <p className="text-gray-300">
-                    {formatRating(review.rating_consultation)} von 5.0 Punkten
-                  </p>
-                </div>
-              )}
-              
-              <div className="border-b border-[#2a2a2a] pb-4">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Wo wurde diese Dienstleistung durchgeführt?
-                </h3>
-                <p className="text-gray-300">
-                  In {review.city} ({review.postal_code}), Deutschland
-                </p>
-              </div>
-              
-              <div className="border-b border-[#2a2a2a] pb-4">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Welche Art von Dienstleistung wurde bewertet?
-                </h3>
-                <p className="text-gray-300">
-                  {review.product_category}
-                </p>
-              </div>
-              
-              <div className="border-b border-[#2a2a2a] pb-4">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Wie ist die Gesamtbewertung?
-                </h3>
-                <p className="text-gray-300">
-                  {formatRating(review.average_rating)} von 5.0 Punkten - {getRatingLabel(review.average_rating)}
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-2">
-                  Wann wurde diese Bewertung abgegeben?
-                </h3>
-                <p className="text-gray-300">
-                  Am {new Date(review.installation_date).toLocaleDateString('de-DE', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric'
-                  })}
-                </p>
-              </div>
-            </div>
-          </section>
 
           {/* Category SEO Content */}
           {categorySeoData && (
