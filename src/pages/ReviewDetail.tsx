@@ -30,6 +30,7 @@ const ReviewDetail = () => {
   const [error, setError] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [beforeAfterView, setBeforeAfterView] = useState<'before' | 'after' | 'both'>('both');
+  const [businessStats, setBusinessStats] = useState<{ averageRating: number; reviewCount: number } | null>(null);
 
   // Helper function to format ratings safely
   const formatRating = (rating: number | null | undefined): string => {
@@ -108,6 +109,27 @@ const ReviewDetail = () => {
 
     fetchReview();
   }, [slug]);
+
+  // Fetch business statistics
+  useEffect(() => {
+    const fetchBusinessStats = async () => {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('average_rating')
+        .eq('is_published', true);
+
+      if (!error && data) {
+        const totalRatings = data.reduce((sum, r) => sum + (r.average_rating || 0), 0);
+        const avgRating = data.length > 0 ? totalRatings / data.length : 0;
+        setBusinessStats({
+          averageRating: avgRating,
+          reviewCount: data.length
+        });
+      }
+    };
+
+    fetchBusinessStats();
+  }, []);
 
   // Lightbox handlers
   const openBeforeAfterLightbox = () => {
@@ -240,19 +262,42 @@ const ReviewDetail = () => {
             "@type": "Review",
             "itemReviewed": {
               "@type": "LocalBusiness",
-              "name": "Der Kamindoktor",
+              "name": seoSettings?.company_name || "Der Kamindoktor",
+              "image": seoSettings?.company_logo_url || seoSettings?.default_og_image_url,
+              "telephone": seoSettings?.company_phone,
+              "email": seoSettings?.company_email,
+              "url": seoSettings?.company_website,
               "address": {
                 "@type": "PostalAddress",
-                "addressLocality": review.city,
-                "postalCode": review.postal_code,
-                "addressCountry": "DE"
+                "streetAddress": seoSettings?.address_street,
+                "addressLocality": seoSettings?.address_city,
+                "postalCode": seoSettings?.address_postal_code,
+                "addressRegion": seoSettings?.address_region,
+                "addressCountry": seoSettings?.address_country || "DE"
               },
-              "aggregateRating": {
+              ...(review.latitude && review.longitude && {
+                "geo": {
+                  "@type": "GeoCoordinates",
+                  "latitude": review.latitude,
+                  "longitude": review.longitude
+                }
+              }),
+              "aggregateRating": businessStats ? {
                 "@type": "AggregateRating",
-                "ratingValue": formatRating(review.average_rating),
+                "ratingValue": businessStats.averageRating.toFixed(2),
+                "reviewCount": businessStats.reviewCount,
                 "bestRating": "5",
                 "worstRating": "1"
-              }
+              } : undefined,
+              ...(seoSettings && {
+                "sameAs": [
+                  seoSettings.social_facebook,
+                  seoSettings.social_instagram,
+                  seoSettings.social_pinterest,
+                  seoSettings.social_youtube,
+                  seoSettings.social_xing
+                ].filter(Boolean)
+              })
             },
             "author": {
               "@type": "Person",
@@ -551,10 +596,30 @@ const ReviewDetail = () => {
 
           {/* FAQ Section */}
           {categorySeoData?.faq && categorySeoData.faq.length > 0 && (
-            <ReviewFAQ 
-              faqItems={categorySeoData.faq} 
-              reviewData={reviewData} 
-            />
+            <>
+              <ReviewFAQ 
+                faqItems={categorySeoData.faq} 
+                reviewData={reviewData} 
+              />
+              
+              {/* FAQPage Schema */}
+              <Helmet>
+                <script type="application/ld+json">
+                  {JSON.stringify({
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    "mainEntity": categorySeoData.faq.map((item) => ({
+                      "@type": "Question",
+                      "name": renderTemplate(item.question, reviewData),
+                      "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": renderTemplate(item.answer, reviewData)
+                      }
+                    }))
+                  })}
+                </script>
+              </Helmet>
+            </>
           )}
 
           {/* Ähnliche Bewertungen */}
