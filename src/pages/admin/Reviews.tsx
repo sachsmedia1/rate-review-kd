@@ -40,7 +40,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, MoreVertical, Edit, Eye, Trash2, Flame, X, CalendarIcon, CheckCircle2, FileEdit, Archive, MapPin, XCircle } from "lucide-react";
+import { ArrowLeft, Plus, MoreVertical, Edit, Eye, Trash2, Flame, X, CalendarIcon, CheckCircle2, FileEdit, Archive, MapPin, XCircle, CircleCheck, AlertCircle, Circle } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { de } from "date-fns/locale";
 import { checkUserRole } from "@/lib/auth";
@@ -175,45 +175,68 @@ const Reviews = () => {
     setDeleteDialogOpen(true);
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "published":
-        return (
-          <Tooltip>
-            <TooltipTrigger>
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
-            </TooltipTrigger>
-            <TooltipContent>Veröffentlicht</TooltipContent>
-          </Tooltip>
-        );
-      case "draft":
-        return (
-          <Tooltip>
-            <TooltipTrigger>
-              <X className="h-5 w-5 text-red-500" />
-            </TooltipTrigger>
-            <TooltipContent>Nicht veröffentlicht</TooltipContent>
-          </Tooltip>
-        );
-      case "pending":
-        return (
-          <Tooltip>
-            <TooltipTrigger>
-              <FileEdit className="h-5 w-5 text-yellow-500" />
-            </TooltipTrigger>
-            <TooltipContent>Unbearbeitet</TooltipContent>
-          </Tooltip>
-        );
-      default:
-        return (
-          <Tooltip>
-            <TooltipTrigger>
-              <span className="text-gray-400">{status}</span>
-            </TooltipTrigger>
-            <TooltipContent>{status}</TooltipContent>
-          </Tooltip>
-        );
-    }
+  const StatusCell = ({ review }: { review: Review }) => {
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    const statusConfig = {
+      "published": { 
+        icon: CircleCheck, 
+        color: "text-green-500",
+        label: "Veröffentlicht",
+        next: "draft"
+      },
+      "draft": { 
+        icon: AlertCircle, 
+        color: "text-yellow-500",
+        label: "Entwurf",
+        next: null
+      },
+      default: { 
+        icon: Circle, 
+        color: "text-gray-400",
+        label: "Nicht veröffentlicht",
+        next: "published"
+      }
+    };
+
+    const currentStatus = review.status || null;
+    const config = (statusConfig as any)[currentStatus] || statusConfig.default;
+    const Icon = config.icon;
+
+    const handleClick = async () => {
+      setIsUpdating(true);
+      const nextStatus = config.next;
+      
+      const { error } = await supabase
+        .from("reviews")
+        .update({ status: nextStatus })
+        .eq("id", review.id);
+
+      if (!error) {
+        fetchReviews();
+        toast.success(`Status auf "${nextStatus ? (statusConfig as any)[nextStatus]?.label : 'Nicht veröffentlicht'}" geändert`);
+      } else {
+        toast.error("Fehler beim Ändern des Status");
+      }
+      setIsUpdating(false);
+    };
+
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={handleClick}
+            disabled={isUpdating}
+            className="hover:opacity-70 transition-opacity disabled:opacity-50"
+          >
+            <Icon className={`w-5 h-5 ${config.color}`} />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isUpdating ? "Wird aktualisiert..." : `${config.label} - Klicken zum Wechseln`}
+        </TooltipContent>
+      </Tooltip>
+    );
   };
 
   const truncateText = (text: string, maxLength: number) => {
@@ -353,69 +376,66 @@ const Reviews = () => {
             </button>
           </div>
         ) : (
-          <>
-            <div className="bg-gray-800 rounded-lg overflow-hidden">
+            <>
+            <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-900 border-b border-gray-700">
-                    <tr>
+                  <thead className="border-b border-gray-700">
+                    <tr className="hover:bg-transparent">
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Status</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Kunde</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Stadt</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Kategorie</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Durchschnitt</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Montagedatum</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Bewertung</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Datum</th>
                       <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Aktionen</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-gray-800 divide-y divide-gray-700">
+                  <tbody>
                     {reviews.map((review, index) => (
                       <tr
                         key={review.id}
-                        className="hover:bg-gray-700/50 transition-colors"
+                        className="border-b border-gray-800 hover:bg-gray-800 transition-colors"
                       >
                         <td className="px-4 py-3">
-                          {getStatusIcon(review.status)}
+                          <StatusCell review={review} />
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 font-medium text-white">
                           {review.customer_firstname} {review.customer_lastname}
                         </td>
-                        <td className="px-4 py-3">{review.city}</td>
+                        <td className="px-4 py-3 text-gray-300">{review.city}</td>
                         <td className="px-4 py-3">
-                          <Tooltip>
-                            <TooltipTrigger>
-                              {truncateText(review.product_category, 20)}
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {review.product_category}
-                            </TooltipContent>
-                          </Tooltip>
+                          <Badge variant="outline" className="border-gray-700 text-gray-300">
+                            {truncateText(review.product_category, 20)}
+                          </Badge>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center gap-1 text-primary">
-                            <Flame className="h-4 w-4 fill-current" />
-                            <span className="font-medium">
+                          <div className="flex items-center gap-1">
+                            <Flame className="w-4 h-4 text-orange-500 fill-orange-500" />
+                            <span className="text-white font-medium">
                               {review.average_rating?.toFixed(1) || "—"}
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 text-gray-400 text-sm">
                           {format(new Date(review.installation_date), "dd.MM.yyyy", {
                             locale: de,
                           })}
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex justify-end gap-2">
+                          <div className="flex items-center justify-end gap-2">
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="icon"
+                              className="h-8 w-8 text-gray-400 hover:text-white hover:bg-gray-700"
                               onClick={() => navigate(`/admin/reviews/${review.id}/edit`)}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="icon"
+                              className="h-8 w-8 text-gray-400 hover:text-white hover:bg-gray-700"
                               onClick={() => window.open(`/bewertung/${review.slug}`, "_blank")}
                             >
                               <Eye className="h-4 w-4" />
@@ -423,9 +443,9 @@ const Reviews = () => {
                             {userRole === "admin" && (
                               <Button
                                 variant="ghost"
-                                size="sm"
+                                size="icon"
+                                className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-gray-700"
                                 onClick={() => confirmDelete(review.id)}
-                                className="text-destructive hover:text-destructive"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
