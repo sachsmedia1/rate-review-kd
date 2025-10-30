@@ -145,7 +145,6 @@ export type Database = {
           category_seo_content: Json
           company_description: string | null
           company_email: string | null
-          company_founded_year: number | null
           company_legal_name: string | null
           company_logo_url: string | null
           company_name: string
@@ -162,7 +161,7 @@ export type Database = {
           service_areas: Json | null
           social_facebook: string | null
           social_instagram: string | null
-          social_linkedin: string | null
+          social_pinterest: string | null
           social_xing: string | null
           social_youtube: string | null
           updated_at: string
@@ -177,7 +176,6 @@ export type Database = {
           category_seo_content?: Json
           company_description?: string | null
           company_email?: string | null
-          company_founded_year?: number | null
           company_legal_name?: string | null
           company_logo_url?: string | null
           company_name?: string
@@ -194,7 +192,7 @@ export type Database = {
           service_areas?: Json | null
           social_facebook?: string | null
           social_instagram?: string | null
-          social_linkedin?: string | null
+          social_pinterest?: string | null
           social_xing?: string | null
           social_youtube?: string | null
           updated_at?: string
@@ -209,7 +207,6 @@ export type Database = {
           category_seo_content?: Json
           company_description?: string | null
           company_email?: string | null
-          company_founded_year?: number | null
           company_legal_name?: string | null
           company_logo_url?: string | null
           company_name?: string
@@ -226,7 +223,7 @@ export type Database = {
           service_areas?: Json | null
           social_facebook?: string | null
           social_instagram?: string | null
-          social_linkedin?: string | null
+          social_pinterest?: string | null
           social_xing?: string | null
           social_youtube?: string | null
           updated_at?: string

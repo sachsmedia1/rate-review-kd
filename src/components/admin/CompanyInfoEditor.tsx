@@ -18,7 +18,6 @@ const CompanyInfoEditor = ({ settings, onUpdate, onReload }: CompanyInfoEditorPr
     company_name: '',
     company_legal_name: '',
     company_description: '',
-    company_founded_year: 2010,
     company_email: '',
     company_phone: '',
     company_website: '',
@@ -28,7 +27,7 @@ const CompanyInfoEditor = ({ settings, onUpdate, onReload }: CompanyInfoEditorPr
     address_region: '',
     social_facebook: '',
     social_instagram: '',
-    social_linkedin: '',
+    social_pinterest: '',
     social_youtube: '',
     service_areas: [] as string[]
   });
@@ -46,7 +45,6 @@ const CompanyInfoEditor = ({ settings, onUpdate, onReload }: CompanyInfoEditorPr
       company_name: settings.company_name || '',
       company_legal_name: settings.company_legal_name || '',
       company_description: settings.company_description || '',
-      company_founded_year: settings.company_founded_year || 2010,
       company_email: settings.company_email || '',
       company_phone: settings.company_phone || '',
       company_website: settings.company_website || '',
@@ -56,7 +54,7 @@ const CompanyInfoEditor = ({ settings, onUpdate, onReload }: CompanyInfoEditorPr
       address_region: settings.address_region || '',
       social_facebook: settings.social_facebook || '',
       social_instagram: settings.social_instagram || '',
-      social_linkedin: settings.social_linkedin || '',
+      social_pinterest: settings.social_pinterest || '',
       social_youtube: settings.social_youtube || '',
       service_areas: settings.service_areas || []
     });
@@ -117,7 +115,6 @@ const CompanyInfoEditor = ({ settings, onUpdate, onReload }: CompanyInfoEditorPr
     "name": companyData.company_name,
     "legalName": companyData.company_legal_name,
     "description": companyData.company_description,
-    "foundingDate": `${companyData.company_founded_year}-01-01`,
     "address": {
       "@type": "PostalAddress",
       "streetAddress": companyData.address_street,
@@ -133,7 +130,7 @@ const CompanyInfoEditor = ({ settings, onUpdate, onReload }: CompanyInfoEditorPr
     "sameAs": [
       companyData.social_facebook,
       companyData.social_instagram,
-      companyData.social_linkedin,
+      companyData.social_pinterest,
       companyData.social_youtube
     ].filter(Boolean)
   };
@@ -158,16 +155,6 @@ const CompanyInfoEditor = ({ settings, onUpdate, onReload }: CompanyInfoEditorPr
             <Input
               value={companyData.company_legal_name}
               onChange={(e) => handleFieldChange('company_legal_name', e.target.value)}
-              className="bg-gray-800 border-gray-700 text-white"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Gründungsjahr</label>
-            <Input
-              type="number"
-              value={companyData.company_founded_year}
-              onChange={(e) => handleFieldChange('company_founded_year', parseInt(e.target.value) || 2010)}
               className="bg-gray-800 border-gray-700 text-white"
             />
           </div>
@@ -389,11 +376,11 @@ const CompanyInfoEditor = ({ settings, onUpdate, onReload }: CompanyInfoEditorPr
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">LinkedIn</label>
+            <label className="block text-sm font-medium mb-2">Pinterest</label>
             <Input
-              value={companyData.social_linkedin}
-              onChange={(e) => handleFieldChange('social_linkedin', e.target.value)}
-              placeholder="https://linkedin.com/company/..."
+              value={companyData.social_pinterest}
+              onChange={(e) => handleFieldChange('social_pinterest', e.target.value)}
+              placeholder="https://pinterest.com/..."
               className="bg-gray-800 border-gray-700 text-white"
             />
           </div>

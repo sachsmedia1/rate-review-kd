@@ -19,7 +19,6 @@ export interface SEOSettings {
   company_name: string;
   company_legal_name: string;
   company_description: string;
-  company_founded_year: number;
   company_email: string;
   company_phone: string;
   company_website: string;
@@ -31,7 +30,7 @@ export interface SEOSettings {
   address_country: string;
   social_facebook?: string;
   social_instagram?: string;
-  social_linkedin?: string;
+  social_pinterest?: string;
   social_youtube?: string;
   social_xing?: string;
   service_areas: string[];
