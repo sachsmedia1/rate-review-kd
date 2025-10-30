@@ -2,7 +2,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, Pencil, Trash2, CheckCircle2, FileText, Loader2, Flame, ArrowRight } from "lucide-react";
+import { Eye, Pencil, Trash2, Loader2, Flame, ArrowRight } from "lucide-react";
+import { StatusIcon } from "@/utils/status-icons";
 import { Review } from "@/types";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
@@ -32,13 +33,6 @@ const RecentReviewsTable = ({ reviews, isLoading, userRole, onReviewDeleted }: R
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [reviewToDelete, setReviewToDelete] = useState<string | null>(null);
-  
-  const getStatusIcon = (status: string) => {
-    if (status === "published") {
-      return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-    }
-    return <FileText className="h-4 w-4 text-yellow-500" />;
-  };
 
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), "dd.MM.yyyy", { locale: de });
@@ -147,7 +141,7 @@ const RecentReviewsTable = ({ reviews, isLoading, userRole, onReviewDeleted }: R
                 <TableRow key={review.id}>
                   <TableCell>
                     <div className="flex items-center justify-center">
-                      {getStatusIcon(review.status)}
+                      <StatusIcon status={review.status} />
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">

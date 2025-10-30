@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Review } from "@/types";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { StatusIcon } from "@/utils/status-icons";
 
 const Customers = () => {
   const navigate = useNavigate();
@@ -397,7 +398,7 @@ const Customers = () => {
                       {new Date(review.installation_date).toLocaleDateString("de-DE")}
                     </td>
                     <td className="px-4 py-3">
-                      {review.status === "published" ? "✅" : "📝"}
+                      <StatusIcon status={review.status} />
                     </td>
                     <td className="px-4 py-3">
                       <button

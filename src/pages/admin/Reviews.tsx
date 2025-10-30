@@ -40,7 +40,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, MoreVertical, Edit, Eye, Trash2, Flame, X, CalendarIcon, CheckCircle2, FileEdit, Archive, MapPin, XCircle, CircleCheck, AlertCircle, Circle } from "lucide-react";
+import { ArrowLeft, Plus, MoreVertical, Edit, Eye, Trash2, Flame, X, CalendarIcon, CheckCircle2, FileEdit, Archive, MapPin, XCircle } from "lucide-react";
+import { StatusCycleButton } from "@/utils/status-icons";
 import { format, isSameDay } from "date-fns";
 import { de } from "date-fns/locale";
 import { checkUserRole } from "@/lib/auth";
@@ -175,68 +176,18 @@ const Reviews = () => {
     setDeleteDialogOpen(true);
   };
 
-  const StatusCell = ({ review }: { review: Review }) => {
-    const [isUpdating, setIsUpdating] = useState(false);
+  const handleStatusChange = async (reviewId: string, newStatus: string | null) => {
+    const { error } = await supabase
+      .from("reviews")
+      .update({ status: newStatus })
+      .eq("id", reviewId);
 
-    const statusConfig = {
-      "published": { 
-        icon: CircleCheck, 
-        color: "text-green-500",
-        label: "Veröffentlicht",
-        next: "draft"
-      },
-      "draft": { 
-        icon: AlertCircle, 
-        color: "text-yellow-500",
-        label: "Entwurf",
-        next: null
-      },
-      default: { 
-        icon: Circle, 
-        color: "text-gray-400",
-        label: "Nicht veröffentlicht",
-        next: "published"
-      }
-    };
-
-    const currentStatus = review.status || null;
-    const config = (statusConfig as any)[currentStatus] || statusConfig.default;
-    const Icon = config.icon;
-
-    const handleClick = async () => {
-      setIsUpdating(true);
-      const nextStatus = config.next;
-      
-      const { error } = await supabase
-        .from("reviews")
-        .update({ status: nextStatus })
-        .eq("id", review.id);
-
-      if (!error) {
-        fetchReviews();
-        toast.success(`Status auf "${nextStatus ? (statusConfig as any)[nextStatus]?.label : 'Nicht veröffentlicht'}" geändert`);
-      } else {
-        toast.error("Fehler beim Ändern des Status");
-      }
-      setIsUpdating(false);
-    };
-
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            onClick={handleClick}
-            disabled={isUpdating}
-            className="hover:opacity-70 transition-opacity disabled:opacity-50"
-          >
-            <Icon className={`w-5 h-5 ${config.color}`} />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent>
-          {isUpdating ? "Wird aktualisiert..." : `${config.label} - Klicken zum Wechseln`}
-        </TooltipContent>
-      </Tooltip>
-    );
+    if (!error) {
+      fetchReviews();
+      toast.success(`Status geändert`);
+    } else {
+      toast.error("Fehler beim Ändern des Status");
+    }
   };
 
   const truncateText = (text: string, maxLength: number) => {
@@ -398,7 +349,10 @@ const Reviews = () => {
                         className="border-b border-gray-800 hover:bg-gray-800 transition-colors"
                       >
                         <td className="px-4 py-3">
-                          <StatusCell review={review} />
+                          <StatusCycleButton 
+                            status={review.status}
+                            onStatusChange={async (newStatus) => handleStatusChange(review.id, newStatus)}
+                          />
                         </td>
                         <td className="px-4 py-3 font-medium text-white">
                           {review.customer_firstname} {review.customer_lastname}
