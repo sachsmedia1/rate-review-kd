@@ -652,6 +652,22 @@ const ReviewDetail = () => {
             </section>
           )}
 
+const categorySeoData = seoSettings?.category_seo_content?.[
+  review.product_category.toLowerCase().replace(/ /g, '_')
+] as CategorySeoContent | undefined;
+
+// =============== DEBUG START ===============
+console.group('🔍 SEO Content Debug');
+console.log('1. Product Category:', review.product_category);
+console.log('2. Mapped Key:', review.product_category.toLowerCase().replace(/ /g, '_'));
+console.log('3. SEO Settings loaded?', !!seoSettings);
+console.log('4. Available Keys:', seoSettings?.category_seo_content ? Object.keys(seoSettings.category_seo_content) : 'N/A');
+console.log('5. Category SEO Data found?', !!categorySeoData);
+console.log('6. Full Data:', categorySeoData);
+console.groupEnd();
+// =============== DEBUG END ===============
+
+          
           {/* Call-to-Action & Navigation */}
           <footer className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <Link
