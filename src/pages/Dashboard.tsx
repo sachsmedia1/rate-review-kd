@@ -33,33 +33,34 @@ const Dashboard = () => {
         .from("reviews")
         .select("*", { count: "exact", head: true });
 
-      // Fetch all reviews with rating fields
+      // Fetch all reviews with rating fields (explicitly set range to load all)
       const { data: allReviews } = await supabase
         .from("reviews")
         .select(`
           average_rating, 
           status,
+          rating_consultation,
           rating_aesthetics,
           rating_installation_quality,
-          rating_heating_performance,
-          rating_consultation,
+          rating_service,
           rating_fire_safety,
-          rating_service
-        `);
+          rating_heating_performance
+        `)
+        .range(0, 10000);
 
       if (!allReviews) {
         return {
           totalCount: 0,
           avgRating: "0.0",
           detailRatings: {
-            appearance: "0.0",
-            quality: "0.0",
-            pricePerformance: "0.0",
             consultation: "0.0",
-            installation: "0.0",
-            punctuality: "0.0",
+            appearance: "0.0",
+            professionalism: "0.0",
+            service: "0.0",
+            safetyAnalysis: "0.0",
+            heatingPerformance: "0.0",
           },
-          statusCounts: { published: 0, pending: 0, rejected: 0, draft: 0 },
+          statusCounts: { published: 0, pending: 0, draft: 0 },
         };
       }
 
@@ -77,19 +78,18 @@ const Dashboard = () => {
       };
 
       const detailRatings = {
-        appearance: calculateDetailAvg("rating_aesthetics"),
-        quality: calculateDetailAvg("rating_installation_quality"),
-        pricePerformance: calculateDetailAvg("rating_service"),
         consultation: calculateDetailAvg("rating_consultation"),
-        installation: calculateDetailAvg("rating_fire_safety"),
-        punctuality: calculateDetailAvg("rating_heating_performance"),
+        appearance: calculateDetailAvg("rating_aesthetics"),
+        professionalism: calculateDetailAvg("rating_installation_quality"),
+        service: calculateDetailAvg("rating_service"),
+        safetyAnalysis: calculateDetailAvg("rating_fire_safety"),
+        heatingPerformance: calculateDetailAvg("rating_heating_performance"),
       };
 
       // Status Distribution
       const statusCounts = {
         published: allReviews.filter(r => r.status === "published").length,
         pending: allReviews.filter(r => r.status === "pending").length,
-        rejected: allReviews.filter(r => r.status === "rejected").length,
         draft: allReviews.filter(r => r.status === "draft").length,
       };
 
@@ -244,12 +244,12 @@ const Dashboard = () => {
               {/* Detail Ratings Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-3 mb-5">
                 {[
-                  { label: "Optik", value: stats?.detailRatings.appearance },
-                  { label: "Qualität", value: stats?.detailRatings.quality },
-                  { label: "Preis-Leistung", value: stats?.detailRatings.pricePerformance },
                   { label: "Beratung", value: stats?.detailRatings.consultation },
-                  { label: "Montage", value: stats?.detailRatings.installation },
-                  { label: "Pünktlichkeit", value: stats?.detailRatings.punctuality },
+                  { label: "Optik", value: stats?.detailRatings.appearance },
+                  { label: "Professionalität", value: stats?.detailRatings.professionalism },
+                  { label: "Service", value: stats?.detailRatings.service },
+                  { label: "Gefahrenanalyse", value: stats?.detailRatings.safetyAnalysis },
+                  { label: "Heizleistung", value: stats?.detailRatings.heatingPerformance },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center gap-2">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 flex-shrink-0" />
@@ -273,12 +273,6 @@ const Dashboard = () => {
                   <Clock className="w-4 h-4 text-yellow-500 flex-shrink-0" />
                   <span className="text-sm font-medium text-foreground">
                     {stats?.statusCounts.pending || 0} Ausstehend
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <X className="w-4 h-4 text-red-500 flex-shrink-0" />
-                  <span className="text-sm font-medium text-foreground">
-                    {stats?.statusCounts.rejected || 0} Abgelehnt
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
