@@ -193,9 +193,9 @@ const ReviewDetail = () => {
     rating: review.average_rating || 0
   };
 
-  // Get category SEO data
+  // Get category SEO data (use exact category name as stored in DB)
   const categorySeoData = seoSettings?.category_seo_content?.[
-    review.product_category.toLowerCase().replace(/ /g, '_')
+    review.product_category
   ] as CategorySEOContent | undefined;
 
   // Render meta tags with template variables
