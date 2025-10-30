@@ -5,6 +5,10 @@ import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, MapPin, Calendar } from "lucide-react";
 import { Review } from "@/types";
+import { SEOSettings, CategorySEOContent } from "@/types/seo-settings";
+import { ReviewSEOContent } from "@/components/reviews/ReviewSEOContent";
+import { ReviewFAQ } from "@/components/reviews/ReviewFAQ";
+import { renderTemplate } from "@/utils/template-renderer";
 
 interface SimilarReview {
   id: string;
@@ -21,6 +25,7 @@ const ReviewDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [review, setReview] = useState<Review | null>(null);
   const [similarReviews, setSimilarReviews] = useState<SimilarReview[]>([]);
+  const [seoSettings, setSeoSettings] = useState<SEOSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -72,6 +77,17 @@ const ReviewDetail = () => {
       }
 
       setReview(reviewData as Review);
+
+      // Fetch SEO settings
+      const { data: seoData } = await supabase
+        .from('seo_settings')
+        .select('*')
+        .eq('id', '00000000-0000-0000-0000-000000000001')
+        .maybeSingle();
+
+      if (seoData) {
+        setSeoSettings(seoData as unknown as SEOSettings);
+      }
 
       // Fetch similar reviews (same category)
       const { data: similarData } = await supabase
@@ -163,13 +179,41 @@ const ReviewDetail = () => {
     return 'Ausreichend';
   };
 
+  // Prepare review data for template rendering
+  const reviewData = {
+    category: review.product_category,
+    city: review.city,
+    postal_code: review.postal_code || '',
+    region: seoSettings?.address_region || '',
+    installation_date: review.installation_date,
+    customer: {
+      salutation: review.customer_salutation,
+      lastname: review.customer_lastname
+    },
+    rating: review.average_rating || 0
+  };
+
+  // Get category SEO data
+  const categorySeoData = seoSettings?.category_seo_content?.[
+    review.product_category.toLowerCase().replace(/ /g, '_')
+  ] as CategorySEOContent | undefined;
+
+  // Render meta tags with template variables
+  const metaTitle = categorySeoData 
+    ? renderTemplate(categorySeoData.meta_title_template, reviewData)
+    : `${review.customer_salutation} ${review.customer_lastname} - ${review.product_category} in ${review.city} | Der Kamindoktor`;
+  
+  const metaDescription = categorySeoData
+    ? renderTemplate(categorySeoData.meta_description_template, reviewData)
+    : `⭐ ${formatRating(review.average_rating)}/5.0 - ${review.customer_comment?.substring(0, 150) || 'Kundenbewertung für ' + review.product_category}...`;
+
   return (
     <>
       <Helmet>
         {/* Primary Meta Tags */}
-        <title>{review.customer_salutation} {review.customer_lastname} - {review.product_category} in {review.city} | Der Kamindoktor</title>
-        <meta name="title" content={`${review.customer_salutation} ${review.customer_lastname} - ${review.product_category} in ${review.city} | Der Kamindoktor`} />
-        <meta name="description" content={`⭐ ${formatRating(review.average_rating)}/5.0 - ${review.customer_comment?.substring(0, 150) || 'Kundenbewertung für ' + review.product_category}...`} />
+        <title>{metaTitle}</title>
+        <meta name="title" content={metaTitle} />
+        <meta name="description" content={metaDescription} />
         <meta name="keywords" content={`${review.product_category}, Kundenbewertung, ${review.city}, ${review.postal_code}, Kaminbau, Der Kamindoktor`} />
         
         {/* Open Graph / Facebook */}
@@ -555,6 +599,22 @@ const ReviewDetail = () => {
               </div>
             </div>
           </section>
+
+          {/* Category SEO Content */}
+          {categorySeoData && (
+            <ReviewSEOContent 
+              seoData={categorySeoData} 
+              reviewData={reviewData} 
+            />
+          )}
+
+          {/* FAQ Section */}
+          {categorySeoData?.faq && categorySeoData.faq.length > 0 && (
+            <ReviewFAQ 
+              faqItems={categorySeoData.faq} 
+              reviewData={reviewData} 
+            />
+          )}
 
           {/* Ähnliche Bewertungen */}
           {similarReviews && similarReviews.length > 0 && (
