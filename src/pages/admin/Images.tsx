@@ -39,56 +39,89 @@ const Images = () => {
   const loadData = async () => {
     setLoading(true);
     
-    // Lade alle Bewertungen mit Bildern aus der Datenbank
-    const { data: reviewsData } = await supabase
-      .from('reviews')
-      .select('id, customer_salutation, customer_lastname, city, before_image_url, after_image_url, created_at')
-      .order('created_at', { ascending: false });
-    
-    if (!reviewsData) {
-      setLoading(false);
-      return;
-    }
-    
-    // Extrahiere alle Bilder aus den Reviews
-    const allImages: ReviewImage[] = [];
-    
-    reviewsData.forEach(review => {
-      if (review.before_image_url) {
-        allImages.push({
-          id: `${review.id}-before`,
-          imageUrl: review.before_image_url,
-          type: 'before',
-          reviewId: review.id,
-          reviewInfo: {
-            id: review.id,
-            customer_salutation: review.customer_salutation,
-            customer_lastname: review.customer_lastname,
-            city: review.city
-          },
-          created_at: review.created_at
-        });
+    try {
+      // Load reviews in chunks to bypass 1000-row limit
+      let allReviewsData: any[] = [];
+      let hasMore = true;
+      let offset = 0;
+      const pageSize = 1000;
+
+      while (hasMore) {
+        const { data: chunk, error } = await supabase
+          .from('reviews')
+          .select('id, customer_salutation, customer_lastname, city, before_image_url, after_image_url, created_at')
+          .order('created_at', { ascending: false })
+          .range(offset, offset + pageSize - 1);
+
+        if (error) {
+          console.error("Error loading reviews:", error);
+          toast({
+            title: "Fehler",
+            description: "Bewertungen konnten nicht geladen werden",
+            variant: "destructive",
+          });
+          break;
+        }
+        
+        if (chunk && chunk.length > 0) {
+          allReviewsData = [...allReviewsData, ...chunk];
+          offset += pageSize;
+          hasMore = chunk.length === pageSize;
+        } else {
+          hasMore = false;
+        }
       }
+
+      // Extract all images from reviews
+      const allImages: ReviewImage[] = [];
       
-      if (review.after_image_url) {
-        allImages.push({
-          id: `${review.id}-after`,
-          imageUrl: review.after_image_url,
-          type: 'after',
-          reviewId: review.id,
-          reviewInfo: {
-            id: review.id,
-            customer_salutation: review.customer_salutation,
-            customer_lastname: review.customer_lastname,
-            city: review.city
-          },
-          created_at: review.created_at
-        });
-      }
-    });
-    
-    setImages(allImages);
-    setLoading(false);
+      allReviewsData.forEach(review => {
+        if (review.before_image_url) {
+          allImages.push({
+            id: `${review.id}-before`,
+            imageUrl: review.before_image_url,
+            type: 'before',
+            reviewId: review.id,
+            reviewInfo: {
+              id: review.id,
+              customer_salutation: review.customer_salutation,
+              customer_lastname: review.customer_lastname,
+              city: review.city
+            },
+            created_at: review.created_at
+          });
+        }
+        
+        if (review.after_image_url) {
+          allImages.push({
+            id: `${review.id}-after`,
+            imageUrl: review.after_image_url,
+            type: 'after',
+            reviewId: review.id,
+            reviewInfo: {
+              id: review.id,
+              customer_salutation: review.customer_salutation,
+              customer_lastname: review.customer_lastname,
+              city: review.city
+            },
+            created_at: review.created_at
+          });
+        }
+      });
+      
+      setImages(allImages);
+      console.log(`✅ Loaded ${allReviewsData.length} reviews with ${allImages.length} total images`);
+      
+    } catch (error) {
+      console.error("Error in loadData:", error);
+      toast({
+        title: "Fehler",
+        description: "Daten konnten nicht geladen werden",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Filter anwenden

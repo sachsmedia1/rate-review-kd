@@ -364,7 +364,6 @@ const Reviews = () => {
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Stadt</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Kategorie</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Durchschnitt</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Standort</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Montagedatum</th>
                       <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Aktionen</th>
                     </tr>
@@ -399,45 +398,6 @@ const Reviews = () => {
                               {review.average_rating?.toFixed(1) || "—"}
                             </span>
                           </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          {review.latitude && review.longitude ? (
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <Badge variant="outline" className="text-green-500 border-green-500">
-                                  <MapPin className="h-3 w-3 mr-1" />
-                                  Geocoded
-                                </Badge>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                {review.latitude.toFixed(4)}, {review.longitude.toFixed(4)}
-                              </TooltipContent>
-                            </Tooltip>
-                          ) : review.geocoding_status === 'failed' ? (
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <Badge variant="outline" className="text-red-500 border-red-500">
-                                  <XCircle className="h-3 w-3 mr-1" />
-                                  Fehlgeschlagen
-                                </Badge>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                Geocoding fehlgeschlagen - Bitte Adresse prüfen
-                              </TooltipContent>
-                            </Tooltip>
-                          ) : (
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <Badge variant="outline" className="text-gray-500 border-gray-500">
-                                  <MapPin className="h-3 w-3 mr-1 opacity-50" />
-                                  Fehlt
-                                </Badge>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                Noch nicht geocoded
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
                         </td>
                         <td className="px-4 py-3">
                           {format(new Date(review.installation_date), "dd.MM.yyyy", {
