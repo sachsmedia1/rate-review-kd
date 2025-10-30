@@ -1,4 +1,4 @@
-import { CircleCheck, AlertCircle, Circle } from "lucide-react";
+import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { useState } from "react";
 
 export const getStatusIcon = (status: string | null) => {
@@ -6,8 +6,8 @@ export const getStatusIcon = (status: string | null) => {
   
   if (statusLower === "veröffentlicht" || statusLower === "published") {
     return {
-      Icon: CircleCheck,
-      className: "w-5 h-5 text-green-500",
+      Icon: CheckCircle2,
+      className: "w-5 h-5 text-green-500 fill-green-500",
       label: "Veröffentlicht"
     };
   }
@@ -15,16 +15,16 @@ export const getStatusIcon = (status: string | null) => {
   if (statusLower === "entwurf" || statusLower === "ausstehend" || 
       statusLower === "draft" || statusLower === "pending") {
     return {
-      Icon: AlertCircle,
-      className: "w-5 h-5 text-yellow-500",
+      Icon: Clock,
+      className: "w-5 h-5 text-yellow-500 fill-yellow-500",
       label: status || "Entwurf"
     };
   }
   
   // Default: Nicht veröffentlicht / Leer
   return {
-    Icon: Circle,
-    className: "w-5 h-5 text-gray-400",
+    Icon: XCircle,
+    className: "w-5 h-5 text-red-500 fill-red-500",
     label: "Nicht veröffentlicht"
   };
 };
@@ -70,7 +70,7 @@ export const StatusCycleButton = ({
     <button
       onClick={handleClick}
       disabled={isUpdating}
-      className="hover:opacity-70 transition-opacity disabled:opacity-50"
+      className="hover:scale-110 transition-transform disabled:opacity-50"
       title={`Wechseln zu: ${nextStatusLabel}`}
     >
       <Icon className={className} />
