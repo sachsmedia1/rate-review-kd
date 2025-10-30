@@ -41,10 +41,10 @@ const Dashboard = () => {
           status,
           rating_aesthetics,
           rating_installation_quality,
-          rating_service,
+          rating_heating_performance,
           rating_consultation,
           rating_fire_safety,
-          rating_heating_performance
+          rating_service
         `);
 
       if (!allReviews) {
@@ -79,10 +79,10 @@ const Dashboard = () => {
       const detailRatings = {
         appearance: calculateDetailAvg("rating_aesthetics"),
         quality: calculateDetailAvg("rating_installation_quality"),
-        pricePerformance: calculateDetailAvg("rating_heating_performance"),
+        pricePerformance: calculateDetailAvg("rating_service"),
         consultation: calculateDetailAvg("rating_consultation"),
         installation: calculateDetailAvg("rating_fire_safety"),
-        punctuality: calculateDetailAvg("rating_service"),
+        punctuality: calculateDetailAvg("rating_heating_performance"),
       };
 
       // Status Distribution
