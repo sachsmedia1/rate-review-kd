@@ -18,6 +18,7 @@ const Customers = lazy(() => import("./pages/admin/Customers"));
 const Images = lazy(() => import("./pages/admin/Images"));
 const Users = lazy(() => import("./pages/admin/Users"));
 const DataQuality = lazy(() => import("./pages/admin/DataQuality"));
+const Settings = lazy(() => import("./pages/admin/Settings"));
 const ReviewDetail = lazy(() => import("./pages/ReviewDetail"));
 const Sitemap = lazy(() => import("./pages/Sitemap"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -104,6 +105,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <DataQuality />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/settings"
+                  element={
+                    <ProtectedRoute>
+                      <Settings />
                     </ProtectedRoute>
                   }
                 />

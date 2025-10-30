@@ -39,12 +39,21 @@ const QuickActions = ({ userRole }: QuickActionsProps) => {
       </button>
       
       {userRole === 'admin' && (
-        <button
-          onClick={() => navigate('/admin/users')}
-          className="px-6 py-3 bg-muted text-foreground hover:bg-muted/80 rounded-lg transition-colors"
-        >
-          Nutzerverwaltung
-        </button>
+        <>
+          <button
+            onClick={() => navigate('/admin/users')}
+            className="px-6 py-3 bg-muted text-foreground hover:bg-muted/80 rounded-lg transition-colors"
+          >
+            Nutzerverwaltung
+          </button>
+          
+          <button
+            onClick={() => navigate('/admin/settings')}
+            className="px-6 py-3 bg-muted text-foreground hover:bg-muted/80 rounded-lg transition-colors"
+          >
+            SEO-Einstellungen
+          </button>
+        </>
       )}
     </div>
   );
