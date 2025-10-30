@@ -116,7 +116,7 @@ const ReviewDetail = () => {
       const { data, error } = await supabase.rpc('get_business_stats');
       
       if (!error && data) {
-        setBusinessStats(data);
+        setBusinessStats(data as { totalReviews: number; averageRating: number });
       }
     };
 

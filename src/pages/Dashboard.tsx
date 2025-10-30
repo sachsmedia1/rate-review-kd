@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { getCurrentUser, getUserProfile, checkUserRole, signOut } from "@/lib/auth";
-import { Flame, LogOut, Users } from "lucide-react";
+import { Flame, LogOut, Star, Check, Clock, X, FileEdit } from "lucide-react";
 import { AppRole } from "@/types";
-import StatCard from "@/components/dashboard/StatCard";
 import QuickActions from "@/components/dashboard/QuickActions";
 import RecentReviewsTable from "@/components/dashboard/RecentReviewsTable";
-import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useRecentReviews } from "@/hooks/useRecentReviews";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const [userFirstName, setUserFirstName] = useState<string>("");
@@ -20,8 +22,85 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const { stats, isLoading: statsLoading } = useDashboardStats();
   const { reviews, isLoading: reviewsLoading, refetch: refetchReviews } = useRecentReviews(5);
+
+  // Fetch comprehensive dashboard stats
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ["admin-dashboard-stats"],
+    queryFn: async () => {
+      // Total Count
+      const { count: totalCount } = await supabase
+        .from("reviews")
+        .select("*", { count: "exact", head: true });
+
+      // Fetch all reviews with rating fields
+      const { data: allReviews } = await supabase
+        .from("reviews")
+        .select(`
+          average_rating, 
+          status,
+          rating_aesthetics,
+          rating_installation_quality,
+          rating_service,
+          rating_consultation,
+          rating_fire_safety,
+          rating_heating_performance
+        `);
+
+      if (!allReviews) {
+        return {
+          totalCount: 0,
+          avgRating: "0.0",
+          detailRatings: {
+            appearance: "0.0",
+            quality: "0.0",
+            pricePerformance: "0.0",
+            consultation: "0.0",
+            installation: "0.0",
+            punctuality: "0.0",
+          },
+          statusCounts: { published: 0, pending: 0, rejected: 0, draft: 0 },
+        };
+      }
+
+      // Overall Average Rating
+      const validRatings = allReviews.filter(r => r.average_rating != null && r.average_rating > 0);
+      const totalRating = validRatings.reduce((sum, r) => sum + (r.average_rating || 0), 0);
+      const avgRating = validRatings.length > 0 ? (totalRating / validRatings.length).toFixed(1) : "0.0";
+
+      // Detail Ratings - only reviews with values
+      const calculateDetailAvg = (field: string) => {
+        const validReviews = allReviews.filter(r => r[field] != null && r[field] > 0);
+        if (validReviews.length === 0) return "0.0";
+        const sum = validReviews.reduce((acc, r) => acc + (r[field] || 0), 0);
+        return (sum / validReviews.length).toFixed(1);
+      };
+
+      const detailRatings = {
+        appearance: calculateDetailAvg("rating_aesthetics"),
+        quality: calculateDetailAvg("rating_installation_quality"),
+        pricePerformance: calculateDetailAvg("rating_heating_performance"),
+        consultation: calculateDetailAvg("rating_consultation"),
+        installation: calculateDetailAvg("rating_fire_safety"),
+        punctuality: calculateDetailAvg("rating_service"),
+      };
+
+      // Status Distribution
+      const statusCounts = {
+        published: allReviews.filter(r => r.status === "published").length,
+        pending: allReviews.filter(r => r.status === "pending").length,
+        rejected: allReviews.filter(r => r.status === "rejected").length,
+        draft: allReviews.filter(r => r.status === "draft").length,
+      };
+
+      return {
+        totalCount: totalCount || 0,
+        avgRating,
+        detailRatings,
+        statusCounts,
+      };
+    },
+  });
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -128,33 +207,90 @@ const Dashboard = () => {
           </h2>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            title="Bewertungen gesamt"
-            value={stats.totalReviews}
-            icon="📊"
-            isLoading={statsLoading}
-          />
-          <StatCard
-            title="Entwürfe"
-            value={stats.draftReviews}
-            icon="📝"
-            isLoading={statsLoading}
-          />
-          <StatCard
-            title="Durchschnitt (Flammen)"
-            value={stats.averageRating.toFixed(1)}
-            icon="⚡"
-            isLoading={statsLoading}
-          />
-          <StatCard
-            title="Heute hinzugefügt"
-            value={stats.todayReviews}
-            icon="📅"
-            isLoading={statsLoading}
-          />
-        </div>
+        {/* Dashboard Statistics Card */}
+        {statsLoading ? (
+          <Card className="bg-card border-border/50">
+            <CardContent className="p-6">
+              <Skeleton className="h-6 w-48 mb-5" />
+              <Skeleton className="h-5 w-64 mb-5" />
+              <div className="border-t border-border my-5" />
+              <Skeleton className="h-20 w-full mb-5" />
+              <div className="border-t border-border my-5" />
+              <Skeleton className="h-5 w-80" />
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="bg-card border-border/50">
+            <CardContent className="p-6">
+              {/* Header */}
+              <h3 className="text-lg font-semibold mb-4">Dashboard Übersicht</h3>
+              
+              {/* Top Summary */}
+              <div className="flex items-center gap-3 mb-5">
+                <span className="text-base font-medium text-foreground">
+                  {stats?.totalCount || 0} Reviews
+                </span>
+                <span className="text-muted-foreground">•</span>
+                <div className="flex items-center gap-1.5">
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <span className="text-base font-medium text-foreground">
+                    {stats?.avgRating || "0.0"} Durchschnitt
+                  </span>
+                </div>
+              </div>
+
+              <div className="border-t border-border my-5" />
+
+              {/* Detail Ratings Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-3 mb-5">
+                {[
+                  { label: "Optik", value: stats?.detailRatings.appearance },
+                  { label: "Qualität", value: stats?.detailRatings.quality },
+                  { label: "Preis-Leistung", value: stats?.detailRatings.pricePerformance },
+                  { label: "Beratung", value: stats?.detailRatings.consultation },
+                  { label: "Montage", value: stats?.detailRatings.installation },
+                  { label: "Pünktlichkeit", value: stats?.detailRatings.punctuality },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center gap-2">
+                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">{item.label}</span>
+                    <span className="text-sm font-semibold text-foreground">{item.value || "0.0"}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-border my-5" />
+
+              {/* Status Row */}
+              <div className="flex items-center gap-6 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <span className="text-sm font-medium text-foreground">
+                    {stats?.statusCounts.published || 0} Veröffentlicht
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                  <span className="text-sm font-medium text-foreground">
+                    {stats?.statusCounts.pending || 0} Ausstehend
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <X className="w-4 h-4 text-red-500 flex-shrink-0" />
+                  <span className="text-sm font-medium text-foreground">
+                    {stats?.statusCounts.rejected || 0} Abgelehnt
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <FileEdit className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm font-medium text-foreground">
+                    {stats?.statusCounts.draft || 0} Entwurf
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Quick Actions */}
         <div>
