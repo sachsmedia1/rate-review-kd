@@ -30,7 +30,7 @@ const ReviewDetail = () => {
   const [error, setError] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [beforeAfterView, setBeforeAfterView] = useState<'before' | 'after' | 'both'>('both');
-  const [businessStats, setBusinessStats] = useState<{ averageRating: number; reviewCount: number } | null>(null);
+  const [businessStats, setBusinessStats] = useState<{ totalReviews: number; averageRating: number } | null>(null);
 
   // Helper function to format ratings safely
   const formatRating = (rating: number | null | undefined): string => {
@@ -110,21 +110,13 @@ const ReviewDetail = () => {
     fetchReview();
   }, [slug]);
 
-  // Fetch business statistics
+  // Fetch business statistics using RPC
   useEffect(() => {
     const fetchBusinessStats = async () => {
-      const { data, error } = await supabase
-        .from('reviews')
-        .select('average_rating')
-        .eq('is_published', true);
-
+      const { data, error } = await supabase.rpc('get_business_stats');
+      
       if (!error && data) {
-        const totalRatings = data.reduce((sum, r) => sum + (r.average_rating || 0), 0);
-        const avgRating = data.length > 0 ? totalRatings / data.length : 0;
-        setBusinessStats({
-          averageRating: avgRating,
-          reviewCount: data.length
-        });
+        setBusinessStats(data);
       }
     };
 
@@ -285,7 +277,7 @@ const ReviewDetail = () => {
               "aggregateRating": businessStats ? {
                 "@type": "AggregateRating",
                 "ratingValue": businessStats.averageRating.toFixed(2),
-                "reviewCount": businessStats.reviewCount,
+                "reviewCount": businessStats.totalReviews,
                 "bestRating": "5",
                 "worstRating": "1"
               } : undefined,
