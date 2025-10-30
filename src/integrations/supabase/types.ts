@@ -134,6 +134,102 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_settings: {
+        Row: {
+          address_city: string | null
+          address_country: string | null
+          address_postal_code: string | null
+          address_region: string | null
+          address_street: string | null
+          canonical_base_url: string | null
+          category_seo_content: Json
+          company_description: string | null
+          company_email: string | null
+          company_founded_year: number | null
+          company_legal_name: string | null
+          company_logo_url: string | null
+          company_name: string
+          company_phone: string | null
+          company_website: string | null
+          created_at: string
+          default_meta_description: string | null
+          default_og_image_url: string | null
+          google_analytics_id: string | null
+          google_tag_manager_id: string | null
+          id: string
+          regional_keywords: Json | null
+          service_areas: Json | null
+          social_facebook: string | null
+          social_instagram: string | null
+          social_linkedin: string | null
+          social_xing: string | null
+          social_youtube: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_city?: string | null
+          address_country?: string | null
+          address_postal_code?: string | null
+          address_region?: string | null
+          address_street?: string | null
+          canonical_base_url?: string | null
+          category_seo_content?: Json
+          company_description?: string | null
+          company_email?: string | null
+          company_founded_year?: number | null
+          company_legal_name?: string | null
+          company_logo_url?: string | null
+          company_name?: string
+          company_phone?: string | null
+          company_website?: string | null
+          created_at?: string
+          default_meta_description?: string | null
+          default_og_image_url?: string | null
+          google_analytics_id?: string | null
+          google_tag_manager_id?: string | null
+          id?: string
+          regional_keywords?: Json | null
+          service_areas?: Json | null
+          social_facebook?: string | null
+          social_instagram?: string | null
+          social_linkedin?: string | null
+          social_xing?: string | null
+          social_youtube?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_city?: string | null
+          address_country?: string | null
+          address_postal_code?: string | null
+          address_region?: string | null
+          address_street?: string | null
+          canonical_base_url?: string | null
+          category_seo_content?: Json
+          company_description?: string | null
+          company_email?: string | null
+          company_founded_year?: number | null
+          company_legal_name?: string | null
+          company_logo_url?: string | null
+          company_name?: string
+          company_phone?: string | null
+          company_website?: string | null
+          created_at?: string
+          default_meta_description?: string | null
+          default_og_image_url?: string | null
+          google_analytics_id?: string | null
+          google_tag_manager_id?: string | null
+          id?: string
+          regional_keywords?: Json | null
+          service_areas?: Json | null
+          social_facebook?: string | null
+          social_instagram?: string | null
+          social_linkedin?: string | null
+          social_xing?: string | null
+          social_youtube?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           created_at: string | null
