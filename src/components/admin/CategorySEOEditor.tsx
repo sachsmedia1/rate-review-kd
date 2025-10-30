@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import '@/styles/quill-dark.css';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -175,24 +178,95 @@ const CategorySEOEditor = ({ settings, onUpdate, onReload }: CategorySEOEditorPr
           />
         </div>
 
-        {/* Description (Markdown) */}
+        {/* Description (HTML) */}
         <div>
           <label className="block text-sm font-medium mb-2">
-            Beschreibungstext (Markdown)
+            Beschreibungstext (HTML)
             <span className="text-gray-400 text-xs ml-2">
               400-600 Wörter empfohlen
             </span>
           </label>
-          <Textarea
-            value={categoryData.description}
-            onChange={(e) => handleFieldChange('description', e.target.value)}
-            placeholder="Ein **{category}** ist die ideale Lösung für..."
-            rows={15}
-            className="bg-gray-800 border-gray-700 text-white font-mono text-sm"
-          />
-          <p className="text-xs text-gray-400 mt-1">
-            Unterstützt Markdown-Formatierung. Verwenden Sie Variablen für dynamische Inhalte.
+          
+          <div className="quill-dark-wrapper">
+            <ReactQuill
+              theme="snow"
+              value={categoryData.description}
+              onChange={(content) => handleFieldChange('description', content)}
+              placeholder="Ein <strong>{category}</strong> ist die ideale Lösung für..."
+              className="bg-gray-800 text-white rounded-lg"
+              modules={{
+                toolbar: [
+                  [{ 'header': [2, 3, false] }],
+                  ['bold', 'italic', 'underline'],
+                  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                  ['link'],
+                  ['clean']
+                ]
+              }}
+              formats={[
+                'header',
+                'bold', 'italic', 'underline',
+                'list', 'bullet',
+                'link'
+              ]}
+            />
+          </div>
+          
+          <p className="text-xs text-gray-400 mt-2">
+            Verwenden Sie HTML-Tags. Verfügbare Variablen: <code className="text-orange-400">{'{category}'}</code>, <code className="text-orange-400">{'{city}'}</code>, <code className="text-orange-400">{'{postal_code}'}</code>, <code className="text-orange-400">{'{region}'}</code>
           </p>
+          
+          {/* Variable Helper Buttons */}
+          <div className="flex flex-wrap gap-2 mt-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const currentContent = categoryData.description;
+                handleFieldChange('description', currentContent + '{category}');
+              }}
+              className="text-xs"
+            >
+              + {'{category}'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const currentContent = categoryData.description;
+                handleFieldChange('description', currentContent + '{city}');
+              }}
+              className="text-xs"
+            >
+              + {'{city}'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const currentContent = categoryData.description;
+                handleFieldChange('description', currentContent + '{postal_code}');
+              }}
+              className="text-xs"
+            >
+              + {'{postal_code}'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const currentContent = categoryData.description;
+                handleFieldChange('description', currentContent + '{region}');
+              }}
+              className="text-xs"
+            >
+              + {'{region}'}
+            </Button>
+          </div>
         </div>
       </div>
 
