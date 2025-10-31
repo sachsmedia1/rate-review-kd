@@ -10,6 +10,7 @@ import { ReviewSEOContent } from "@/components/reviews/ReviewSEOContent";
 import { ReviewFAQ } from "@/components/reviews/ReviewFAQ";
 import { renderTemplate } from "@/utils/template-renderer";
 import { useQuery } from "@tanstack/react-query";
+import { Location } from "@/types/location";
 
 interface SimilarReview {
   id: string;
