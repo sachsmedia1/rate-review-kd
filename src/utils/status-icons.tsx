@@ -14,6 +14,7 @@ export const getStatusIcon = (status: string | null) => {
   }
   
   if (statusLower === "entwurf" || statusLower === "ausstehend" || 
+      statusLower === "unbearbeitet" ||
       statusLower === "draft" || statusLower === "pending") {
     return {
       Icon: Clock,
