@@ -9,6 +9,7 @@ import { SEOSettings, CategorySEOContent } from "@/types/seo-settings";
 import { ReviewSEOContent } from "@/components/reviews/ReviewSEOContent";
 import { ReviewFAQ } from "@/components/reviews/ReviewFAQ";
 import { renderTemplate } from "@/utils/template-renderer";
+import { useQuery } from "@tanstack/react-query";
 
 interface SimilarReview {
   id: string;
@@ -31,6 +32,43 @@ const ReviewDetail = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [beforeAfterView, setBeforeAfterView] = useState<'before' | 'after' | 'both'>('both');
   const [businessStats, setBusinessStats] = useState<{ totalReviews: number; averageRating: number } | null>(null);
+
+  // Load location based on installed_by field with fallback to default location
+  const { data: location } = useQuery({
+    queryKey: ["location-by-installed-by", review?.installed_by],
+    queryFn: async () => {
+      if (!review?.installed_by) {
+        // Fallback auf Default (Bamberg)
+        const { data } = await supabase
+          .from("locations")
+          .select("*")
+          .eq("is_default", true)
+          .maybeSingle();
+        return data;
+      }
+
+      // Suche Location nach installed_by Name
+      const { data } = await supabase
+        .from("locations")
+        .select("*")
+        .eq("name", review.installed_by)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      // Falls nicht gefunden oder inaktiv, Fallback auf Default
+      if (!data) {
+        const { data: defaultLoc } = await supabase
+          .from("locations")
+          .select("*")
+          .eq("is_default", true)
+          .maybeSingle();
+        return defaultLoc;
+      }
+
+      return data;
+    },
+    enabled: !!review,
+  });
 
   // Helper function to format ratings safely
   const formatRating = (rating: number | null | undefined): string => {
@@ -225,10 +263,23 @@ const ReviewDetail = () => {
     <>
       <Helmet>
         {/* Primary Meta Tags */}
-        <title>{metaTitle}</title>
-        <meta name="title" content={metaTitle} />
-        <meta name="description" content={metaDescription} />
-        <meta name="keywords" content={`${review.product_category}, Kundenbewertung, ${review.city}, ${review.postal_code}, Kaminbau, Der Kamindoktor`} />
+        <title>
+          {review.customer_salutation} {review.customer_lastname} aus {review.city} | Der Kamindoktor {location?.city || "Bamberg"}
+        </title>
+        <meta 
+          name="description" 
+          content={`Bewertung von ${review.customer_salutation} ${review.customer_lastname} aus ${review.city} für ${review.product_category}. ${location?.city || "Bamberg"} - ${location?.description || "Ihr Experte für Kaminöfen."}`}
+        />
+        <meta 
+          name="keywords" 
+          content={`Kaminofen ${location?.city}, Kamindoktor ${location?.city}, ${review.product_category} ${location?.city}, ${location?.service_areas || ""}`}
+        />
+        
+        {/* Canonical */}
+        <link 
+          rel="canonical" 
+          href={`https://bewertungen.der-kamindoktor.de/bewertung/${review.slug}`}
+        />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="article" />
@@ -247,61 +298,58 @@ const ReviewDetail = () => {
         <meta property="twitter:description" content={`⭐ ${formatRating(review.average_rating)}/5.0 - ${review.customer_comment || 'Kundenbewertung'}`} />
         <meta property="twitter:image" content={review.after_image_url || review.before_image_url || 'https://yourdomain.com/default-twitter-image.jpg'} />
         
-        {/* Schema.org JSON-LD */}
+        {/* Schema.org JSON-LD - LocalBusiness with location-specific data */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "Review",
-            "itemReviewed": {
-              "@type": "LocalBusiness",
-              "name": seoSettings?.company_name || "Der Kamindoktor",
-              "image": seoSettings?.company_logo_url || seoSettings?.default_og_image_url,
-              "telephone": seoSettings?.company_phone,
-              "email": seoSettings?.company_email,
-              "url": seoSettings?.company_website,
-              "address": {
-                "@type": "PostalAddress",
-                "streetAddress": seoSettings?.address_street,
-                "addressLocality": seoSettings?.address_city,
-                "postalCode": seoSettings?.address_postal_code,
-                "addressRegion": seoSettings?.address_region,
-                "addressCountry": seoSettings?.address_country || "DE"
-              },
-              ...(review.latitude && review.longitude && {
-                "geo": {
-                  "@type": "GeoCoordinates",
-                  "latitude": review.latitude,
-                  "longitude": review.longitude
-                }
-              }),
-              "aggregateRating": businessStats ? {
-                "@type": "AggregateRating",
-                "ratingValue": businessStats.averageRating.toFixed(2),
-                "reviewCount": businessStats.totalReviews,
-                "bestRating": "5",
-                "worstRating": "1"
-              } : undefined,
-              ...(seoSettings && {
-                "sameAs": [
-                  seoSettings.social_facebook,
-                  seoSettings.social_instagram,
-                  seoSettings.social_pinterest,
-                  seoSettings.social_youtube,
-                  seoSettings.social_xing
-                ].filter(Boolean)
-              })
+            "@type": "LocalBusiness",
+            "name": `Der Kamindoktor ${location?.city || "Bamberg"}`,
+            "description": location?.description || seoSettings?.company_description,
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": location?.street_address || seoSettings?.address_street,
+              "addressLocality": location?.city || seoSettings?.address_city,
+              "postalCode": location?.postal_code || seoSettings?.address_postal_code,
+              "addressRegion": seoSettings?.address_region || "Bayern",
+              "addressCountry": "DE"
             },
-            "author": {
-              "@type": "Person",
-              "name": `${review.customer_salutation} ${review.customer_lastname}`
-            },
-            "datePublished": review.installation_date,
-            "reviewBody": review.customer_comment || "",
-            "reviewRating": {
-              "@type": "Rating",
-              "ratingValue": formatRating(review.average_rating),
+            "telephone": location?.phone || seoSettings?.company_phone,
+            "email": location?.email || seoSettings?.company_email,
+            "url": seoSettings?.company_website,
+            ...(location?.service_areas && {
+              "areaServed": location.service_areas.split(",").map(area => ({
+                "@type": "City",
+                "name": area.trim()
+              }))
+            }),
+            ...(location?.opening_hours && {
+              "openingHours": location.opening_hours
+            }),
+            ...(location?.logo_url && {
+              "logo": location.logo_url,
+              "image": location.logo_url
+            }),
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": businessStats?.averageRating.toFixed(2) || review.average_rating?.toFixed(2),
+              "reviewCount": businessStats?.totalReviews || 1,
               "bestRating": "5",
               "worstRating": "1"
+            },
+            "review": {
+              "@type": "Review",
+              "author": {
+                "@type": "Person",
+                "name": `${review.customer_salutation} ${review.customer_lastname}`
+              },
+              "datePublished": review.installation_date,
+              "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": formatRating(review.average_rating),
+                "bestRating": "5",
+                "worstRating": "1"
+              },
+              "reviewBody": review.customer_comment || ""
             }
           })}
         </script>
