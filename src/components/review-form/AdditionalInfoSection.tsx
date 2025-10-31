@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Check, X, Clock } from "lucide-react";
 
 interface AdditionalInfoSectionProps {
   customerComment: string;
@@ -100,20 +101,29 @@ export const AdditionalInfoSection = ({
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="published" id="published" />
-              <Label htmlFor="published" className="cursor-pointer font-normal">
-                ✅ Veröffentlicht
+              <Label htmlFor="published" className="flex items-center gap-2 cursor-pointer font-normal">
+                <div className="inline-flex items-center justify-center w-6 h-6 rounded bg-green-50">
+                  <Check className="w-4 h-4 text-green-600 stroke-[3]" />
+                </div>
+                <span>Veröffentlicht</span>
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="draft" id="draft" />
-              <Label htmlFor="draft" className="cursor-pointer font-normal">
-                ❌ Nicht veröffentlicht
+              <Label htmlFor="draft" className="flex items-center gap-2 cursor-pointer font-normal">
+                <div className="inline-flex items-center justify-center w-6 h-6 rounded bg-red-50">
+                  <X className="w-4 h-4 text-red-600 stroke-[3]" />
+                </div>
+                <span>Nicht veröffentlicht</span>
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="pending" id="pending" />
-              <Label htmlFor="pending" className="cursor-pointer font-normal">
-                ⏸️ Unbearbeitet
+              <Label htmlFor="pending" className="flex items-center gap-2 cursor-pointer font-normal">
+                <div className="inline-flex items-center justify-center w-6 h-6 rounded bg-gray-100">
+                  <Clock className="w-4 h-4 text-gray-900 stroke-[2.5]" />
+                </div>
+                <span>Unbearbeitet</span>
               </Label>
             </div>
           </RadioGroup>
