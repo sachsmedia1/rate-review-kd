@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, XCircle } from "lucide-react";
+import { Check, Clock, X } from "lucide-react";
 import { useState } from "react";
 
 export const getStatusIcon = (status: string | null) => {
@@ -6,8 +6,9 @@ export const getStatusIcon = (status: string | null) => {
   
   if (statusLower === "veröffentlicht" || statusLower === "published") {
     return {
-      Icon: CheckCircle2,
-      className: "w-5 h-5 text-green-500 fill-green-500",
+      Icon: Check,
+      iconClassName: "w-5 h-5 text-green-600 stroke-[3]",
+      badgeClassName: "inline-flex items-center justify-center w-8 h-8 rounded bg-green-50",
       label: "Veröffentlicht"
     };
   }
@@ -16,25 +17,27 @@ export const getStatusIcon = (status: string | null) => {
       statusLower === "draft" || statusLower === "pending") {
     return {
       Icon: Clock,
-      className: "w-5 h-5 text-yellow-500 fill-yellow-500",
+      iconClassName: "w-5 h-5 text-gray-900 stroke-[2.5]",
+      badgeClassName: "inline-flex items-center justify-center w-8 h-8 rounded bg-gray-100",
       label: status || "Entwurf"
     };
   }
   
   // Default: Nicht veröffentlicht / Leer
   return {
-    Icon: XCircle,
-    className: "w-5 h-5 text-red-500 fill-red-500",
+    Icon: X,
+    iconClassName: "w-5 h-5 text-red-600 stroke-[3]",
+    badgeClassName: "inline-flex items-center justify-center w-8 h-8 rounded bg-red-50",
     label: "Nicht veröffentlicht"
   };
 };
 
 // Simple status icon display component
 export const StatusIcon = ({ status }: { status: string | null }) => {
-  const { Icon, className, label } = getStatusIcon(status);
+  const { Icon, iconClassName, badgeClassName, label } = getStatusIcon(status);
   return (
-    <div className="flex items-center" title={label}>
-      <Icon className={className} />
+    <div className={badgeClassName} title={label}>
+      <Icon className={iconClassName} />
     </div>
   );
 };
@@ -48,7 +51,7 @@ export const StatusCycleButton = ({
   onStatusChange: (newStatus: string | null) => Promise<void>;
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  const { Icon, className } = getStatusIcon(status);
+  const { Icon, iconClassName, badgeClassName } = getStatusIcon(status);
   
   const getNextStatus = (current: string | null) => {
     const currentLower = current?.toLowerCase() || "";
@@ -73,7 +76,9 @@ export const StatusCycleButton = ({
       className="hover:scale-110 transition-transform disabled:opacity-50"
       title={`Wechseln zu: ${nextStatusLabel}`}
     >
-      <Icon className={className} />
+      <div className={badgeClassName}>
+        <Icon className={iconClassName} />
+      </div>
     </button>
   );
 };
