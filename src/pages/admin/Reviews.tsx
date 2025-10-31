@@ -123,7 +123,7 @@ const Reviews = () => {
     }
 
     if (searchQuery) {
-      const searchFilter = `customer_firstname.ilike.%${searchQuery}%,customer_lastname.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,postal_code.ilike.%${searchQuery}%,street.ilike.%${searchQuery}%,product_category.ilike.%${searchQuery}%,customer_comment.ilike.%${searchQuery}%,internal_notes.ilike.%${searchQuery}%,installed_by.ilike.%${searchQuery}%`;
+      const searchFilter = `customer_id.ilike.%${searchQuery}%,customer_firstname.ilike.%${searchQuery}%,customer_lastname.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,postal_code.ilike.%${searchQuery}%,street.ilike.%${searchQuery}%,product_category.ilike.%${searchQuery}%,customer_comment.ilike.%${searchQuery}%,internal_notes.ilike.%${searchQuery}%,installed_by.ilike.%${searchQuery}%`;
       countQuery = countQuery.or(searchFilter);
       dataQuery = dataQuery.or(searchFilter);
     }
