@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SEOSettings, CategorySEOContent } from "@/types/seo-settings";
 import CategorySEOEditor from "@/components/admin/CategorySEOEditor";
 import CompanyInfoEditor from "@/components/admin/CompanyInfoEditor";
+import LocationsEditor from "@/components/admin/LocationsEditor";
 
 const SETTINGS_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -133,8 +134,8 @@ const Settings = () => {
                   Dashboard
                 </Button>
                 <div>
-                  <h1 className="text-xl sm:text-2xl font-bold">SEO-Einstellungen</h1>
-                  <p className="text-sm text-gray-400">Kategorietexte & Unternehmensdaten</p>
+                  <h1 className="text-xl sm:text-2xl font-bold">Einstellungen</h1>
+                  <p className="text-sm text-gray-400">SEO, Unternehmensdaten & Standorte</p>
                 </div>
               </div>
             </div>
@@ -150,6 +151,9 @@ const Settings = () => {
               </TabsTrigger>
               <TabsTrigger value="company" className="data-[state=active]:bg-orange-500">
                 Unternehmensdaten
+              </TabsTrigger>
+              <TabsTrigger value="locations" className="data-[state=active]:bg-orange-500">
+                Standorte
               </TabsTrigger>
             </TabsList>
 
@@ -167,6 +171,10 @@ const Settings = () => {
                 onUpdate={updateSettings}
                 onReload={loadSettings}
               />
+            </TabsContent>
+
+            <TabsContent value="locations" className="space-y-6">
+              <LocationsEditor />
             </TabsContent>
           </Tabs>
         </main>
