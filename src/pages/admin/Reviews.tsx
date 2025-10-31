@@ -108,7 +108,7 @@ const Reviews = () => {
     let dataQuery = supabase
       .from("reviews")
       .select("*")
-      .order("created_at", { ascending: false })
+      .order("installation_date", { ascending: false })
       .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
 
     // Apply filters to both queries
@@ -123,7 +123,7 @@ const Reviews = () => {
     }
 
     if (searchQuery) {
-      const searchFilter = `customer_firstname.ilike.%${searchQuery}%,customer_lastname.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%`;
+      const searchFilter = `customer_firstname.ilike.%${searchQuery}%,customer_lastname.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,postal_code.ilike.%${searchQuery}%,street.ilike.%${searchQuery}%,product_category.ilike.%${searchQuery}%,customer_comment.ilike.%${searchQuery}%,internal_notes.ilike.%${searchQuery}%,installed_by.ilike.%${searchQuery}%`;
       countQuery = countQuery.or(searchFilter);
       dataQuery = dataQuery.or(searchFilter);
     }
