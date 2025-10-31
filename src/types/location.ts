@@ -1,6 +1,7 @@
 export interface Location {
   id: string;
   name: string;
+  company_name: string | null;
   is_active: boolean;
   is_default: boolean;
   has_showroom: boolean;

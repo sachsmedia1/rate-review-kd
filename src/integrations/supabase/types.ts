@@ -17,6 +17,7 @@ export type Database = {
       locations: {
         Row: {
           city: string
+          company_name: string | null
           created_at: string | null
           description: string | null
           email: string
@@ -38,6 +39,7 @@ export type Database = {
         }
         Insert: {
           city: string
+          company_name?: string | null
           created_at?: string | null
           description?: string | null
           email: string
@@ -59,6 +61,7 @@ export type Database = {
         }
         Update: {
           city?: string
+          company_name?: string | null
           created_at?: string | null
           description?: string | null
           email?: string
