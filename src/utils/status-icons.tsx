@@ -66,7 +66,8 @@ export const StatusCycleButton = ({
   const getNextStatus = (current: string | null) => {
     const currentLower = current?.toLowerCase() || "";
     if (currentLower === "veröffentlicht" || currentLower === "published") return "draft";
-    if (currentLower === "entwurf" || currentLower === "draft") return null;
+    if (currentLower === "entwurf" || currentLower === "draft" || currentLower === "nicht veröffentlicht") return "pending";
+    // pending/unbearbeitet oder null
     return "published";
   };
 
