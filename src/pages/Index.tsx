@@ -269,22 +269,52 @@ const Index = () => {
         <meta property="twitter:description" content="Authentische Kundenbewertungen für Kaminbau, Ofenbau und Schornsteinbau." />
         <meta property="twitter:image" content="https://bewertungen.der-kamindoktor.de/twitter-image.jpg" />
         
-        {/* Schema.org für Bewertungsübersicht */}
+        {/* Schema.org Organization Schema */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "WebPage",
-            "name": "Kundenbewertungen",
-            "description": "Authentische Kundenbewertungen für Kaminbau, Ofenbau und Schornsteinbau",
-            "url": "https://bewertungen.der-kamindoktor.de/",
-            "publisher": {
+            "@type": "Organization",
+            "name": "Der Kamindoktor",
+            "legalName": "Der Kamindoktor GmbH",
+            "url": "https://bewertungen.der-kamindoktor.de",
+            "logo": "https://der-kamindoktor.de/logo.png",
+            "manufacturer": {
+              "@type": "Organization",
+              "name": "Der Kamindoktor GmbH"
+            },
+            "location": {
               "@type": "LocalBusiness",
-              "name": "Der Kamindoktor",
+              "name": "Der Kamindoktor Bamberg",
               "address": {
                 "@type": "PostalAddress",
+                "streetAddress": "Böttgerstraße 8",
+                "addressLocality": "Bamberg",
+                "postalCode": "96050",
+                "addressRegion": "Bayern",
                 "addressCountry": "DE"
-              }
-            }
+              },
+              "telephone": "+49 951 18073890",
+              "email": "info@der-kamindoktor.de"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": stats.avgRating.toFixed(1),
+              "reviewCount": stats.total,
+              "bestRating": "5",
+              "worstRating": "1"
+            },
+            "areaServed": [
+              { "@type": "City", "name": "Bamberg" },
+              { "@type": "City", "name": "Forchheim" },
+              { "@type": "City", "name": "Bayreuth" },
+              { "@type": "City", "name": "Coburg" },
+              { "@type": "City", "name": "Rödermark" },
+              { "@type": "City", "name": "Frankfurt" },
+              { "@type": "City", "name": "Essen" },
+              { "@type": "City", "name": "Dortmund" },
+              { "@type": "City", "name": "Hamburg" },
+              { "@type": "City", "name": "Lübeck" }
+            ]
           })}
         </script>
       </Helmet>

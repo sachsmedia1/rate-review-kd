@@ -267,7 +267,8 @@ const ReviewDetail = () => {
         <title>
           {review.customer_salutation} {review.customer_lastname} aus {review.city} | Der Kamindoktor {location?.city || "Bamberg"}
         </title>
-        <meta 
+        <meta itemProp="manufacturer" content="Der Kamindoktor GmbH" />
+        <meta
           name="description" 
           content={`Bewertung von ${review.customer_salutation} ${review.customer_lastname} aus ${review.city} für ${review.product_category}. ${location?.city || "Bamberg"} - ${location?.description || "Ihr Experte für Kaminöfen."}`}
         />
@@ -299,59 +300,92 @@ const ReviewDetail = () => {
         <meta property="twitter:description" content={`⭐ ${formatRating(review.average_rating)}/5.0 - ${review.customer_comment || 'Kundenbewertung'}`} />
         <meta property="twitter:image" content={review.after_image_url || review.before_image_url || 'https://yourdomain.com/default-twitter-image.jpg'} />
         
-        {/* Schema.org JSON-LD - LocalBusiness with location-specific data */}
+        {/* Schema.org JSON-LD - @graph structure with LocalBusiness and Review */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "LocalBusiness",
-            "name": `Der Kamindoktor ${location?.city || "Bamberg"}`,
-            "description": location?.description || seoSettings?.company_description,
-            "address": {
-              "@type": "PostalAddress",
-              "streetAddress": location?.street_address || seoSettings?.address_street,
-              "addressLocality": location?.city || seoSettings?.address_city,
-              "postalCode": location?.postal_code || seoSettings?.address_postal_code,
-              "addressRegion": seoSettings?.address_region || "Bayern",
-              "addressCountry": "DE"
-            },
-            "telephone": location?.phone || seoSettings?.company_phone,
-            "email": location?.email || seoSettings?.company_email,
-            "url": seoSettings?.company_website,
-            ...(location?.service_areas && {
-              "areaServed": location.service_areas.split(",").map(area => ({
-                "@type": "City",
-                "name": area.trim()
-              }))
-            }),
-            ...(location?.opening_hours && {
-              "openingHours": location.opening_hours
-            }),
-            ...(location?.logo_url && {
-              "logo": location.logo_url,
-              "image": location.logo_url
-            }),
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": businessStats?.averageRating.toFixed(2) || review.average_rating?.toFixed(2),
-              "reviewCount": businessStats?.totalReviews || 1,
-              "bestRating": "5",
-              "worstRating": "1"
-            },
-            "review": {
-              "@type": "Review",
-              "author": {
-                "@type": "Person",
-                "name": `${review.customer_salutation} ${review.customer_lastname}`
+            "@graph": [
+              {
+                "@type": "LocalBusiness",
+                "@id": `https://bewertungen.der-kamindoktor.de/#${location?.name || 'bamberg'}`,
+                "name": `Der Kamindoktor ${location?.city || "Bamberg"}`,
+                "legalName": location?.company_name || "Der Kamindoktor Bamberg GmbH & Co. KG",
+                "description": location?.description || seoSettings?.company_description,
+                "manufacturer": {
+                  "@type": "Organization",
+                  "name": "Der Kamindoktor GmbH"
+                },
+                "address": {
+                  "@type": "PostalAddress",
+                  "streetAddress": location?.street_address || seoSettings?.address_street,
+                  "addressLocality": location?.city || seoSettings?.address_city,
+                  "postalCode": location?.postal_code || seoSettings?.address_postal_code,
+                  "addressRegion": seoSettings?.address_region || "Bayern",
+                  "addressCountry": "DE"
+                },
+                "telephone": location?.phone || seoSettings?.company_phone,
+                "email": location?.email || seoSettings?.company_email,
+                "url": seoSettings?.company_website,
+                ...(location?.service_areas && {
+                  "areaServed": location.service_areas.split(",").map(area => ({
+                    "@type": "City",
+                    "name": area.trim()
+                  }))
+                }),
+                ...(location?.opening_hours && {
+                  "openingHours": location.opening_hours
+                }),
+                ...(location?.logo_url && {
+                  "logo": location.logo_url,
+                  "image": location.logo_url
+                }),
+                "aggregateRating": {
+                  "@type": "AggregateRating",
+                  "ratingValue": businessStats?.averageRating.toFixed(2) || review.average_rating?.toFixed(2),
+                  "reviewCount": businessStats?.totalReviews || 1,
+                  "bestRating": "5",
+                  "worstRating": "1"
+                }
               },
-              "datePublished": review.installation_date,
-              "reviewRating": {
-                "@type": "Rating",
-                "ratingValue": formatRating(review.average_rating),
-                "bestRating": "5",
-                "worstRating": "1"
-              },
-              "reviewBody": review.customer_comment || ""
-            }
+              {
+                "@type": "Review",
+                "author": {
+                  "@type": "Person",
+                  "name": `${review.customer_salutation} ${review.customer_lastname}`
+                },
+                "datePublished": review.installation_date,
+                "reviewRating": {
+                  "@type": "Rating",
+                  "ratingValue": formatRating(review.average_rating),
+                  "bestRating": "5",
+                  "worstRating": "1"
+                },
+                "reviewBody": review.customer_comment || "",
+                "itemReviewed": {
+                  "@type": "Product",
+                  "name": review.product_category,
+                  "category": review.product_category,
+                  "manufacturer": {
+                    "@type": "Organization",
+                    "name": "Der Kamindoktor GmbH"
+                  },
+                  "provider": {
+                    "@id": `https://bewertungen.der-kamindoktor.de/#${location?.name || 'bamberg'}`
+                  },
+                  "brand": {
+                    "@type": "Brand",
+                    "name": "Der Kamindoktor"
+                  },
+                  "aggregateRating": {
+                    "@type": "AggregateRating",
+                    "ratingValue": businessStats?.averageRating.toFixed(2) || review.average_rating?.toFixed(2),
+                    "reviewCount": businessStats?.totalReviews || 1,
+                    "bestRating": "5",
+                    "worstRating": "1"
+                  }
+                }
+              }
+            ]
           })}
         </script>
       </Helmet>

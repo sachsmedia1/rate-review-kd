@@ -25,6 +25,7 @@ const LocationsEditor = () => {
 
   // Form state
   const [name, setName] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [isDefault, setIsDefault] = useState(false);
   const [hasShowroom, setHasShowroom] = useState(true);
@@ -66,6 +67,7 @@ const LocationsEditor = () => {
 
   const resetForm = () => {
     setName("");
+    setCompanyName("");
     setIsActive(true);
     setIsDefault(false);
     setHasShowroom(true);
@@ -89,6 +91,7 @@ const LocationsEditor = () => {
   const openEditDialog = (location: Location) => {
     setEditingId(location.id);
     setName(location.name);
+    setCompanyName(location.company_name || "");
     setIsActive(location.is_active);
     setIsDefault(location.is_default);
     setHasShowroom(location.has_showroom);
@@ -191,6 +194,7 @@ const LocationsEditor = () => {
       // 2. Location Data
       const locationData = {
         name: name.trim(),
+        company_name: companyName.trim() || null,
         is_active: isActive,
         is_default: isDefault,
         has_showroom: hasShowroom,
@@ -449,6 +453,19 @@ const LocationsEditor = () => {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="z.B. Bamberg"
                   className="bg-gray-800 border-gray-700 text-white mt-2"
+                />
+              </div>
+
+              {/* Firmenname */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white">
+                  Firmenname (z.B. "Der Kamindoktor Bamberg GmbH & Co. KG")
+                </label>
+                <Input
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className="bg-[#2a2a2a] border-[#3a3a3a] text-white"
+                  placeholder="Der Kamindoktor [Stadt] GmbH"
                 />
               </div>
 
