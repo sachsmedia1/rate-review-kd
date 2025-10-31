@@ -8,7 +8,7 @@ export const getStatusIcon = (status: string | null) => {
     return {
       Icon: Check,
       iconClassName: "w-5 h-5 text-green-600 stroke-[3]",
-      badgeClassName: "inline-flex items-center justify-center w-8 h-8 rounded bg-green-50",
+      badgeClassName: "inline-flex items-center justify-center w-8 h-8 rounded-full border border-green-600",
       label: "Veröffentlicht"
     };
   }
@@ -17,8 +17,8 @@ export const getStatusIcon = (status: string | null) => {
   if (statusLower === "ausstehend" || statusLower === "unbearbeitet" || statusLower === "pending") {
     return {
       Icon: Clock,
-      iconClassName: "w-5 h-5 text-gray-900 stroke-[2.5]",
-      badgeClassName: "inline-flex items-center justify-center w-8 h-8 rounded bg-gray-100",
+      iconClassName: "w-5 h-5 text-gray-400 stroke-[2.5]",
+      badgeClassName: "inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-400",
       label: "Unbearbeitet"
     };
   }
@@ -28,7 +28,7 @@ export const getStatusIcon = (status: string | null) => {
     return {
       Icon: X,
       iconClassName: "w-5 h-5 text-red-600 stroke-[3]",
-      badgeClassName: "inline-flex items-center justify-center w-8 h-8 rounded bg-red-50",
+      badgeClassName: "inline-flex items-center justify-center w-8 h-8 rounded-full border border-red-600",
       label: "Nicht veröffentlicht"
     };
   }
@@ -37,7 +37,7 @@ export const getStatusIcon = (status: string | null) => {
   return {
     Icon: X,
     iconClassName: "w-5 h-5 text-red-600 stroke-[3]",
-    badgeClassName: "inline-flex items-center justify-center w-8 h-8 rounded bg-red-50",
+    badgeClassName: "inline-flex items-center justify-center w-8 h-8 rounded-full border border-red-600",
     label: "Nicht veröffentlicht"
   };
 };
@@ -77,14 +77,14 @@ export const StatusCycleButton = ({
     setIsUpdating(false);
   };
 
-  const nextStatusLabel = getStatusIcon(getNextStatus(status)).label;
+  const { label: currentLabel } = getStatusIcon(status);
 
   return (
     <button
       onClick={handleClick}
       disabled={isUpdating}
       className="hover:scale-110 transition-transform disabled:opacity-50"
-      title={`Wechseln zu: ${nextStatusLabel}`}
+      title={currentLabel}
     >
       <div className={badgeClassName}>
         <Icon className={iconClassName} />
