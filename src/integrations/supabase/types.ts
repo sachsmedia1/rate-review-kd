@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      locations: {
+        Row: {
+          city: string
+          created_at: string | null
+          description: string | null
+          email: string
+          fax: string | null
+          google_business_url: string | null
+          google_maps_embed_url: string | null
+          has_showroom: boolean | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          logo_url: string | null
+          name: string
+          opening_hours: string | null
+          phone: string | null
+          postal_code: string
+          service_areas: string | null
+          street_address: string
+          updated_at: string | null
+        }
+        Insert: {
+          city: string
+          created_at?: string | null
+          description?: string | null
+          email: string
+          fax?: string | null
+          google_business_url?: string | null
+          google_maps_embed_url?: string | null
+          has_showroom?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          logo_url?: string | null
+          name: string
+          opening_hours?: string | null
+          phone?: string | null
+          postal_code: string
+          service_areas?: string | null
+          street_address: string
+          updated_at?: string | null
+        }
+        Update: {
+          city?: string
+          created_at?: string | null
+          description?: string | null
+          email?: string
+          fax?: string | null
+          google_business_url?: string | null
+          google_maps_embed_url?: string | null
+          has_showroom?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          logo_url?: string | null
+          name?: string
+          opening_hours?: string | null
+          phone?: string | null
+          postal_code?: string
+          service_areas?: string | null
+          street_address?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           after_image_url: string | null
