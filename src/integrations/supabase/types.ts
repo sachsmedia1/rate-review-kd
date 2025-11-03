@@ -203,6 +203,45 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews_slug_backup_20251103: {
+        Row: {
+          city: string | null
+          created_at: string | null
+          customer_firstname: string | null
+          customer_id: string | null
+          customer_lastname: string | null
+          id: string | null
+          installation_date: string | null
+          is_published: boolean | null
+          old_slug: string | null
+          product_category: string | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string | null
+          customer_firstname?: string | null
+          customer_id?: string | null
+          customer_lastname?: string | null
+          id?: string | null
+          installation_date?: string | null
+          is_published?: boolean | null
+          old_slug?: string | null
+          product_category?: string | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string | null
+          customer_firstname?: string | null
+          customer_id?: string | null
+          customer_lastname?: string | null
+          id?: string | null
+          installation_date?: string | null
+          is_published?: boolean | null
+          old_slug?: string | null
+          product_category?: string | null
+        }
+        Relationships: []
+      }
       seo_settings: {
         Row: {
           address_city: string | null
@@ -352,6 +391,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      clean_slug_text: { Args: { text_input: string }; Returns: string }
       get_business_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
