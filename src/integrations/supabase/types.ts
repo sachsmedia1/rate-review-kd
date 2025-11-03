@@ -208,7 +208,6 @@ export type Database = {
           city: string | null
           created_at: string | null
           customer_firstname: string | null
-          customer_id: string | null
           customer_lastname: string | null
           id: string | null
           installation_date: string | null
@@ -220,7 +219,6 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           customer_firstname?: string | null
-          customer_id?: string | null
           customer_lastname?: string | null
           id?: string | null
           installation_date?: string | null
@@ -232,7 +230,6 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           customer_firstname?: string | null
-          customer_id?: string | null
           customer_lastname?: string | null
           id?: string | null
           installation_date?: string | null
