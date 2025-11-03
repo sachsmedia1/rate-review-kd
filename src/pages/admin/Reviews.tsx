@@ -124,9 +124,19 @@ const Reviews = () => {
 
     if (searchQuery) {
       // Suche nur in den wichtigsten, im UI sichtbaren Feldern
-      const searchFilter = `customer_id.ilike.%${searchQuery}%,customer_firstname.ilike.%${searchQuery}%,customer_lastname.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,postal_code.ilike.%${searchQuery}%`;
-      countQuery = countQuery.or(searchFilter);
-      dataQuery = dataQuery.or(searchFilter);
+      // Teile Suchbegriff bei Leerzeichen auf, damit "Jürgen Gregor" funktioniert
+      const searchTerms = searchQuery.trim().split(/\s+/);
+      
+      // Erstelle Filter für jedes Suchwort
+      const filters = searchTerms.map(term => 
+        `customer_id.ilike.%${term}%,customer_firstname.ilike.%${term}%,customer_lastname.ilike.%${term}%,city.ilike.%${term}%,postal_code.ilike.%${term}%`
+      );
+      
+      // Wende alle Filter mit AND an (alle Begriffe müssen vorkommen)
+      filters.forEach(filter => {
+        countQuery = countQuery.or(filter);
+        dataQuery = dataQuery.or(filter);
+      });
     }
 
     const [{ count }, { data, error }] = await Promise.all([
