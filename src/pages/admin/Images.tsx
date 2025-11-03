@@ -130,12 +130,25 @@ const Images = () => {
     if (typeFilter === 'before' && img.type !== 'before') return false;
     if (typeFilter === 'after' && img.type !== 'after') return false;
     
-    // Suche (in Review-Info)
+    // Suche in ALLEN Feldern mit NULL-Safety
     if (searchQuery) {
       const searchLower = searchQuery.toLowerCase();
-      const matchesCustomer = img.reviewInfo.customer_lastname.toLowerCase().includes(searchLower);
-      const matchesCity = img.reviewInfo.city.toLowerCase().includes(searchLower);
-      if (!matchesCustomer && !matchesCity) return false;
+      
+      // Alle durchsuchbaren Felder als Array
+      const searchableFields = [
+        img.reviewInfo.customer_salutation,
+        img.reviewInfo.customer_lastname,
+        img.reviewInfo.city,
+        img.reviewInfo.id,
+        img.type,
+      ];
+      
+      // Prüfe ob IRGENDEIN Feld den Suchbegriff enthält (safe mit ?.)
+      const hasMatch = searchableFields.some(field => 
+        field?.toLowerCase().includes(searchLower)
+      );
+      
+      if (!hasMatch) return false;
     }
     
     return true;
@@ -215,7 +228,7 @@ const Images = () => {
         
         <input
           type="text"
-          placeholder="Suche nach Kunde oder Stadt..."
+          placeholder="Suche nach Kunde, Stadt, ID, Typ..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white"
