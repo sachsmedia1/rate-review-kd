@@ -306,6 +306,7 @@ const Reviews = () => {
               <SelectItem value="Neubau Kaminanlage">Neubau Kaminanlage</SelectItem>
               <SelectItem value="Austausch Kamineinsatz">Austausch Kamineinsatz</SelectItem>
               <SelectItem value="Kaminkassette">Kaminkassette</SelectItem>
+              <SelectItem value="Kaminkassette FreeStanding">Kaminkassette FreeStanding</SelectItem>
               <SelectItem value="Austausch Kachelofeneinsatz">Austausch Kachelofeneinsatz</SelectItem>
             </SelectContent>
           </Select>
