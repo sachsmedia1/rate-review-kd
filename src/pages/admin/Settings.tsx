@@ -10,6 +10,7 @@ import { SEOSettings, CategorySEOContent } from "@/types/seo-settings";
 import CategorySEOEditor from "@/components/admin/CategorySEOEditor";
 import CompanyInfoEditor from "@/components/admin/CompanyInfoEditor";
 import LocationsEditor from "@/components/admin/LocationsEditor";
+import { FieldStaffManagement } from "@/components/admin/FieldStaffManagement";
 
 const SETTINGS_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -155,6 +156,9 @@ const Settings = () => {
               <TabsTrigger value="locations" className="data-[state=active]:bg-orange-500">
                 Standorte
               </TabsTrigger>
+              <TabsTrigger value="fieldstaff" className="data-[state=active]:bg-orange-500">
+                Außendienst
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="categories" className="space-y-6">
@@ -175,6 +179,12 @@ const Settings = () => {
 
             <TabsContent value="locations" className="space-y-6">
               <LocationsEditor />
+            </TabsContent>
+
+            <TabsContent value="fieldstaff" className="space-y-6">
+              <section className="bg-gray-50 rounded-lg p-6">
+                <FieldStaffManagement />
+              </section>
             </TabsContent>
           </Tabs>
         </main>

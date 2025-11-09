@@ -17,6 +17,9 @@ export interface Location {
   google_maps_embed_url: string | null;
   google_business_url: string | null;
   logo_url: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  showroom_info_url?: string | null;
   created_at: string;
   updated_at: string;
 }
