@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      field_staff: {
+        Row: {
+          area_name: string
+          area_number: number | null
+          assigned_postal_codes: string[]
+          contact_form_url: string | null
+          created_at: string | null
+          display_order: number | null
+          email: string
+          first_name: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          last_name: string
+          phone: string
+          updated_at: string | null
+        }
+        Insert: {
+          area_name: string
+          area_number?: number | null
+          assigned_postal_codes: string[]
+          contact_form_url?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          email: string
+          first_name: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          last_name: string
+          phone: string
+          updated_at?: string | null
+        }
+        Update: {
+          area_name?: string
+          area_number?: number | null
+          assigned_postal_codes?: string[]
+          contact_form_url?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          email?: string
+          first_name?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          last_name?: string
+          phone?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       locations: {
         Row: {
           city: string
@@ -28,12 +79,15 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_default: boolean | null
+          latitude: number | null
           logo_url: string | null
+          longitude: number | null
           name: string
           opening_hours: string | null
           phone: string | null
           postal_code: string
           service_areas: string | null
+          showroom_info_url: string | null
           street_address: string
           updated_at: string | null
         }
@@ -50,12 +104,15 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_default?: boolean | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           name: string
           opening_hours?: string | null
           phone?: string | null
           postal_code: string
           service_areas?: string | null
+          showroom_info_url?: string | null
           street_address: string
           updated_at?: string | null
         }
@@ -72,12 +129,15 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_default?: boolean | null
+          latitude?: number | null
           logo_url?: string | null
+          longitude?: number | null
           name?: string
           opening_hours?: string | null
           phone?: string | null
           postal_code?: string
           service_areas?: string | null
+          showroom_info_url?: string | null
           street_address?: string
           updated_at?: string | null
         }
@@ -200,6 +260,60 @@ export type Database = {
           street?: string | null
           updated_at?: string | null
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      reviews_final_slug_backup_20251103: {
+        Row: {
+          city: string | null
+          customer_lastname: string | null
+          id: string | null
+          installation_date: string | null
+          old_slug: string | null
+          product_category: string | null
+        }
+        Insert: {
+          city?: string | null
+          customer_lastname?: string | null
+          id?: string | null
+          installation_date?: string | null
+          old_slug?: string | null
+          product_category?: string | null
+        }
+        Update: {
+          city?: string | null
+          customer_lastname?: string | null
+          id?: string | null
+          installation_date?: string | null
+          old_slug?: string | null
+          product_category?: string | null
+        }
+        Relationships: []
+      }
+      reviews_legacy_slug_backup_20251103: {
+        Row: {
+          city: string | null
+          customer_lastname: string | null
+          id: string | null
+          installation_date: string | null
+          old_slug: string | null
+          product_category: string | null
+        }
+        Insert: {
+          city?: string | null
+          customer_lastname?: string | null
+          id?: string | null
+          installation_date?: string | null
+          old_slug?: string | null
+          product_category?: string | null
+        }
+        Update: {
+          city?: string | null
+          customer_lastname?: string | null
+          id?: string | null
+          installation_date?: string | null
+          old_slug?: string | null
+          product_category?: string | null
         }
         Relationships: []
       }
@@ -392,6 +506,31 @@ export type Database = {
     }
     Functions: {
       clean_slug_text: { Args: { text_input: string }; Returns: string }
+      find_field_staff_by_postal_code: {
+        Args: { search_plz: string }
+        Returns: {
+          area_name: string
+          area_number: number | null
+          assigned_postal_codes: string[]
+          contact_form_url: string | null
+          created_at: string | null
+          display_order: number | null
+          email: string
+          first_name: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          last_name: string
+          phone: string
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "field_staff"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_business_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
