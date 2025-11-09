@@ -105,8 +105,6 @@ const MapContent = ({
           if (pos) bounds.extend(pos);
         });
         m.fitBounds(bounds);
-        const currentZoom = m.getZoom() || 10;
-        if (currentZoom < 15) m.setZoom(Math.min(currentZoom + 2, 16));
       },
     });
     
@@ -158,8 +156,16 @@ const MapContent = ({
     };
   }, [map, clusterer, markerLib, filteredReviews, setSelectedReview]);
 
+  // Center on user geolocation when available
+  useEffect(() => {
+    if (!map || !userLocation) return;
+    map.setCenter({ lat: userLocation.lat, lng: userLocation.lng });
+    map.setZoom(12);
+  }, [map, userLocation]);
+
   return (
     <>
+      {/* Reagiere auf User-Standort und zentriere Karte */}
       {/* User Location Marker (Blue) */}
       {userLocation && (
         <AdvancedMarker
@@ -331,8 +337,8 @@ export const GoogleReviewMap = ({ reviews, selectedCategory }: GoogleReviewMapPr
       <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
 
         <Map
-          center={mapCenter}
-          zoom={mapZoom}
+          defaultCenter={{ lat: 50.5, lng: 10.5 }}
+          defaultZoom={7}
           mapId="kamindoktor-reviews-map"
           gestureHandling="greedy"
           disableDefaultUI={false}
