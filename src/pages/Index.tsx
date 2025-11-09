@@ -429,22 +429,6 @@ const Index = () => {
               ))}
             </div>
 
-            {/* PLZ-Suchfeld */}
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="PLZ suchen..."
-                value={searchPostalCode}
-                onChange={(e) => {
-                  setSearchPostalCode(
-                    e.target.value.replace(/\D/g, "").substring(0, 5)
-                  );
-                  setPage(1);
-                }}
-                className="w-full pl-10 pr-4 py-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg text-white focus:border-orange-500 focus:outline-none"
-              />
-            </div>
           </div>
 
           {/* Aktive Filter */}
@@ -508,6 +492,20 @@ const Index = () => {
                 : 'Lade Bewertungsdaten...';
             })()}
           </p>
+          {/* Suchfeld oberhalb der Map */}
+          <div className="relative w-full md:w-64 mb-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              type="text"
+              placeholder="PLZ eingeben..."
+              value={searchPostalCode}
+              onChange={(e) => {
+                setSearchPostalCode(e.target.value.replace(/\D/g, '').substring(0, 5));
+                setPage(1);
+              }}
+              className="w-full pl-10 pr-4 py-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg text-white focus:border-orange-500 focus:outline-none"
+            />
+          </div>
           <GoogleReviewMap reviews={filteredReviews} />
         </div>
 

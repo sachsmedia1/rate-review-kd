@@ -91,27 +91,6 @@ const MapContent = ({
           zIndex: Number(google.maps.Marker.MAX_ZINDEX) + count,
         });
 
-        // Add click handler to zoom into cluster
-        marker.addListener('click', () => {
-          // Calculate bounds for all markers in this cluster
-          const bounds = new google.maps.LatLngBounds();
-          cluster.markers.forEach((m: any) => {
-            const pos = m.position;
-            if (pos) {
-              bounds.extend(pos);
-            }
-          });
-          
-          // Fit map to bounds and zoom in
-          map.fitBounds(bounds);
-          setTimeout(() => {
-            const currentZoom = map.getZoom() || 10;
-            if (currentZoom < 15) {
-              map.setZoom(Math.min(currentZoom + 3, 16));
-            }
-          }, 300);
-        });
-
         return marker;
       },
     };
@@ -119,6 +98,16 @@ const MapContent = ({
     const newClusterer = new MarkerClusterer({ 
       map, 
       renderer,
+      onClusterClick: (_e: any, cluster: any, m: google.maps.Map) => {
+        const bounds = new google.maps.LatLngBounds();
+        (cluster.markers as any[]).forEach((mk: any) => {
+          const pos = mk.position;
+          if (pos) bounds.extend(pos);
+        });
+        m.fitBounds(bounds);
+        const currentZoom = m.getZoom() || 10;
+        if (currentZoom < 15) m.setZoom(Math.min(currentZoom + 2, 16));
+      },
     });
     
     setClusterer(newClusterer);
@@ -256,7 +245,6 @@ export const GoogleReviewMap = ({ reviews, selectedCategory }: GoogleReviewMapPr
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [mapCenter, setMapCenter] = useState({ lat: 50.5, lng: 10.5 });
   const [mapZoom, setMapZoom] = useState(7);
-  const [searchQuery, setSearchQuery] = useState("");
   const isMobile = useIsMobile();
 
   const requestUserLocation = () => {
@@ -324,19 +312,8 @@ export const GoogleReviewMap = ({ reviews, selectedCategory }: GoogleReviewMapPr
     return true;
   });
 
-  // Filter by PLZ search
-  const filteredReviews = searchQuery 
-    ? reviewsWithLocation.filter(r => r.postal_code?.includes(searchQuery))
-    : reviewsWithLocation;
-
-  // Center on first search result
-  useEffect(() => {
-    if (searchQuery && filteredReviews.length > 0) {
-      const first = filteredReviews[0];
-      setMapCenter({ lat: Number(first.latitude), lng: Number(first.longitude) });
-      setMapZoom(11);
-    }
-  }, [searchQuery, filteredReviews.length]);
+  // Already filtered by parent; just use reviews with location
+  const filteredReviews = reviewsWithLocation;
 
   if (reviewsWithLocation.length === 0) {
     return (
@@ -352,16 +329,6 @@ export const GoogleReviewMap = ({ reviews, selectedCategory }: GoogleReviewMapPr
   return (
     <div className={isMobile ? "h-[500px] w-full relative" : "h-[600px] w-full relative"}>
       <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-        {/* PLZ Search Bar */}
-        <div className="absolute top-4 left-4 z-10">
-          <input
-            type="text"
-            placeholder="PLZ eingeben..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-[#2E2E2E] text-white border border-[#404040] rounded-lg px-4 py-2 focus:border-[#FF8C00] focus:ring-2 focus:ring-[#FF8C00]/20 focus:outline-none placeholder:text-gray-400 text-sm"
-          />
-        </div>
 
         <Map
           center={mapCenter}
