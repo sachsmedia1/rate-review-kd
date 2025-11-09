@@ -1,5 +1,6 @@
-import { APIProvider, Map, AdvancedMarker, InfoWindow } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import { useState, useEffect } from "react";
+import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { Review } from "@/types";
 import { renderFlames } from "@/lib/renderFlames";
 import { Link } from "react-router-dom";
@@ -49,6 +50,180 @@ const loadUserLocation = (): UserLocation | null => {
     console.error('Failed to load location', e);
     return null;
   }
+};
+
+const MapContent = ({ 
+  filteredReviews, 
+  userLocation, 
+  selectedReview, 
+  setSelectedReview 
+}: { 
+  filteredReviews: Review[]; 
+  userLocation: UserLocation | null;
+  selectedReview: Review | null;
+  setSelectedReview: (review: Review | null) => void;
+}) => {
+  const map = useMap();
+  const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const [clusterer, setClusterer] = useState<MarkerClusterer | null>(null);
+
+  useEffect(() => {
+    if (!map) return;
+
+    // Custom Cluster Renderer (Orange Theme)
+    const renderer = {
+      render: ({ count, position }: { count: number; position: google.maps.LatLng }) => {
+        const svg = `
+          <svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="25" cy="25" r="23" fill="#FF8C00" stroke="#fff" stroke-width="3"/>
+            <text x="25" y="25" text-anchor="middle" dominant-baseline="central" 
+                  font-size="16" font-weight="bold" fill="#fff">${count}</text>
+          </svg>
+        `;
+        
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+          position,
+          content: new DOMParser().parseFromString(svg, 'image/svg+xml').documentElement,
+          zIndex: Number(google.maps.Marker.MAX_ZINDEX) + count,
+        });
+
+        return marker;
+      },
+    };
+
+    const newClusterer = new MarkerClusterer({ 
+      map, 
+      renderer,
+    });
+    
+    setClusterer(newClusterer);
+
+    return () => {
+      newClusterer.clearMarkers();
+    };
+  }, [map]);
+
+  useEffect(() => {
+    if (!map || !clusterer) return;
+
+    // Clear old markers
+    markers.forEach(marker => marker.map = null);
+    clusterer.clearMarkers();
+
+    // Create new markers
+    const newMarkers = filteredReviews.map((review) => {
+      const markerContent = document.createElement('div');
+      markerContent.innerHTML = `
+        <svg width="32" height="42" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#FF8C00" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="12" cy="9" r="3" fill="#fff"/>
+        </svg>
+      `;
+
+      const marker = new google.maps.marker.AdvancedMarkerElement({
+        position: {
+          lat: Number(review.latitude),
+          lng: Number(review.longitude),
+        },
+        map,
+        content: markerContent,
+      });
+
+      marker.addListener('click', () => {
+        setSelectedReview(review);
+      });
+
+      return marker;
+    });
+
+    setMarkers(newMarkers);
+    clusterer.addMarkers(newMarkers);
+
+    return () => {
+      newMarkers.forEach(marker => marker.map = null);
+    };
+  }, [map, clusterer, filteredReviews, setSelectedReview]);
+
+  return (
+    <>
+      {/* User Location Marker (Blue) */}
+      {userLocation && (
+        <AdvancedMarker
+          position={{ lat: userLocation.lat, lng: userLocation.lng }}
+        >
+          <div className="relative">
+            <svg width="32" height="42" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#4285F4" stroke="#fff" strokeWidth="1.5"/>
+              <circle cx="12" cy="9" r="3" fill="#fff"/>
+            </svg>
+          </div>
+        </AdvancedMarker>
+      )}
+
+      {/* Mini-Card InfoWindow */}
+      {selectedReview && (
+        <InfoWindow
+          position={{
+            lat: Number(selectedReview.latitude),
+            lng: Number(selectedReview.longitude),
+          }}
+          onCloseClick={() => setSelectedReview(null)}
+        >
+          <div className="p-3 max-w-[240px]">
+            {/* Header mit Bild und Kategorie */}
+            <div className="flex items-start gap-2 mb-2">
+              {selectedReview.after_image_url && (
+                <img
+                  src={selectedReview.after_image_url}
+                  alt={selectedReview.product_category}
+                  className="w-10 h-10 object-cover rounded"
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <span className="hidden md:block px-2 py-0.5 bg-orange-500 text-white text-xs font-semibold rounded-full whitespace-nowrap">
+                  {selectedReview.product_category}
+                </span>
+                <h3 className="font-bold text-xs text-gray-900 mt-1 truncate">
+                  {selectedReview.customer_salutation} {selectedReview.customer_lastname}
+                </h3>
+              </div>
+            </div>
+
+            {/* Standort */}
+            <div className="flex items-center gap-1 text-gray-600 text-xs mb-2">
+              <MapPin className="h-3 w-3 text-orange-500 flex-shrink-0" />
+              <span className="truncate">{selectedReview.city} ({selectedReview.postal_code})</span>
+            </div>
+
+            {/* Rating */}
+            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-200">
+              <span className="text-lg font-bold text-orange-500">
+                {(selectedReview.average_rating ?? 0).toFixed(1)}
+              </span>
+              <div className="flex text-xs">
+                {renderFlames(selectedReview.average_rating ?? 0)}
+              </div>
+            </div>
+
+            {/* Kommentar - max 2 Zeilen */}
+            {selectedReview.customer_comment && (
+              <p className="text-gray-700 text-xs mb-2 line-clamp-2">
+                {selectedReview.customer_comment}
+              </p>
+            )}
+
+            {/* CTA Button */}
+            <Link
+              to={`/bewertung/${selectedReview.slug}`}
+              className="block w-full bg-orange-500 hover:bg-orange-600 text-white text-center py-1.5 rounded text-xs font-semibold transition-colors"
+            >
+              Ansehen →
+            </Link>
+          </div>
+        </InfoWindow>
+      )}
+    </>
+  );
 };
 
 export const GoogleReviewMap = ({ reviews, selectedCategory }: GoogleReviewMapProps) => {
@@ -179,101 +354,12 @@ export const GoogleReviewMap = ({ reviews, selectedCategory }: GoogleReviewMapPr
             strictBounds: false
           }}
         >
-          {/* Review Markers (Orange) */}
-          {filteredReviews.map((review) => (
-            <AdvancedMarker
-              key={review.id}
-              position={{
-                lat: Number(review.latitude),
-                lng: Number(review.longitude),
-              }}
-              onClick={() => setSelectedReview(review)}
-            >
-              <div className="relative">
-                <svg width="32" height="42" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#FF8C00" stroke="#fff" strokeWidth="1.5"/>
-                  <circle cx="12" cy="9" r="3" fill="#fff"/>
-                </svg>
-              </div>
-            </AdvancedMarker>
-          ))}
-
-          {/* User Location Marker (Blue) */}
-          {userLocation && (
-            <AdvancedMarker
-              position={{ lat: userLocation.lat, lng: userLocation.lng }}
-            >
-              <div className="relative">
-                <svg width="32" height="42" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#4285F4" stroke="#fff" strokeWidth="1.5"/>
-                  <circle cx="12" cy="9" r="3" fill="#fff"/>
-                </svg>
-              </div>
-            </AdvancedMarker>
-          )}
-
-          {/* Mini-Card InfoWindow */}
-          {selectedReview && (
-            <InfoWindow
-              position={{
-                lat: Number(selectedReview.latitude),
-                lng: Number(selectedReview.longitude),
-              }}
-              onCloseClick={() => setSelectedReview(null)}
-            >
-              <div className="p-3 max-w-[240px]">
-                {/* Header mit Bild und Kategorie */}
-                <div className="flex items-start gap-2 mb-2">
-                  {selectedReview.after_image_url && (
-                    <img
-                      src={selectedReview.after_image_url}
-                      alt={selectedReview.product_category}
-                      className="w-10 h-10 object-cover rounded"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <span className="hidden md:block px-2 py-0.5 bg-orange-500 text-white text-xs font-semibold rounded-full whitespace-nowrap">
-                      {selectedReview.product_category}
-                    </span>
-                    <h3 className="font-bold text-xs text-gray-900 mt-1 truncate">
-                      {selectedReview.customer_salutation} {selectedReview.customer_lastname}
-                    </h3>
-                  </div>
-                </div>
-
-                {/* Standort */}
-                <div className="flex items-center gap-1 text-gray-600 text-xs mb-2">
-                  <MapPin className="h-3 w-3 text-orange-500 flex-shrink-0" />
-                  <span className="truncate">{selectedReview.city} ({selectedReview.postal_code})</span>
-                </div>
-
-                {/* Rating */}
-                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-200">
-                  <span className="text-lg font-bold text-orange-500">
-                    {(selectedReview.average_rating ?? 0).toFixed(1)}
-                  </span>
-                  <div className="flex text-xs">
-                    {renderFlames(selectedReview.average_rating ?? 0)}
-                  </div>
-                </div>
-
-                {/* Kommentar - max 2 Zeilen */}
-                {selectedReview.customer_comment && (
-                  <p className="text-gray-700 text-xs mb-2 line-clamp-2">
-                    {selectedReview.customer_comment}
-                  </p>
-                )}
-
-                {/* CTA Button */}
-                <Link
-                  to={`/bewertung/${selectedReview.slug}`}
-                  className="block w-full bg-orange-500 hover:bg-orange-600 text-white text-center py-1.5 rounded text-xs font-semibold transition-colors"
-                >
-                  Ansehen →
-                </Link>
-              </div>
-            </InfoWindow>
-          )}
+          <MapContent 
+            filteredReviews={filteredReviews}
+            userLocation={userLocation}
+            selectedReview={selectedReview}
+            setSelectedReview={setSelectedReview}
+          />
         </Map>
       </APIProvider>
     </div>
