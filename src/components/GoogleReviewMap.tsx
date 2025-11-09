@@ -73,7 +73,10 @@ const MapContent = ({
 
     // Custom Cluster Renderer (Orange Theme)
     const renderer = {
-      render: ({ count, position }: { count: number; position: google.maps.LatLng }) => {
+      render: (cluster: any) => {
+        const count = cluster.count;
+        const position = cluster.position;
+        
         const svg = `
           <svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
             <circle cx="25" cy="25" r="23" fill="#FF8C00" stroke="#fff" stroke-width="3"/>
@@ -86,6 +89,27 @@ const MapContent = ({
           position,
           content: new DOMParser().parseFromString(svg, 'image/svg+xml').documentElement,
           zIndex: Number(google.maps.Marker.MAX_ZINDEX) + count,
+        });
+
+        // Add click handler to zoom into cluster
+        marker.addListener('click', () => {
+          // Calculate bounds for all markers in this cluster
+          const bounds = new google.maps.LatLngBounds();
+          cluster.markers.forEach((m: any) => {
+            const pos = m.position;
+            if (pos) {
+              bounds.extend(pos);
+            }
+          });
+          
+          // Fit map to bounds and zoom in
+          map.fitBounds(bounds);
+          setTimeout(() => {
+            const currentZoom = map.getZoom() || 10;
+            if (currentZoom < 15) {
+              map.setZoom(Math.min(currentZoom + 3, 16));
+            }
+          }, 300);
         });
 
         return marker;
