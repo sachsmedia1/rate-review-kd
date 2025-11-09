@@ -1,4 +1,4 @@
-import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { useState, useEffect } from "react";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { Review } from "@/types";
@@ -64,11 +64,12 @@ const MapContent = ({
   setSelectedReview: (review: Review | null) => void;
 }) => {
   const map = useMap();
+  const markerLib = useMapsLibrary('marker');
   const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
   const [clusterer, setClusterer] = useState<MarkerClusterer | null>(null);
 
   useEffect(() => {
-    if (!map) return;
+    if (!map || !markerLib) return;
 
     // Custom Cluster Renderer (Orange Theme)
     const renderer = {
@@ -81,7 +82,7 @@ const MapContent = ({
           </svg>
         `;
         
-        const marker = new google.maps.marker.AdvancedMarkerElement({
+        const marker = new markerLib.AdvancedMarkerElement({
           position,
           content: new DOMParser().parseFromString(svg, 'image/svg+xml').documentElement,
           zIndex: Number(google.maps.Marker.MAX_ZINDEX) + count,
@@ -101,10 +102,10 @@ const MapContent = ({
     return () => {
       newClusterer.clearMarkers();
     };
-  }, [map]);
+  }, [map, markerLib]);
 
   useEffect(() => {
-    if (!map || !clusterer) return;
+    if (!map || !clusterer || !markerLib) return;
 
     // Clear old markers
     markers.forEach(marker => marker.map = null);
@@ -120,7 +121,7 @@ const MapContent = ({
         </svg>
       `;
 
-      const marker = new google.maps.marker.AdvancedMarkerElement({
+      const marker = new markerLib.AdvancedMarkerElement({
         position: {
           lat: Number(review.latitude),
           lng: Number(review.longitude),
@@ -142,7 +143,7 @@ const MapContent = ({
     return () => {
       newMarkers.forEach(marker => marker.map = null);
     };
-  }, [map, clusterer, filteredReviews, setSelectedReview]);
+  }, [map, clusterer, markerLib, filteredReviews, setSelectedReview]);
 
   return (
     <>
