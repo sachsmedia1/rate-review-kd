@@ -182,9 +182,7 @@ const Settings = () => {
             </TabsContent>
 
             <TabsContent value="fieldstaff" className="space-y-6">
-              <section className="bg-gray-50 rounded-lg p-6">
-                <FieldStaffManagement />
-              </section>
+              <FieldStaffManagement />
             </TabsContent>
           </Tabs>
         </main>

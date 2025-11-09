@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2, User, Phone, Mail } from "lucide-react";
 import { toast } from "sonner";
@@ -112,52 +111,54 @@ export const FieldStaffManagement = () => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Field Staff Management</h2>
-          <p className="text-sm text-gray-600">Außendienstmitarbeiter & PLZ-Zuständigkeiten</p>
+          <h2 className="text-2xl font-bold text-white">Außendienst</h2>
+          <p className="text-gray-400">Außendienstmitarbeiter & PLZ-Zuständigkeiten</p>
         </div>
         <Button onClick={handleCreate} className="bg-orange-500 hover:bg-orange-600">
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="w-4 h-4 mr-2" />
           Neuer Mitarbeiter
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="text-center py-8 text-gray-600">Lädt...</div>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+        </div>
       ) : fieldStaff.length === 0 ? (
-        <div className="text-center py-8 text-gray-600">
+        <div className="text-center py-8 text-gray-400">
           Noch keine Mitarbeiter angelegt. Erstellen Sie den ersten!
         </div>
       ) : (
-        <div className="rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50">
-                  <TableHead className="font-semibold">Bereich</TableHead>
-                  <TableHead className="font-semibold">Name</TableHead>
-                  <TableHead className="font-semibold">Kontakt</TableHead>
-                  <TableHead className="font-semibold">PLZ-Bereiche</TableHead>
-                  <TableHead className="font-semibold">Status</TableHead>
-                  <TableHead className="font-semibold text-right">Aktionen</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <table className="w-full">
+              <thead className="border-b border-gray-700">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Bereich</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Name</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Kontakt</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">PLZ-Bereiche</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Status</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-400">Aktionen</th>
+                </tr>
+              </thead>
+              <tbody>
                 {fieldStaff.map((staff) => (
-                  <TableRow key={staff.id} className="hover:bg-gray-50">
-                    <TableCell>
+                  <tr key={staff.id} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                    <td className="px-4 py-3">
                       <div className="flex flex-col gap-1">
-                        <span className="font-medium">{staff.area_name}</span>
+                        <span className="font-medium text-white">{staff.area_name}</span>
                         {staff.area_number && (
-                          <Badge variant="outline" className="w-fit">
+                          <Badge variant="outline" className="w-fit border-gray-600 text-gray-400">
                             Bereich {staff.area_number}
                           </Badge>
                         )}
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </td>
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {staff.image_url ? (
                           <img
@@ -166,72 +167,78 @@ export const FieldStaffManagement = () => {
                             className="w-10 h-10 rounded-full object-cover"
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                            <User className="h-5 w-5 text-gray-500" />
+                          <div className="w-10 h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center">
+                            <User className="h-5 w-5 text-gray-600" />
                           </div>
                         )}
                         <div>
-                          <div className="font-medium">
+                          <div className="font-medium text-white">
                             {staff.first_name} {staff.last_name}
                           </div>
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1 text-sm">
-                        <div className="flex items-center gap-2 text-gray-600">
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-1 text-sm text-gray-300">
+                        <div className="flex items-center gap-2">
                           <Phone className="h-3 w-3" />
                           <span>{staff.phone}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-600">
+                        <div className="flex items-center gap-2">
                           <Mail className="h-3 w-3" />
                           <span className="truncate max-w-[200px]">{staff.email}</span>
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </td>
+                    <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1 max-w-[300px]">
                         {staff.assigned_postal_codes.slice(0, 5).map((code, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">
+                          <Badge key={idx} variant="outline" className="text-xs border-gray-600 text-gray-300">
                             {code}
                           </Badge>
                         ))}
                         {staff.assigned_postal_codes.length > 5 && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="outline" className="text-xs border-gray-600 text-gray-300">
                             +{staff.assigned_postal_codes.length - 5}
                           </Badge>
                         )}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={staff.is_active ? "default" : "secondary"}>
-                        {staff.is_active ? "Aktiv" : "Inaktiv"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                    </td>
+                    <td className="px-4 py-3">
+                      {staff.is_active ? (
+                        <Badge variant="outline" className="border-green-600 text-green-600">
+                          Aktiv
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="border-gray-600 text-gray-400">
+                          Inaktiv
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-2">
                         <Button
                           variant="ghost"
-                          size="sm"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:text-white hover:bg-gray-700"
                           onClick={() => handleEdit(staff)}
-                          className="hover:bg-gray-100"
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
-                          size="sm"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-gray-700"
                           onClick={() => handleDelete(staff)}
-                          className="hover:bg-red-50 hover:text-red-600"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
         </div>
       )}
