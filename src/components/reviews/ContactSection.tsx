@@ -173,16 +173,6 @@ export const ContactSection = ({
                   <Mail size={16} />
                   <span>{assignedStaff.email}</span>
                 </a>
-
-                {assignedStaff.assigned_postal_codes && assignedStaff.assigned_postal_codes.length > 0 && (
-                  <div className="text-gray-400 text-sm">
-                    <span className="font-medium">Zuständig für PLZ: </span>
-                    {assignedStaff.assigned_postal_codes.slice(0, 5).join(", ")}
-                    {assignedStaff.assigned_postal_codes.length > 5 && (
-                      <span className="text-gray-500"> +{assignedStaff.assigned_postal_codes.length - 5}</span>
-                    )}
-                  </div>
-                )}
               </div>
 
               {assignedStaff.contact_form_url && (
