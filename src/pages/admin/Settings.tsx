@@ -115,7 +115,7 @@ const Settings = () => {
   return (
     <>
       <Helmet>
-        <title>SEO-Einstellungen | Der Kamindoktor Admin</title>
+        <title>Einstellungen | Der Kamindoktor Admin</title>
         <meta name="description" content="SEO-Content und Unternehmensinformationen verwalten" />
       </Helmet>
 
@@ -136,7 +136,7 @@ const Settings = () => {
                 </Button>
                 <div>
                   <h1 className="text-xl sm:text-2xl font-bold">Einstellungen</h1>
-                  <p className="text-sm text-gray-400">SEO, Unternehmensdaten & Standorte</p>
+                  <p className="text-sm text-gray-400">SEO, Unternehmensdaten, Standorte & Außendienst</p>
                 </div>
               </div>
             </div>

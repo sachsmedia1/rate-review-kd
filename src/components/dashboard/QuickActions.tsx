@@ -51,7 +51,7 @@ const QuickActions = ({ userRole }: QuickActionsProps) => {
             onClick={() => navigate('/admin/settings')}
             className="px-6 py-3 bg-muted text-foreground hover:bg-muted/80 rounded-lg transition-colors"
           >
-            SEO-Einstellungen
+            Einstellungen
           </button>
         </>
       )}

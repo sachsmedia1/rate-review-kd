@@ -8,6 +8,7 @@ import { Review } from "@/types";
 import { SEOSettings, CategorySEOContent } from "@/types/seo-settings";
 import { ReviewSEOContent } from "@/components/reviews/ReviewSEOContent";
 import { ReviewFAQ } from "@/components/reviews/ReviewFAQ";
+import { ContactSection } from "@/components/reviews/ContactSection";
 import { renderTemplate } from "@/utils/template-renderer";
 import { useQuery } from "@tanstack/react-query";
 import { Location } from "@/types/location";
@@ -666,6 +667,15 @@ const ReviewDetail = () => {
             <ReviewSEOContent 
               seoData={categorySeoData} 
               reviewData={reviewData} 
+            />
+          )}
+
+          {/* Contact Section */}
+          {review && (
+            <ContactSection
+              reviewLatitude={review.latitude}
+              reviewLongitude={review.longitude}
+              reviewPostalCode={review.postal_code}
             />
           )}
 
