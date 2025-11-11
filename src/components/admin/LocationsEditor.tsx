@@ -40,6 +40,7 @@ const LocationsEditor = () => {
   const [openingHours, setOpeningHours] = useState("");
   const [googleMapsEmbedUrl, setGoogleMapsEmbedUrl] = useState("");
   const [googleBusinessUrl, setGoogleBusinessUrl] = useState("");
+  const [showroomInfoUrl, setShowroomInfoUrl] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -82,6 +83,7 @@ const LocationsEditor = () => {
     setOpeningHours("");
     setGoogleMapsEmbedUrl("");
     setGoogleBusinessUrl("");
+    setShowroomInfoUrl("");
     setLogoUrl(null);
     setLogoFile(null);
     setPreviewUrl(null);
@@ -106,6 +108,7 @@ const LocationsEditor = () => {
     setOpeningHours(location.opening_hours || "");
     setGoogleMapsEmbedUrl(location.google_maps_embed_url || "");
     setGoogleBusinessUrl(location.google_business_url || "");
+    setShowroomInfoUrl(location.showroom_info_url || "");
     setLogoUrl(location.logo_url);
     setPreviewUrl(null);
     setDialogOpen(true);
@@ -209,6 +212,7 @@ const LocationsEditor = () => {
         opening_hours: openingHours.trim() || null,
         google_maps_embed_url: googleMapsEmbedUrl.trim() || null,
         google_business_url: googleBusinessUrl.trim() || null,
+        showroom_info_url: showroomInfoUrl.trim() || null,
         logo_url: finalLogoUrl,
       };
 
@@ -640,6 +644,19 @@ const LocationsEditor = () => {
                   className="bg-gray-800 border-gray-700 text-white mt-2"
                 />
                 <p className="text-xs text-gray-500 mt-1">Link zum GMB Profil</p>
+              </div>
+              <div>
+                <Label className="text-gray-400">Showroom Info URL</Label>
+                <Input
+                  type="url"
+                  value={showroomInfoUrl}
+                  onChange={(e) => setShowroomInfoUrl(e.target.value)}
+                  placeholder="https://der-kamindoktor.de/ausstellung"
+                  className="bg-gray-800 border-gray-700 text-white mt-2"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Link zur Ausstellungs-Detailseite. Button erscheint in der Contact Section wenn ausgefüllt.
+                </p>
               </div>
             </div>
 

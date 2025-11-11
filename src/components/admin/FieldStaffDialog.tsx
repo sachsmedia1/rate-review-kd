@@ -92,12 +92,12 @@ export const FieldStaffDialog = ({ open, onOpenChange, staff, onSave }: FieldSta
     if (!formData.last_name.trim()) {
       newErrors.last_name = "Nachname ist erforderlich";
     }
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Telefonnummer ist erforderlich";
+    // Phone is optional - only validate if provided
+    if (formData.phone.trim() && formData.phone.trim().length < 5) {
+      newErrors.phone = "Telefonnummer zu kurz";
     }
-    if (!formData.email.trim()) {
-      newErrors.email = "E-Mail ist erforderlich";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    // Email is optional - only validate format if provided
+    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Ungültige E-Mail-Adresse";
     }
     if (!formData.assigned_postal_codes.trim()) {
@@ -155,15 +155,18 @@ export const FieldStaffDialog = ({ open, onOpenChange, staff, onSave }: FieldSta
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="area_name">
-                Bereichsname <span className="text-red-500">*</span>
+                Bereichsname / Area Name <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="area_name"
                 value={formData.area_name}
                 onChange={(e) => setFormData({ ...formData, area_name: e.target.value })}
-                placeholder="z.B. Bereich 1: Ost"
+                placeholder="z.B. Nord-Bayern, Franken"
                 className="bg-gray-800 border-gray-700 text-white"
               />
+              <p className="text-xs text-gray-400">
+                Mehrere Bereiche können durch Komma getrennt werden (z.B. "Nord-Bayern, Franken")
+              </p>
               {errors.area_name && (
                 <p className="text-sm text-red-500">{errors.area_name}</p>
               )}
@@ -226,9 +229,7 @@ export const FieldStaffDialog = ({ open, onOpenChange, staff, onSave }: FieldSta
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="phone">
-                Telefon <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="phone">Telefon</Label>
               <Input
                 id="phone"
                 type="tel"
@@ -243,9 +244,7 @@ export const FieldStaffDialog = ({ open, onOpenChange, staff, onSave }: FieldSta
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">
-                E-Mail <span className="text-red-500">*</span>
-              </Label>
+              <Label htmlFor="email">E-Mail</Label>
               <Input
                 id="email"
                 type="email"
