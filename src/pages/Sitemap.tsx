@@ -10,12 +10,13 @@ const Sitemap = () => {
 
   const generateSitemap = async () => {
     try {
-      // Lade alle veröffentlichten Bewertungen
+      // Lade alle veröffentlichten Bewertungen (kein Limit)
       const { data: reviews } = await supabase
         .from('reviews')
         .select('slug, installation_date, created_at')
         .eq('is_published', true)
-        .order('installation_date', { ascending: false });
+        .order('installation_date', { ascending: false })
+        .limit(50000); // Sehr hohes Limit, um alle Bewertungen zu erfassen
 
       if (!reviews) {
         console.error('Keine Bewertungen gefunden');
