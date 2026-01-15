@@ -288,7 +288,9 @@ const ReviewDetail = () => {
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://yourdomain.com/bewertung/${review.slug}`} />
         <meta property="og:title" content={`${review.customer_salutation} ${review.customer_lastname} - ${review.product_category} in ${review.city}`} />
-        <meta property="og:description" content={`⭐ ${formatRating(review.average_rating)}/5.0 - ${review.customer_comment?.substring(0, 150) || 'Kundenbewertung'}...`} />
+        <meta property="og:description" content={(review as any).description_seo 
+          ? (review as any).description_seo.replace(/<[^>]*>/g, '').substring(0, 200) 
+          : `⭐ ${formatRating(review.average_rating)}/5.0 - ${review.customer_comment?.substring(0, 150) || 'Kundenbewertung'}...`} />
         <meta property="og:image" content={review.after_image_url || review.before_image_url || 'https://yourdomain.com/default-og-image.jpg'} />
         <meta property="article:published_time" content={review.installation_date} />
         <meta property="article:author" content="Der Kamindoktor" />
