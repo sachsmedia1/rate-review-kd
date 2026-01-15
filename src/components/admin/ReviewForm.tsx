@@ -30,13 +30,14 @@ const formSchema = z.object({
     .min(1, "Kunden-ID ist erforderlich")
     .regex(/^\d+$/, "Kunden-ID darf nur Zahlen enthalten")
     .max(50, "Kunden-ID ist zu lang"),
-  customer_salutation: z.enum(["Herr", "Frau"], {
+  customer_salutation: z.enum(["Herr", "Frau", "Dr.", "Familie"], {
     required_error: "Bitte wählen Sie eine Anrede",
   }),
   customer_firstname: z
     .string()
-    .min(1, "Vorname ist erforderlich")
-    .max(100, "Vorname ist zu lang"),
+    .max(100, "Vorname ist zu lang")
+    .optional()
+    .or(z.literal("")),
   customer_lastname: z
     .string()
     .min(1, "Nachname ist erforderlich")
@@ -88,6 +89,15 @@ const formSchema = z.object({
       required_error: "Bitte wählen Sie eine Produktkategorie",
     }
   ),
+}).superRefine((data, ctx) => {
+  // Vorname ist Pflicht, außer bei "Familie"
+  if (data.customer_salutation !== "Familie" && (!data.customer_firstname || data.customer_firstname.trim() === "")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Vorname ist erforderlich",
+      path: ["customer_firstname"],
+    });
+  }
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -714,7 +724,7 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
                         shouldValidate: true,
                       })
                     }
-                    className="flex gap-4"
+                    className="flex flex-wrap gap-4"
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="Herr" id="herr" />
@@ -728,6 +738,18 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
                         Frau
                       </Label>
                     </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="Dr." id="dr" />
+                      <Label htmlFor="dr" className="cursor-pointer font-normal">
+                        Dr.
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="Familie" id="familie" />
+                      <Label htmlFor="familie" className="cursor-pointer font-normal">
+                        Familie
+                      </Label>
+                    </div>
                   </RadioGroup>
                   {errors.customer_salutation && (
                     <p className="text-sm text-destructive">{errors.customer_salutation.message}</p>
@@ -737,9 +759,9 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
                 {/* Vorname */}
                 <div className="space-y-2">
                   <Label htmlFor="firstname">
-                    Vorname <span className="text-destructive">*</span>
+                    Vorname {salutation !== "Familie" && <span className="text-destructive">*</span>}
                   </Label>
-                  <Input id="firstname" placeholder="Max" {...register("customer_firstname")} />
+                  <Input id="firstname" placeholder={salutation === "Familie" ? "(optional)" : "Max"} {...register("customer_firstname")} />
                   {errors.customer_firstname && (
                     <p className="text-sm text-destructive">{errors.customer_firstname.message}</p>
                   )}
