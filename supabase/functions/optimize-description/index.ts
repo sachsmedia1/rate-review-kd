@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,6 +8,18 @@ const corsHeaders = {
 };
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+const DEFAULT_PROMPT = `Du bist ein SEO-Experte für Kaminbau und Ofenbau. Erstelle aus den folgenden Stichpunkten einen professionellen, SEO-optimierten Fließtext (2-4 Sätze, max. 300 Zeichen).
+
+Produktkategorie: {{category}}
+Standort: {{city}}
+
+Stichpunkte:
+{{raw_text}}
+
+Schreibe einen natürlichen, gut lesbaren Text ohne Aufzählungen.`;
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -26,27 +39,30 @@ serve(async (req) => {
 
     console.log("Optimizing description for:", { category, city, rawTextLength: rawText.length });
 
-    const systemPrompt = `Du bist ein SEO-Experte für Kaminbau und Ofenbau. Deine Aufgabe ist es, aus Stichpunkten einen professionellen, SEO-optimierten Fließtext zu erstellen.
+    // Load prompt template from database
+    let promptTemplate = DEFAULT_PROMPT;
+    
+    if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      const { data: settings } = await supabase
+        .from("seo_settings")
+        .select("ai_description_prompt")
+        .eq("id", "00000000-0000-0000-0000-000000000001")
+        .maybeSingle();
 
-Regeln:
-- Schreibe einen natürlichen, gut lesbaren Fließtext (2-4 Sätze)
-- Verwende relevante Suchbegriffe wie Kaminbau, Ofenbau, Kamin, Ofen, Heizung, etc. natürlich im Text
-- Der Text soll informativ und professionell klingen
-- Keine Übertreibungen oder Werbesprache
-- Erwähne die Produktkategorie und den Standort falls sinnvoll
-- Schreibe auf Deutsch
-- Keine Aufzählungen oder Bulletpoints im Ergebnis
-- Maximal 300 Zeichen`;
+      if (settings?.ai_description_prompt) {
+        promptTemplate = settings.ai_description_prompt;
+        console.log("Using custom prompt from database");
+      } else {
+        console.log("Using default prompt");
+      }
+    }
 
-    const userPrompt = `Erstelle einen SEO-optimierten Beschreibungstext für folgendes Kaminbau-Projekt:
-
-Produktkategorie: ${category || "Nicht angegeben"}
-Standort: ${city || "Nicht angegeben"}
-
-Stichpunkte vom Kunden:
-${rawText}
-
-Schreibe einen professionellen Fließtext:`;
+    // Replace placeholders in template
+    const userPrompt = promptTemplate
+      .replace(/\{\{category\}\}/g, category || "Nicht angegeben")
+      .replace(/\{\{city\}\}/g, city || "Nicht angegeben")
+      .replace(/\{\{raw_text\}\}/g, rawText);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -57,7 +73,6 @@ Schreibe einen professionellen Fließtext:`;
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
         max_tokens: 500,
