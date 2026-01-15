@@ -31,7 +31,7 @@ const formSchema = z.object({
     .min(1, "Kunden-ID ist erforderlich")
     .regex(/^\d+$/, "Kunden-ID darf nur Zahlen enthalten")
     .max(50, "Kunden-ID ist zu lang"),
-  customer_salutation: z.enum(["Herr", "Frau", "Dr.", "Familie"], {
+  customer_salutation: z.enum(["Herr", "Frau", "Herr Dr.", "Frau Dr.", "Familie"], {
     required_error: "Bitte wählen Sie eine Anrede",
   }),
   customer_firstname: z
@@ -746,9 +746,15 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="Dr." id="dr" />
-                      <Label htmlFor="dr" className="cursor-pointer font-normal">
-                        Dr.
+                      <RadioGroupItem value="Herr Dr." id="herr-dr" />
+                      <Label htmlFor="herr-dr" className="cursor-pointer font-normal">
+                        Herr Dr.
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="Frau Dr." id="frau-dr" />
+                      <Label htmlFor="frau-dr" className="cursor-pointer font-normal">
+                        Frau Dr.
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
