@@ -369,6 +369,7 @@ export type Database = {
           address_postal_code: string | null
           address_region: string | null
           address_street: string | null
+          ai_description_prompt: string | null
           canonical_base_url: string | null
           category_seo_content: Json
           company_description: string | null
@@ -400,6 +401,7 @@ export type Database = {
           address_postal_code?: string | null
           address_region?: string | null
           address_street?: string | null
+          ai_description_prompt?: string | null
           canonical_base_url?: string | null
           category_seo_content?: Json
           company_description?: string | null
@@ -431,6 +433,7 @@ export type Database = {
           address_postal_code?: string | null
           address_region?: string | null
           address_street?: string | null
+          ai_description_prompt?: string | null
           canonical_base_url?: string | null
           category_seo_content?: Json
           company_description?: string | null

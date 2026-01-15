@@ -41,6 +41,7 @@ export interface SEOSettings {
   google_analytics_id?: string;
   google_tag_manager_id?: string;
   enable_indexing: boolean;
+  ai_description_prompt?: string;
   created_at?: string;
   updated_at?: string;
 }

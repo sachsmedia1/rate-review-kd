@@ -11,6 +11,7 @@ import CategorySEOEditor from "@/components/admin/CategorySEOEditor";
 import CompanyInfoEditor from "@/components/admin/CompanyInfoEditor";
 import LocationsEditor from "@/components/admin/LocationsEditor";
 import { FieldStaffManagement } from "@/components/admin/FieldStaffManagement";
+import AISettingsEditor from "@/components/admin/AISettingsEditor";
 
 const SETTINGS_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -146,7 +147,7 @@ const Settings = () => {
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           <Tabs defaultValue="categories" className="space-y-6">
-            <TabsList className="bg-gray-900 border border-gray-800">
+            <TabsList className="bg-gray-900 border border-gray-800 flex-wrap h-auto">
               <TabsTrigger value="categories" className="data-[state=active]:bg-orange-500">
                 Kategorie-SEO
               </TabsTrigger>
@@ -158,6 +159,9 @@ const Settings = () => {
               </TabsTrigger>
               <TabsTrigger value="fieldstaff" className="data-[state=active]:bg-orange-500">
                 Außendienst
+              </TabsTrigger>
+              <TabsTrigger value="ai" className="data-[state=active]:bg-orange-500">
+                KI-Einstellungen
               </TabsTrigger>
             </TabsList>
 
@@ -183,6 +187,13 @@ const Settings = () => {
 
             <TabsContent value="fieldstaff" className="space-y-6">
               <FieldStaffManagement />
+            </TabsContent>
+
+            <TabsContent value="ai" className="space-y-6">
+              <AISettingsEditor 
+                settings={settings} 
+                onUpdate={updateSettings}
+              />
             </TabsContent>
           </Tabs>
         </main>
