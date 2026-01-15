@@ -1,7 +1,7 @@
 // Type definitions for the Kamindoktor app
 
 export type ReviewStatus = 'draft' | 'published' | 'pending';
-export type CustomerSalutation = 'Herr' | 'Frau' | 'Dr.' | 'Familie';
+export type CustomerSalutation = 'Herr' | 'Frau' | 'Herr Dr.' | 'Frau Dr.' | 'Familie';
 export type Montagestandort = 'Bamberg' | 'Essen' | 'Rödermark' | 'Hamburg';
 export type ProductCategory = 
   | 'Kaminofen' 
