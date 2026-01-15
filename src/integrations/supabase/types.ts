@@ -156,6 +156,8 @@ export type Database = {
           customer_id: string | null
           customer_lastname: string | null
           customer_salutation: string
+          description_raw: string | null
+          description_seo: string | null
           geocoded_at: string | null
           geocoding_status: string | null
           house_number: string | null
@@ -195,6 +197,8 @@ export type Database = {
           customer_id?: string | null
           customer_lastname?: string | null
           customer_salutation: string
+          description_raw?: string | null
+          description_seo?: string | null
           geocoded_at?: string | null
           geocoding_status?: string | null
           house_number?: string | null
@@ -234,6 +238,8 @@ export type Database = {
           customer_id?: string | null
           customer_lastname?: string | null
           customer_salutation?: string
+          description_raw?: string | null
+          description_seo?: string | null
           geocoded_at?: string | null
           geocoding_status?: string | null
           house_number?: string | null

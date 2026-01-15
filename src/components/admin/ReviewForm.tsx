@@ -21,6 +21,7 @@ import { CustomerSalutation, ProductCategory } from "@/types";
 import { ImageUploadSection } from "@/components/review-form/ImageUploadSection";
 import { RatingsSection } from "@/components/review-form/RatingSliders";
 import { AdditionalInfoSection } from "@/components/review-form/AdditionalInfoSection";
+import { DescriptionSection } from "@/components/review-form/DescriptionSection";
 import { Badge } from "@/components/ui/badge";
 import { AddressAutocomplete } from "@/components/admin/AddressAutocomplete";
 
@@ -154,6 +155,10 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
   const [status, setStatus] = useState<"draft" | "published" | "pending">(
     existingData?.status || "pending"
   );
+
+  // Description states
+  const [descriptionRaw, setDescriptionRaw] = useState(existingData?.description_raw || "");
+  const [descriptionSeo, setDescriptionSeo] = useState(existingData?.description_seo || "");
 
   // Geocoded coordinates from Google Places Autocomplete
   const [geocodedCoordinates, setGeocodedCoordinates] = useState<{
@@ -513,6 +518,8 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
         customer_comment: customerComment || null,
         internal_notes: internalNotes || null,
         installed_by: installedBy === "none" ? null : installedBy,
+        description_raw: descriptionRaw || null,
+        description_seo: descriptionSeo || null,
         ...(mode === "create"
           ? { created_by: user.id }
           : { updated_by: user.id, updated_at: new Date().toISOString() }),
@@ -968,6 +975,16 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
               optionalRatings={optionalRatings}
               onRatingChange={handleRatingChange}
               onOptionalToggle={handleOptionalToggle}
+            />
+
+            {/* Description Section */}
+            <DescriptionSection
+              descriptionRaw={descriptionRaw}
+              descriptionSeo={descriptionSeo}
+              productCategory={category || ""}
+              city={watch("city") || ""}
+              onDescriptionRawChange={setDescriptionRaw}
+              onDescriptionSeoChange={setDescriptionSeo}
             />
 
             {/* Additional Info Section */}
