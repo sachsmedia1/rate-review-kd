@@ -509,6 +509,19 @@ const ReviewDetail = () => {
             </article>
           )}
 
+          {/* Projekt-Details (SEO-optimierte Beschreibung) */}
+          {(review as any).description_seo && (
+            <section className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 md:p-8 mb-8">
+              <h2 className="text-2xl font-bold text-white mb-4">
+                Projekt-Details
+              </h2>
+              <div 
+                className="prose prose-lg prose-invert max-w-none text-gray-300"
+                dangerouslySetInnerHTML={{ __html: (review as any).description_seo }}
+              />
+            </section>
+          )}
+
           {/* Vorher-/Nachher-Bilder */}
           {review.before_image_url && review.after_image_url && (
             <section className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6 md:p-8 mb-8">
