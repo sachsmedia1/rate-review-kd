@@ -296,12 +296,19 @@ const ReviewDetail = () => {
         <meta property="article:author" content="Der Kamindoktor" />
         <meta property="article:section" content={review.product_category} />
         
+        {/* Pinterest Rich Pins */}
+        <meta property="og:image:alt" content={`${review.product_category} von ${review.customer_salutation} ${review.customer_lastname} in ${review.city} - Der Kamindoktor ${location?.city || "Bamberg"}`} />
+        <meta name="pinterest-rich-pin" content="true" />
+        <meta name="pin:description" content={`🔥 ${review.product_category} in ${review.city} | ⭐ ${formatRating(review.average_rating)}/5.0 Bewertung | ${review.description_seo?.replace(/<[^>]*>/g, '').substring(0, 150) || review.customer_comment?.substring(0, 150) || 'Professioneller Kaminbau vom Kamindoktor'}`} />
+        <meta name="pin:url" content={`https://bewertungen.der-kamindoktor.de/bewertung/${review.slug}`} />
+        
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content={`https://yourdomain.com/bewertung/${review.slug}`} />
+        <meta property="twitter:url" content={`https://bewertungen.der-kamindoktor.de/bewertung/${review.slug}`} />
         <meta property="twitter:title" content={`${review.customer_salutation} ${review.customer_lastname} - ${review.product_category}`} />
         <meta property="twitter:description" content={`⭐ ${formatRating(review.average_rating)}/5.0 - ${review.customer_comment || 'Kundenbewertung'}`} />
-        <meta property="twitter:image" content={review.after_image_url || review.before_image_url || 'https://yourdomain.com/default-twitter-image.jpg'} />
+        <meta property="twitter:image" content={review.after_image_url || review.before_image_url || seoSettings?.default_og_image_url || 'https://bewertungen.der-kamindoktor.de/og-image.jpg'} />
+        <meta name="twitter:image:alt" content={`${review.product_category} in ${review.city} - Der Kamindoktor`} />
         
         {/* Schema.org JSON-LD - @graph structure with LocalBusiness and Review */}
         <script type="application/ld+json">

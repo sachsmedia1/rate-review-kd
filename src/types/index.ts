@@ -56,6 +56,8 @@ export interface Review {
   installed_by?: Montagestandort;
   meta_title?: string;
   meta_description?: string;
+  description_seo?: string;
+  description_raw?: string;
   
   // Tracking
   created_by?: string;
