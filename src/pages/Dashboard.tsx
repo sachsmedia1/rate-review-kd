@@ -181,16 +181,9 @@ const Dashboard = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2 px-3">
-                    <div className="hidden sm:block text-right">
-                      <p className="text-sm font-medium">
-                        {userFirstName && userLastName && `${userFirstName} ${userLastName}`}
-                      </p>
-                      {userRole && (
-                        <Badge variant={userRole === "admin" ? "default" : "secondary"} className="text-xs">
-                          {userRole === "admin" ? "Administrator" : "Nutzer"}
-                        </Badge>
-                      )}
-                    </div>
+                    <span className="hidden sm:block text-sm font-medium">
+                      {userFirstName && userLastName ? `${userFirstName} ${userLastName}` : "Profil"}
+                    </span>
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
