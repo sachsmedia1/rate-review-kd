@@ -19,7 +19,16 @@ Standort: {{city}}
 Stichpunkte:
 {{raw_text}}
 
-Schreibe einen natürlichen, gut lesbaren Text ohne Aufzählungen.`;
+WICHTIG: Antworte NUR mit dem fertigen Fließtext. Keine Einleitungen, keine Erklärungen, keine Anführungszeichen. Schreibe einen natürlichen, gut lesbaren Text ohne Aufzählungen.`;
+
+// Common AI preambles to strip from output
+const PREAMBLE_PATTERNS = [
+  /^Hier ist ein professioneller,? SEO-optimierter Text[^:]*:\s*/i,
+  /^Hier ist der (optimierte |SEO-)?Text[^:]*:\s*/i,
+  /^Hier ist dein[^:]*:\s*/i,
+  /^Der (optimierte |SEO-)?Text[^:]*:\s*/i,
+  /^Professioneller Text[^:]*:\s*/i,
+];
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -92,10 +101,18 @@ serve(async (req) => {
       throw new Error("No response from AI");
     }
 
-    console.log("Generated text:", optimizedText.substring(0, 100) + "...");
+    // Clean up AI preambles
+    let cleanedText = optimizedText;
+    for (const pattern of PREAMBLE_PATTERNS) {
+      cleanedText = cleanedText.replace(pattern, '');
+    }
+    // Also remove leading/trailing quotes and whitespace
+    cleanedText = cleanedText.replace(/^["„"'\s]+|["„"'\s]+$/g, '').trim();
+
+    console.log("Generated text:", cleanedText.substring(0, 100) + "...");
 
     return new Response(
-      JSON.stringify({ optimizedText }),
+      JSON.stringify({ optimizedText: cleanedText }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
