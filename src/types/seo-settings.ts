@@ -11,6 +11,7 @@ export interface CategorySEOContent {
   heading: string;
   description: string;
   faq: FAQItem[];
+  pinterest_board?: string;
 }
 
 export interface SEOSettings {
