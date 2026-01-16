@@ -24,7 +24,8 @@ const CategorySEOEditor = ({ settings, onUpdate, onReload }: CategorySEOEditorPr
     meta_description_template: '',
     heading: '',
     description: '',
-    faq: []
+    faq: [],
+    pinterest_board: ''
   });
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -45,7 +46,8 @@ const CategorySEOEditor = ({ settings, onUpdate, onReload }: CategorySEOEditorPr
         meta_description_template: '',
         heading: '',
         description: '',
-        faq: []
+        faq: [],
+        pinterest_board: ''
       });
     }
     setHasUnsavedChanges(false);
@@ -266,8 +268,27 @@ const CategorySEOEditor = ({ settings, onUpdate, onReload }: CategorySEOEditorPr
             >
               + {'{region}'}
             </Button>
-          </div>
         </div>
+
+        {/* Pinterest Board */}
+        <div className="pt-4 border-t border-gray-700">
+          <label className="block text-sm font-medium mb-2">
+            🔗 Pinterest Board URL
+            <span className="text-gray-400 text-xs ml-2">
+              Für automatisches Pinnen dieser Kategorie
+            </span>
+          </label>
+          <Input
+            value={categoryData.pinterest_board || ''}
+            onChange={(e) => handleFieldChange('pinterest_board', e.target.value)}
+            placeholder="https://pinterest.com/kamindoktor/kaminoefen/"
+            className="bg-gray-800 border-gray-700 text-white"
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            Format: https://pinterest.com/benutzername/pinwand-name/
+          </p>
+        </div>
+      </div>
       </div>
 
       {/* FAQ Section */}
