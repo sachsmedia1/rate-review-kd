@@ -10,7 +10,6 @@ import { RobotsMetaTag } from "./components/seo/RobotsMetaTag";
 
 const Index = lazy(() => import("./pages/Index"));
 const Login = lazy(() => import("./pages/Login"));
-const Setup = lazy(() => import("./pages/Setup"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const NewReview = lazy(() => import("./pages/NewReview"));
 const Reviews = lazy(() => import("./pages/admin/Reviews"));
@@ -47,7 +46,6 @@ function App() {
                 <Route path="/bewertung/:slug" element={<ReviewDetail />} />
                 <Route path="/sitemap.xml" element={<Sitemap />} />
                 <Route path="/admin/login" element={<Login />} />
-                <Route path="/admin/setup" element={<Setup />} />
                 <Route
                   path="/admin/dashboard"
                   element={
