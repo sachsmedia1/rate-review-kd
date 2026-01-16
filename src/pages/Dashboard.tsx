@@ -6,9 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { getCurrentUser, getUserProfile, checkUserRole, signOut } from "@/lib/auth";
-import { Flame, LogOut, Star, Check, Clock, X, FileEdit } from "lucide-react";
+import { Flame, LogOut, Star, Check, Clock, FileEdit, Settings, Users, ChevronDown } from "lucide-react";
 import { AppRole } from "@/types";
 import QuickActions from "@/components/dashboard/QuickActions";
 import RecentReviewsTable from "@/components/dashboard/RecentReviewsTable";
@@ -171,22 +178,42 @@ const Dashboard = () => {
             </div>
             
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-3">
-                <div className="text-right">
-                  <p className="text-sm font-medium">
-                    {userFirstName && userLastName && `${userFirstName} ${userLastName}`}
-                  </p>
-                  {userRole && (
-                    <Badge variant={userRole === "admin" ? "default" : "secondary"} className="text-xs">
-                      {userRole === "admin" ? "Administrator" : "Nutzer"}
-                    </Badge>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 px-3">
+                    <div className="hidden sm:block text-right">
+                      <p className="text-sm font-medium">
+                        {userFirstName && userLastName && `${userFirstName} ${userLastName}`}
+                      </p>
+                      {userRole && (
+                        <Badge variant={userRole === "admin" ? "default" : "secondary"} className="text-xs">
+                          {userRole === "admin" ? "Administrator" : "Nutzer"}
+                        </Badge>
+                      )}
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {userRole === "admin" && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate("/admin/settings")}>
+                        <Settings className="mr-2 h-4 w-4" />
+                        Einstellungen
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/admin/users")}>
+                        <Users className="mr-2 h-4 w-4" />
+                        Nutzerverwaltung
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
                   )}
-                </div>
-              </div>
-              <Button variant="outline" onClick={handleSignOut} size="sm">
-                <LogOut className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Abmelden</span>
-              </Button>
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Abmelden
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
