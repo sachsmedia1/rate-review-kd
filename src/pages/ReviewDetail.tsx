@@ -9,7 +9,6 @@ import { SEOSettings, CategorySEOContent } from "@/types/seo-settings";
 import { ReviewSEOContent } from "@/components/reviews/ReviewSEOContent";
 import { ReviewFAQ } from "@/components/reviews/ReviewFAQ";
 import { ContactSection } from "@/components/reviews/ContactSection";
-import { PinterestAdminAction } from "@/components/pinterest/PinterestAdminAction";
 import { renderTemplate } from "@/utils/template-renderer";
 import { useQuery } from "@tanstack/react-query";
 import { Location } from "@/types/location";
