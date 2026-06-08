@@ -18,8 +18,56 @@ interface PinterestCollageDialogProps {
   description?: string;
 }
 
-const CANVAS_WIDTH = 1000;
-const CANVAS_HEIGHT = 1500;
+/**
+ * Pinterest Template "Vorher/Nachher Vertikal" (V1)
+ * --------------------------------------------------
+ * Pinterest Best Practices:
+ *  - Seitenverhältnis 2:3 (Pflicht für volle Feed-Höhe)
+ *  - Auflösung 1200x1800 px (Retina-scharf)
+ *  - Safe-Zone 96 px allseitig (Pinterest beschneidet Ecken im Feed)
+ *  - Headline max. 2 Zeilen, Auto-Fontsize, hoher Kontrast via Overlay
+ *  - Export als PNG (Text & Logo bleiben knackig)
+ */
+const PINTEREST_TEMPLATE = {
+  width: 1200,
+  height: 1800,
+  safeZone: 96,
+  colors: {
+    bgTop: "#1a0a05",
+    bgMid: "#2d1208",
+    bgBottom: "#0a0503",
+    accent: "#ff6b1a",
+    accentSoft: "#ffa366",
+    text: "#ffffff",
+    textMuted: "rgba(255,255,255,0.75)",
+    badgeDark: "#000000",
+  },
+  fonts: {
+    brand: 'bold 44px "Helvetica Neue", Arial, sans-serif',
+    category: '600 28px "Helvetica Neue", Arial, sans-serif',
+    badge: 'bold 26px "Helvetica Neue", Arial, sans-serif',
+    headlineMax: 76, // wird via Auto-Fit verkleinert
+    headlineMin: 44,
+    city: '600 32px "Helvetica Neue", Arial, sans-serif',
+  },
+  image: {
+    width: 960, // (1200 - 2*120) – etwas mehr Innen-Padding als Safe-Zone für Optik
+    height: 620,
+    radius: 20,
+    frameWidth: 8,
+  },
+  layout: {
+    headerY: 110,
+    beforeY: 200,
+    arrowGap: 40,
+    footerHeadlineOffset: 90, // Abstand After-Bild → Headline
+    headlineLineHeight: 1.18,
+    citySpacing: 56,
+  },
+} as const;
+
+const CANVAS_WIDTH = PINTEREST_TEMPLATE.width;
+const CANVAS_HEIGHT = PINTEREST_TEMPLATE.height;
 
 /** Loads an image with CORS enabled so canvas remains exportable. */
 function loadImage(url: string): Promise<HTMLImageElement> {
@@ -83,16 +131,18 @@ async function renderCollage(
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
 
-  // Background gradient (deep warm)
+  const T = PINTEREST_TEMPLATE;
+
+  // Hintergrund-Gradient (tief warm)
   const bg = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
-  bg.addColorStop(0, "#1a0a05");
-  bg.addColorStop(0.5, "#2d1208");
-  bg.addColorStop(1, "#0a0503");
+  bg.addColorStop(0, T.colors.bgTop);
+  bg.addColorStop(0.5, T.colors.bgMid);
+  bg.addColorStop(1, T.colors.bgBottom);
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  // Subtle ember particles
-  for (let i = 0; i < 80; i++) {
+  // Subtile Ember-Partikel
+  for (let i = 0; i < 110; i++) {
     const x = Math.random() * CANVAS_WIDTH;
     const y = Math.random() * CANVAS_HEIGHT;
     const r = Math.random() * 2 + 0.5;
@@ -103,97 +153,182 @@ async function renderCollage(
     ctx.fill();
   }
 
-  // Header brand bar
-  ctx.fillStyle = "#ff6b1a";
-  ctx.font = "bold 38px system-ui, -apple-system, sans-serif";
+  // Header (Brand + Kategorie) – innerhalb Safe-Zone
+  ctx.fillStyle = T.colors.accent;
+  ctx.font = T.fonts.brand;
   ctx.textAlign = "left";
-  ctx.fillText("🔥 DER KAMINDOKTOR", 60, 90);
+  ctx.textBaseline = "alphabetic";
+  ctx.fillText("🔥 DER KAMINDOKTOR", T.safeZone, T.layout.headerY);
 
-  ctx.fillStyle = "rgba(255,255,255,0.7)";
-  ctx.font = "500 24px system-ui, -apple-system, sans-serif";
+  ctx.fillStyle = T.colors.textMuted;
+  ctx.font = T.fonts.category;
   ctx.textAlign = "right";
-  ctx.fillText(category, CANVAS_WIDTH - 60, 88);
+  ctx.fillText(category, CANVAS_WIDTH - T.safeZone, T.layout.headerY - 4);
 
   // Load images in parallel
   const [beforeImg, afterImg] = await Promise.all([loadImage(beforeUrl), loadImage(afterUrl)]);
 
-  // Image dimensions
-  const imgW = 760;
-  const imgH = 520;
+  // Bild-Maße
+  const imgW = T.image.width;
+  const imgH = T.image.height;
   const imgX = (CANVAS_WIDTH - imgW) / 2;
-  const beforeY = 160;
-  const afterY = 730;
+  const beforeY = T.layout.beforeY;
+  const arrowH = 95;
+  const afterY = beforeY + imgH + T.layout.arrowGap + arrowH + T.layout.arrowGap;
 
   // BEFORE image (grayscale, with frame)
   ctx.save();
-  drawRoundedRect(ctx, imgX - 6, beforeY - 6, imgW + 12, imgH + 12, 18);
-  ctx.fillStyle = "#ff6b1a";
+  drawRoundedRect(
+    ctx,
+    imgX - T.image.frameWidth,
+    beforeY - T.image.frameWidth,
+    imgW + T.image.frameWidth * 2,
+    imgH + T.image.frameWidth * 2,
+    T.image.radius + 4,
+  );
+  ctx.fillStyle = T.colors.accent;
   ctx.fill();
   ctx.restore();
 
   ctx.save();
-  drawRoundedRect(ctx, imgX, beforeY, imgW, imgH, 14);
+  drawRoundedRect(ctx, imgX, beforeY, imgW, imgH, T.image.radius);
   ctx.clip();
   drawCover(ctx, beforeImg, imgX, beforeY, imgW, imgH, true);
   ctx.restore();
 
   // VORHER badge
-  ctx.fillStyle = "#000";
-  drawRoundedRect(ctx, imgX + 20, beforeY + 20, 160, 50, 8);
+  ctx.fillStyle = T.colors.badgeDark;
+  drawRoundedRect(ctx, imgX + 24, beforeY + 24, 180, 58, 10);
   ctx.fill();
-  ctx.fillStyle = "#fff";
-  ctx.font = "bold 22px system-ui, sans-serif";
+  ctx.fillStyle = T.colors.text;
+  ctx.font = T.fonts.badge;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("VORHER", imgX + 100, beforeY + 45);
+  ctx.fillText("VORHER", imgX + 24 + 90, beforeY + 24 + 29);
 
-  // Arrow between (downward)
+  // Pfeil zwischen den Bildern (nach unten)
   const arrowCx = CANVAS_WIDTH / 2;
-  const arrowY = beforeY + imgH + 30;
-  ctx.fillStyle = "#ff6b1a";
+  const arrowY = beforeY + imgH + T.layout.arrowGap;
+  ctx.fillStyle = T.colors.accent;
   ctx.beginPath();
-  ctx.moveTo(arrowCx - 40, arrowY);
-  ctx.lineTo(arrowCx + 40, arrowY);
-  ctx.lineTo(arrowCx + 40, arrowY + 25);
-  ctx.lineTo(arrowCx + 70, arrowY + 25);
-  ctx.lineTo(arrowCx, arrowY + 80);
-  ctx.lineTo(arrowCx - 70, arrowY + 25);
-  ctx.lineTo(arrowCx - 40, arrowY + 25);
+  ctx.moveTo(arrowCx - 48, arrowY);
+  ctx.lineTo(arrowCx + 48, arrowY);
+  ctx.lineTo(arrowCx + 48, arrowY + 30);
+  ctx.lineTo(arrowCx + 84, arrowY + 30);
+  ctx.lineTo(arrowCx, arrowY + 95);
+  ctx.lineTo(arrowCx - 84, arrowY + 30);
+  ctx.lineTo(arrowCx - 48, arrowY + 30);
   ctx.closePath();
   ctx.fill();
 
   // AFTER image (color)
   ctx.save();
-  drawRoundedRect(ctx, imgX - 6, afterY - 6, imgW + 12, imgH + 12, 18);
-  ctx.fillStyle = "#ff6b1a";
+  drawRoundedRect(
+    ctx,
+    imgX - T.image.frameWidth,
+    afterY - T.image.frameWidth,
+    imgW + T.image.frameWidth * 2,
+    imgH + T.image.frameWidth * 2,
+    T.image.radius + 4,
+  );
+  ctx.fillStyle = T.colors.accent;
   ctx.fill();
   ctx.restore();
 
   ctx.save();
-  drawRoundedRect(ctx, imgX, afterY, imgW, imgH, 14);
+  drawRoundedRect(ctx, imgX, afterY, imgW, imgH, T.image.radius);
   ctx.clip();
   drawCover(ctx, afterImg, imgX, afterY, imgW, imgH, false);
   ctx.restore();
 
   // NACHHER badge
-  ctx.fillStyle = "#ff6b1a";
-  drawRoundedRect(ctx, imgX + 20, afterY + 20, 180, 50, 8);
+  ctx.fillStyle = T.colors.accent;
+  drawRoundedRect(ctx, imgX + 24, afterY + 24, 200, 58, 10);
   ctx.fill();
-  ctx.fillStyle = "#fff";
-  ctx.font = "bold 22px system-ui, sans-serif";
+  ctx.fillStyle = T.colors.text;
+  ctx.font = T.fonts.badge;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("NACHHER", imgX + 110, afterY + 45);
+  ctx.fillText("NACHHER", imgX + 24 + 100, afterY + 24 + 29);
 
-  // Footer: title + city
+  // ----- Footer-Bereich: Headline mit Auto-Fit + dunkles Overlay -----
+  const footerTop = afterY + imgH + T.layout.arrowGap;
+  const footerBottom = CANVAS_HEIGHT - T.safeZone;
+  const footerHeight = footerBottom - footerTop;
+  const maxTextWidth = CANVAS_WIDTH - T.safeZone * 2;
+
+  // Dunkles Gradient-Overlay für garantierten Kontrast hinter Headline
+  const overlay = ctx.createLinearGradient(0, footerTop - 30, 0, CANVAS_HEIGHT);
+  overlay.addColorStop(0, "rgba(0,0,0,0)");
+  overlay.addColorStop(0.35, "rgba(0,0,0,0.55)");
+  overlay.addColorStop(1, "rgba(0,0,0,0.85)");
+  ctx.fillStyle = overlay;
+  ctx.fillRect(0, footerTop - 30, CANVAS_WIDTH, CANVAS_HEIGHT - (footerTop - 30));
+
+  // Auto-Fit Headline: starte mit headlineMax, verkleinere bis ≤2 Zeilen passen
+  const fittedTitle = fitHeadline(
+    ctx,
+    title,
+    maxTextWidth,
+    T.fonts.headlineMax,
+    T.fonts.headlineMin,
+  );
+
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = "#fff";
-  ctx.font = "bold 36px system-ui, sans-serif";
+  ctx.fillStyle = T.colors.text;
+  ctx.font = `bold ${fittedTitle.fontSize}px "Helvetica Neue", Arial, sans-serif`;
 
-  // Wrap title into max 2 lines
-  const maxWidth = CANVAS_WIDTH - 120;
-  const words = title.split(" ");
+  const lineHeight = fittedTitle.fontSize * T.layout.headlineLineHeight;
+  const totalTextH = lineHeight * fittedTitle.lines.length + T.layout.citySpacing;
+  const startY = footerTop + (footerHeight - totalTextH) / 2 + fittedTitle.fontSize;
+
+  fittedTitle.lines.forEach((line, i) => {
+    ctx.fillText(line, CANVAS_WIDTH / 2, startY + i * lineHeight);
+  });
+
+  // City-Label
+  ctx.fillStyle = T.colors.accentSoft;
+  ctx.font = T.fonts.city;
+  ctx.fillText(
+    `📍 ${city}`,
+    CANVAS_WIDTH / 2,
+    startY + fittedTitle.lines.length * lineHeight + T.layout.citySpacing - 16,
+  );
+}
+
+/**
+ * Findet die größtmögliche Fontsize, bei der die Headline in max. 2 Zeilen passt.
+ */
+function fitHeadline(
+  ctx: CanvasRenderingContext2D,
+  title: string,
+  maxWidth: number,
+  maxFontSize: number,
+  minFontSize: number,
+): { lines: string[]; fontSize: number } {
+  for (let size = maxFontSize; size >= minFontSize; size -= 2) {
+    ctx.font = `bold ${size}px "Helvetica Neue", Arial, sans-serif`;
+    const lines = wrapText(ctx, title, maxWidth, 2);
+    const fits = lines.every((l) => ctx.measureText(l).width <= maxWidth);
+    if (fits && lines.length <= 2) return { lines, fontSize: size };
+  }
+  // Fallback: minFontSize + harte Kürzung
+  ctx.font = `bold ${minFontSize}px "Helvetica Neue", Arial, sans-serif`;
+  const lines = wrapText(ctx, title, maxWidth, 2);
+  if (lines.length === 2 && ctx.measureText(lines[1]).width > maxWidth) {
+    lines[1] = lines[1].substring(0, 38).trimEnd() + "…";
+  }
+  return { lines, fontSize: minFontSize };
+}
+
+function wrapText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxLines: number,
+): string[] {
+  const words = text.split(/\s+/);
   const lines: string[] = [];
   let current = "";
   for (const w of words) {
@@ -201,24 +336,13 @@ async function renderCollage(
     if (ctx.measureText(test).width > maxWidth && current) {
       lines.push(current);
       current = w;
-      if (lines.length === 2) break;
+      if (lines.length === maxLines) break;
     } else {
       current = test;
     }
   }
-  if (current && lines.length < 2) lines.push(current);
-  if (lines.length === 2 && ctx.measureText(lines[1]).width > maxWidth) {
-    lines[1] = lines[1].substring(0, 40).trimEnd() + "...";
-  }
-
-  const titleY = afterY + imgH + 70;
-  lines.forEach((line, i) => {
-    ctx.fillText(line, CANVAS_WIDTH / 2, titleY + i * 44);
-  });
-
-  ctx.fillStyle = "#ff6b1a";
-  ctx.font = "500 26px system-ui, sans-serif";
-  ctx.fillText(`📍 ${city}`, CANVAS_WIDTH / 2, titleY + lines.length * 44 + 36);
+  if (current && lines.length < maxLines) lines.push(current);
+  return lines;
 }
 
 export function PinterestCollageDialog({
