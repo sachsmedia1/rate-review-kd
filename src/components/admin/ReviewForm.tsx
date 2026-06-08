@@ -535,7 +535,7 @@ export const ReviewForm = ({ mode, existingData, reviewId }: ReviewFormProps) =>
       if (mode === "create") {
         const { data: insertedData, error: insertError } = await supabase
           .from("reviews")
-          .insert(reviewData)
+          .insert(reviewData as never)
           .select()
           .single();
 
