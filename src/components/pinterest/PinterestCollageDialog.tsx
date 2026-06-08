@@ -19,50 +19,40 @@ interface PinterestCollageDialogProps {
 }
 
 /**
- * Pinterest Template "Vorher/Nachher Vertikal" (V1)
+ * Pinterest Template "Polaroid Diagonal" (V2)
  * --------------------------------------------------
- * Pinterest Best Practices:
- *  - Seitenverhältnis 2:3 (Pflicht für volle Feed-Höhe)
- *  - Auflösung 1200x1800 px (Retina-scharf)
- *  - Safe-Zone 96 px allseitig (Pinterest beschneidet Ecken im Feed)
- *  - Headline max. 2 Zeilen, Auto-Fontsize, hoher Kontrast via Overlay
- *  - Export als PNG (Text & Logo bleiben knackig)
+ * Orientiert am bestehenden Kamindoktor-Pinterest-Stil:
+ *  - Schwarzer Hintergrund, warme Flammen-Glow links/unten + Ember-Partikel
+ *  - Vorher (Graustufen) oben links, leicht nach links gekippt
+ *  - Nachher (farbig) unten rechts, leicht nach rechts gekippt
+ *  - Beide Fotos: weißer Polaroid-Rahmen + roter VORHER/NACHHER-Label
+ *  - Geschwungener weißer Pfeil von Vorher → Nachher
+ *  - Oben rechts: Logo-Schriftzug + roter Headline-Badge (AI-Titel)
+ *
+ *  Pinterest Best Practice: 2:3 (1200x1800), PNG-Export, Safe-Zone 80 px
  */
 const PINTEREST_TEMPLATE = {
   width: 1200,
   height: 1800,
-  safeZone: 96,
+  safeZone: 80,
   colors: {
-    bgTop: "#1a0a05",
-    bgMid: "#2d1208",
-    bgBottom: "#0a0503",
-    accent: "#ff6b1a",
-    accentSoft: "#ffa366",
+    bg: "#000000",
+    glowInner: "rgba(255,120,30,0.55)",
+    glowOuter: "rgba(255,80,10,0)",
+    accent: "#e63329", // Kamindoktor-Rot (Logo)
+    accentDark: "#b8231b",
+    flameYellow: "#ffb800",
     text: "#ffffff",
-    textMuted: "rgba(255,255,255,0.75)",
-    badgeDark: "#000000",
+    polaroid: "#ffffff",
   },
   fonts: {
-    brand: 'bold 44px "Helvetica Neue", Arial, sans-serif',
-    category: '600 28px "Helvetica Neue", Arial, sans-serif',
-    badge: 'bold 26px "Helvetica Neue", Arial, sans-serif',
-    headlineMax: 76, // wird via Auto-Fit verkleinert
-    headlineMin: 44,
-    city: '600 32px "Helvetica Neue", Arial, sans-serif',
-  },
-  image: {
-    width: 960, // (1200 - 2*120) – etwas mehr Innen-Padding als Safe-Zone für Optik
-    height: 620,
-    radius: 20,
-    frameWidth: 8,
-  },
-  layout: {
-    headerY: 110,
-    beforeY: 200,
-    arrowGap: 40,
-    footerHeadlineOffset: 90, // Abstand After-Bild → Headline
-    headlineLineHeight: 1.18,
-    citySpacing: 56,
+    logoSerif: 'italic 300 56px Georgia, "Times New Roman", serif',
+    logoBold: 'bold 88px "Helvetica Neue", Arial, sans-serif',
+    logoSmall: 'bold 34px "Helvetica Neue", Arial, sans-serif',
+    label: 'bold 38px "Helvetica Neue", Arial, sans-serif',
+    headlineMax: 56,
+    headlineMin: 32,
+    city: '600 28px "Helvetica Neue", Arial, sans-serif',
   },
 } as const;
 
