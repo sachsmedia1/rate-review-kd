@@ -9,6 +9,7 @@ import { SEOSettings, CategorySEOContent } from "@/types/seo-settings";
 import { ReviewSEOContent } from "@/components/reviews/ReviewSEOContent";
 import { ReviewFAQ } from "@/components/reviews/ReviewFAQ";
 import { ContactSection } from "@/components/reviews/ContactSection";
+import { PinterestAdminAction } from "@/components/pinterest/PinterestAdminAction";
 import { renderTemplate } from "@/utils/template-renderer";
 import { useQuery } from "@tanstack/react-query";
 import { Location } from "@/types/location";
@@ -584,6 +585,18 @@ const ReviewDetail = () => {
               </p>
             </section>
           )}
+
+          {/* Admin-only Pinterest action */}
+          <PinterestAdminAction
+            reviewId={review.id}
+            beforeImageUrl={review.before_image_url}
+            afterImageUrl={review.after_image_url}
+            category={review.product_category}
+            city={review.city}
+            description={(review as any).description_seo}
+            pinterestPinUrl={(review as any).pinterest_pin_url}
+            pinnedAt={(review as any).pinned_at}
+          />
 
           {/* Projekt-Details (SEO-optimierte Beschreibung) */}
           {(review as any).description_seo && (
