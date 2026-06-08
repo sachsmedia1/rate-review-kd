@@ -1,8 +1,11 @@
 /// <reference types="google.maps" />
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const google: any;
   interface Window {
-    google: typeof google;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    google: any;
   }
 }
 

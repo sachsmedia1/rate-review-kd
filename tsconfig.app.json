@@ -15,7 +15,6 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["google.maps"],
     "strict": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
