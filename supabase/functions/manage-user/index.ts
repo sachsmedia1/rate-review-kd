@@ -13,11 +13,42 @@ serve(async (req) => {
   }
 
   try {
-    // Create Supabase client with service role for admin operations
+    // Authenticate the caller
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      )
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
+
+    const token = authHeader.replace('Bearer ', '')
+    const { data: userData, error: userErr } = await supabaseAdmin.auth.getUser(token)
+    if (userErr || !userData?.user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      )
+    }
+
+    // Verify the caller is an admin
+    const { data: roles } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userData.user.id)
+
+    const isAdmin = roles?.some((r: { role: string }) => r.role === 'admin')
+    if (!isAdmin) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: Admin access required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      )
+    }
 
     const { action, userId, updates } = await req.json()
 
