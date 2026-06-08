@@ -23,3 +23,6 @@ verify_jwt = true
 
 [functions.optimize-description]
 verify_jwt = false
+
+[functions.generate-pinterest-title]
+verify_jwt = false
