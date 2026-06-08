@@ -19,41 +19,37 @@ interface PinterestCollageDialogProps {
 }
 
 /**
- * Pinterest Template "Polaroid Diagonal" (V2)
+ * Pinterest Template V1 "Vorher/Nachher Vertikal" (Standard)
  * --------------------------------------------------
- * Orientiert am bestehenden Kamindoktor-Pinterest-Stil:
- *  - Schwarzer Hintergrund, warme Flammen-Glow links/unten + Ember-Partikel
- *  - Vorher (Graustufen) oben links, leicht nach links gekippt
- *  - Nachher (farbig) unten rechts, leicht nach rechts gekippt
- *  - Beide Fotos: weißer Polaroid-Rahmen + roter VORHER/NACHHER-Label
- *  - Geschwungener weißer Pfeil von Vorher → Nachher
- *  - Oben rechts: Logo-Schriftzug + roter Headline-Badge (AI-Titel)
- *
- *  Pinterest Best Practice: 2:3 (1200x1800), PNG-Export, Safe-Zone 80 px
+ * Klassisches vertikales Vorher/Nachher-Layout, 2:3 (1200x1800), PNG-Export,
+ * Safe-Zone 96 px, Auto-Fit Headline, Gradient-Overlay für Kontrast.
+ * Wird wieder als Standard verwendet, bis ein Master-Template hochgeladen wird.
  */
 const PINTEREST_TEMPLATE = {
   width: 1200,
   height: 1800,
-  safeZone: 80,
+  safeZone: 96,
   colors: {
     bg: "#000000",
-    glowInner: "rgba(255,120,30,0.55)",
+    glowInner: "rgba(255,120,30,0.5)",
     glowOuter: "rgba(255,80,10,0)",
-    accent: "#e63329", // Kamindoktor-Rot (Logo)
+    accent: "#e63329",
     accentDark: "#b8231b",
     flameYellow: "#ffb800",
     text: "#ffffff",
-    polaroid: "#ffffff",
+    frame: "#ffffff",
   },
   fonts: {
-    logoSerif: 'italic 300 56px Georgia, "Times New Roman", serif',
-    logoBold: 'bold 88px "Helvetica Neue", Arial, sans-serif',
-    logoSmall: 'bold 34px "Helvetica Neue", Arial, sans-serif',
-    label: 'bold 38px "Helvetica Neue", Arial, sans-serif',
-    headlineMax: 56,
-    headlineMin: 32,
-    city: '600 28px "Helvetica Neue", Arial, sans-serif',
+    brand: 'bold 44px "Helvetica Neue", Arial, sans-serif',
+    label: 'bold 32px "Helvetica Neue", Arial, sans-serif',
+    headlineMax: 76,
+    headlineMin: 44,
+    city: '600 32px "Helvetica Neue", Arial, sans-serif',
   },
+  imageHeight: 720,
+  arrowSize: 84,
+  badge: { w: 180, h: 58, radius: 8 },
+  frameRadius: 16,
 } as const;
 
 const CANVAS_WIDTH = PINTEREST_TEMPLATE.width;
