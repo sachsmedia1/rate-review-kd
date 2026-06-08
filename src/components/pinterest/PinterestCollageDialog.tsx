@@ -102,157 +102,53 @@ function drawRoundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w:
   ctx.closePath();
 }
 
-/**
- * Zeichnet ein einzelnes Polaroid-Foto: weißer Rahmen, leichter Schatten,
- * inneres Bild (optional grayscale) – gedreht um `rotationDeg`.
- * Anschließend wird das rote VORHER/NACHHER-Label am unteren Rand
- * (leicht überlappend) gezeichnet.
- */
-function drawPolaroid(
+/** Roter Label-Badge (VORHER/NACHHER) zentriert auf einer Position. */
+function drawLabelBadge(
   ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
+  text: string,
   cx: number,
   cy: number,
-  w: number,
-  h: number,
-  rotationDeg: number,
-  grayscale: boolean,
-  label: string,
 ) {
   const T = PINTEREST_TEMPLATE;
-  const frame = 18; // weißer Rand
-  const totalW = w + frame * 2;
-  const totalH = h + frame * 2;
-
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate((rotationDeg * Math.PI) / 180);
-
-  // Schatten
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.55)";
-  ctx.shadowBlur = 40;
-  ctx.shadowOffsetX = 0;
-  ctx.shadowOffsetY = 14;
-  ctx.fillStyle = T.colors.polaroid;
-  drawRoundedRect(ctx, -totalW / 2, -totalH / 2, totalW, totalH, 10);
-  ctx.fill();
-  ctx.restore();
-
-  // Inneres Bild (geclippt)
-  ctx.save();
-  drawRoundedRect(ctx, -w / 2, -h / 2, w, h, 4);
-  ctx.clip();
-  drawCover(ctx, img, -w / 2, -h / 2, w, h, grayscale);
-  ctx.restore();
-
-  // Rotes Label unten links (überlappt Rahmen leicht)
-  ctx.font = T.fonts.label;
-  const padX = 22;
-  const padY = 10;
-  const metrics = ctx.measureText(label);
-  const labelW = metrics.width + padX * 2;
-  const labelH = 56;
-  const labelX = -totalW / 2 + 24;
-  const labelY = totalH / 2 - labelH / 2 - 6;
-
-  // Subtiler Schatten unter Label
+  const { w, h, radius } = T.badge;
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,0.45)";
-  ctx.shadowBlur = 12;
+  ctx.shadowBlur = 14;
   ctx.shadowOffsetY = 4;
   ctx.fillStyle = T.colors.accent;
-  drawRoundedRect(ctx, labelX, labelY, labelW, labelH, 6);
+  drawRoundedRect(ctx, cx - w / 2, cy - h / 2, w, h, radius);
   ctx.fill();
   ctx.restore();
 
   ctx.fillStyle = T.colors.text;
-  ctx.textAlign = "left";
+  ctx.font = T.fonts.label;
+  ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(label, labelX + padX, labelY + labelH / 2 + 1);
-
-  ctx.restore();
+  ctx.fillText(text, cx, cy + 1);
 }
 
-/** Geschwungener weißer Pfeil von Punkt A nach Punkt B (Kurve nach unten). */
-function drawCurvedArrow(
+/** Vertikaler Pfeil zwischen Vorher- und Nachher-Bild. */
+function drawDownArrow(
   ctx: CanvasRenderingContext2D,
-  ax: number,
-  ay: number,
-  bx: number,
-  by: number,
+  cx: number,
+  cy: number,
+  size: number,
 ) {
+  const T = PINTEREST_TEMPLATE;
   ctx.save();
-  ctx.strokeStyle = "#ffffff";
-  ctx.lineWidth = 8;
-  ctx.lineCap = "round";
+  ctx.fillStyle = T.colors.accent;
   ctx.shadowColor = "rgba(0,0,0,0.5)";
-  ctx.shadowBlur = 8;
-
-  // Kurve nach unten ausweichend
-  const cx1 = ax + (bx - ax) * 0.1;
-  const cy1 = ay + (by - ay) * 0.85;
-  const cx2 = ax + (bx - ax) * 0.45;
-  const cy2 = by + 60;
-
+  ctx.shadowBlur = 12;
   ctx.beginPath();
-  ctx.moveTo(ax, ay);
-  ctx.bezierCurveTo(cx1, cy1, cx2, cy2, bx, by);
-  ctx.stroke();
-
-  // Pfeilspitze
-  const tipAngle = Math.atan2(by - cy2, bx - cx2);
-  const tipLen = 38;
-  const tipSpread = 0.5;
-  ctx.beginPath();
-  ctx.moveTo(bx, by);
-  ctx.lineTo(
-    bx - tipLen * Math.cos(tipAngle - tipSpread),
-    by - tipLen * Math.sin(tipAngle - tipSpread),
-  );
-  ctx.moveTo(bx, by);
-  ctx.lineTo(
-    bx - tipLen * Math.cos(tipAngle + tipSpread),
-    by - tipLen * Math.sin(tipAngle + tipSpread),
-  );
-  ctx.stroke();
+  ctx.moveTo(cx, cy + size / 2);
+  ctx.lineTo(cx - size / 2, cy - size / 2);
+  ctx.lineTo(cx + size / 2, cy - size / 2);
+  ctx.closePath();
+  ctx.fill();
   ctx.restore();
 }
 
-/** Zeichnet das Kamindoktor-Logo (Schriftzug) oben rechts. */
-function drawLogo(ctx: CanvasRenderingContext2D, x: number, y: number) {
-  const T = PINTEREST_TEMPLATE;
-
-  // "der" – kursiv, klein
-  ctx.fillStyle = T.colors.text;
-  ctx.font = T.fonts.logoSerif;
-  ctx.textAlign = "right";
-  ctx.textBaseline = "alphabetic";
-  ctx.fillText("der", x, y);
-
-  // "KAMIN" – groß, mit Farbverlauf rot→gelb (Markenfeuer)
-  ctx.font = T.fonts.logoBold;
-  const kaminText = "KAMIN";
-  const kaminW = ctx.measureText(kaminText).width;
-  const kaminX = x - kaminW;
-  const kaminY = y + 80;
-
-  const grad = ctx.createLinearGradient(0, kaminY - 70, 0, kaminY + 10);
-  grad.addColorStop(0, T.colors.flameYellow);
-  grad.addColorStop(0.55, "#ff7a00");
-  grad.addColorStop(1, T.colors.accent);
-  ctx.fillStyle = grad;
-  ctx.textAlign = "left";
-  ctx.fillText(kaminText, kaminX, kaminY);
-
-  // "DOKTOR" – klein, weiß, rechts darunter
-  ctx.font = T.fonts.logoSmall;
-  ctx.fillStyle = T.colors.text;
-  ctx.textAlign = "right";
-  ctx.fillText("DOKTOR", x, kaminY + 42);
-}
-
-/** Renders the Pinterest collage onto the given canvas. */
+/** Renders the Pinterest collage onto the given canvas (V1 Vertikal). */
 async function renderCollage(
   canvas: HTMLCanvasElement,
   beforeUrl: string,
@@ -268,40 +164,24 @@ async function renderCollage(
   canvas.height = CANVAS_HEIGHT;
   const T = PINTEREST_TEMPLATE;
 
-  // 1) Schwarzer Hintergrund
+  // 1) Hintergrund + warmer Glow
   ctx.fillStyle = T.colors.bg;
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-  // 2) Warmer Flammen-Glow links unten (radial)
   const glow = ctx.createRadialGradient(
-    -80,
-    CANVAS_HEIGHT + 100,
-    50,
-    -80,
-    CANVAS_HEIGHT + 100,
-    1100,
+    CANVAS_WIDTH / 2,
+    CANVAS_HEIGHT,
+    100,
+    CANVAS_WIDTH / 2,
+    CANVAS_HEIGHT,
+    1300,
   );
   glow.addColorStop(0, T.colors.glowInner);
   glow.addColorStop(1, T.colors.glowOuter);
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  // Sekundärer kleiner Glow oben rechts (dezent)
-  const glow2 = ctx.createRadialGradient(
-    CANVAS_WIDTH + 100,
-    -50,
-    20,
-    CANVAS_WIDTH + 100,
-    -50,
-    600,
-  );
-  glow2.addColorStop(0, "rgba(255,120,30,0.18)");
-  glow2.addColorStop(1, "rgba(255,80,10,0)");
-  ctx.fillStyle = glow2;
-  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-  // 3) Ember-Partikel
-  for (let i = 0; i < 140; i++) {
+  // 2) Ember-Partikel
+  for (let i = 0; i < 120; i++) {
     const x = Math.random() * CANVAS_WIDTH;
     const y = Math.random() * CANVAS_HEIGHT;
     const r = Math.random() * 2.2 + 0.4;
@@ -312,89 +192,86 @@ async function renderCollage(
     ctx.fill();
   }
 
-  // 4) Logo oben rechts (Schriftzug)
-  drawLogo(ctx, CANVAS_WIDTH - T.safeZone, T.safeZone + 60);
-
-  // 5) Roter Headline-Badge unter Logo (AI-Titel, auto-fit)
-  const badgeMaxW = 760;
-  const badgePadX = 28;
-  const badgePadY = 16;
-  const fitted = fitHeadline(
-    ctx,
-    title,
-    badgeMaxW - badgePadX * 2,
-    T.fonts.headlineMax,
-    T.fonts.headlineMin,
-  );
-  const badgeLineH = fitted.fontSize * 1.18;
-  const badgeH = badgeLineH * fitted.lines.length + badgePadY * 2;
-  // Badge-Breite an längste Zeile anpassen
-  ctx.font = `bold ${fitted.fontSize}px "Helvetica Neue", Arial, sans-serif`;
-  const widest = Math.max(...fitted.lines.map((l) => ctx.measureText(l).width));
-  const badgeW = Math.min(badgeMaxW, widest + badgePadX * 2);
-  const badgeX = CANVAS_WIDTH - T.safeZone - badgeW;
-  const badgeY = T.safeZone + 240;
-
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.55)";
-  ctx.shadowBlur = 18;
-  ctx.shadowOffsetY = 6;
-  ctx.fillStyle = T.colors.accent;
-  drawRoundedRect(ctx, badgeX, badgeY, badgeW, badgeH, 10);
-  ctx.fill();
-  ctx.restore();
-
+  // 3) Brand oben zentriert
   ctx.fillStyle = T.colors.text;
+  ctx.font = T.fonts.brand;
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
-  ctx.font = `bold ${fitted.fontSize}px "Helvetica Neue", Arial, sans-serif`;
-  fitted.lines.forEach((line, i) => {
-    ctx.fillText(
-      line,
-      badgeX + badgeW / 2,
-      badgeY + badgePadY + fitted.fontSize + i * badgeLineH - 4,
-    );
-  });
+  ctx.fillText("DER KAMINDOKTOR", CANVAS_WIDTH / 2, T.safeZone + 50);
 
-  // 6) Bilder laden
+  // 4) Bilder laden
   const [beforeImg, afterImg] = await Promise.all([
     loadImage(beforeUrl),
     loadImage(afterUrl),
   ]);
 
-  // 7) VORHER (oben links, gekippt -5°)
-  const beforeW = 460;
-  const beforeH = 460;
-  const beforeCx = T.safeZone + beforeW / 2 + 20;
-  const beforeCy = T.safeZone + beforeH / 2 + 60;
-  drawPolaroid(ctx, beforeImg, beforeCx, beforeCy, beforeW, beforeH, -5, true, "VORHER");
+  // 5) Layout: Vorher oben, Pfeil mittig, Nachher unten
+  const imgW = CANVAS_WIDTH - T.safeZone * 2;
+  const imgH = T.imageHeight;
+  const topY = T.safeZone + 110;
+  const arrowCy = topY + imgH + 60;
+  const bottomY = arrowCy + 60;
 
-  // 8) NACHHER (unten rechts, gekippt +3°, etwas größer)
-  const afterW = 700;
-  const afterH = 580;
-  const afterCx = CANVAS_WIDTH - T.safeZone - afterW / 2 + 10;
-  const afterCy = CANVAS_HEIGHT - T.safeZone - afterH / 2 - 80;
-  drawPolaroid(ctx, afterImg, afterCx, afterCy, afterW, afterH, 3, false, "NACHHER");
+  // Vorher
+  ctx.save();
+  drawRoundedRect(ctx, T.safeZone, topY, imgW, imgH, T.frameRadius);
+  ctx.clip();
+  drawCover(ctx, beforeImg, T.safeZone, topY, imgW, imgH, true);
+  ctx.restore();
+  ctx.strokeStyle = T.colors.frame;
+  ctx.lineWidth = 6;
+  drawRoundedRect(ctx, T.safeZone, topY, imgW, imgH, T.frameRadius);
+  ctx.stroke();
+  drawLabelBadge(ctx, "VORHER", T.safeZone + T.badge.w / 2 + 18, topY + 18);
 
-  // 9) Geschwungener Pfeil VORHER → NACHHER
-  drawCurvedArrow(
+  // Pfeil
+  drawDownArrow(ctx, CANVAS_WIDTH / 2, arrowCy, T.arrowSize);
+
+  // Nachher
+  ctx.save();
+  drawRoundedRect(ctx, T.safeZone, bottomY, imgW, imgH, T.frameRadius);
+  ctx.clip();
+  drawCover(ctx, afterImg, T.safeZone, bottomY, imgW, imgH, false);
+  ctx.restore();
+  ctx.strokeStyle = T.colors.frame;
+  ctx.lineWidth = 6;
+  drawRoundedRect(ctx, T.safeZone, bottomY, imgW, imgH, T.frameRadius);
+  ctx.stroke();
+  drawLabelBadge(ctx, "NACHHER", T.safeZone + T.badge.w / 2 + 18, bottomY + 18);
+
+  // 6) Footer mit dunklem Gradient-Overlay + Headline + Stadt
+  const footerH = 360;
+  const footerY = CANVAS_HEIGHT - footerH;
+  const fGrad = ctx.createLinearGradient(0, footerY, 0, CANVAS_HEIGHT);
+  fGrad.addColorStop(0, "rgba(0,0,0,0)");
+  fGrad.addColorStop(1, "rgba(0,0,0,0.85)");
+  ctx.fillStyle = fGrad;
+  ctx.fillRect(0, footerY, CANVAS_WIDTH, footerH);
+
+  // Headline (auto-fit, max 2 Zeilen)
+  const maxW = CANVAS_WIDTH - T.safeZone * 2;
+  const fitted = fitHeadline(
     ctx,
-    beforeCx - 100,
-    beforeCy + beforeH / 2 + 40,
-    afterCx - afterW / 2 - 30,
-    afterCy - afterH / 2 + 60,
+    title,
+    maxW,
+    T.fonts.headlineMax,
+    T.fonts.headlineMin,
   );
+  const lineH = fitted.fontSize * 1.15;
+  const headlineBlockH = lineH * fitted.lines.length;
+  const headlineStartY = CANVAS_HEIGHT - T.safeZone - 60 - headlineBlockH + fitted.fontSize;
+  ctx.font = `bold ${fitted.fontSize}px "Helvetica Neue", Arial, sans-serif`;
+  ctx.fillStyle = T.colors.text;
+  ctx.textAlign = "center";
+  fitted.lines.forEach((line, i) => {
+    ctx.fillText(line, CANVAS_WIDTH / 2, headlineStartY + i * lineH);
+  });
 
-  // 10) Stadt + Kategorie dezent unten links
-  ctx.fillStyle = "rgba(255,255,255,0.7)";
+  // Stadt + Kategorie
+  ctx.fillStyle = "rgba(255,255,255,0.75)";
   ctx.font = T.fonts.city;
-  ctx.textAlign = "left";
-  ctx.textBaseline = "alphabetic";
-  ctx.fillText(
-    `${category}  ·  ${city}`,
-    T.safeZone,
-    CANVAS_HEIGHT - T.safeZone + 20,
-  );
+  ctx.textAlign = "center";
+  ctx.fillText(`${category}  ·  ${city}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT - T.safeZone - 10);
 }
 
 /**
