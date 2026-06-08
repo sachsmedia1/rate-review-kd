@@ -171,6 +171,10 @@ export type Database = {
           longitude: number | null
           meta_description: string | null
           meta_title: string | null
+          pinned_at: string | null
+          pinterest_collage_url: string | null
+          pinterest_pin_id: string | null
+          pinterest_pin_url: string | null
           postal_code: string | null
           product_category: string
           rating_aesthetics: number | null
@@ -212,6 +216,10 @@ export type Database = {
           longitude?: number | null
           meta_description?: string | null
           meta_title?: string | null
+          pinned_at?: string | null
+          pinterest_collage_url?: string | null
+          pinterest_pin_id?: string | null
+          pinterest_pin_url?: string | null
           postal_code?: string | null
           product_category: string
           rating_aesthetics?: number | null
@@ -253,6 +261,10 @@ export type Database = {
           longitude?: number | null
           meta_description?: string | null
           meta_title?: string | null
+          pinned_at?: string | null
+          pinterest_collage_url?: string | null
+          pinterest_pin_id?: string | null
+          pinterest_pin_url?: string | null
           postal_code?: string | null
           product_category?: string
           rating_aesthetics?: number | null
