@@ -19,37 +19,51 @@ interface PinterestCollageDialogProps {
 }
 
 /**
- * Pinterest Template V1 "Vorher/Nachher Vertikal" (Standard)
+ * Pinterest Template "Vorher/Nachher Vertikal" (V1)
  * --------------------------------------------------
- * Klassisches vertikales Vorher/Nachher-Layout, 2:3 (1200x1800), PNG-Export,
- * Safe-Zone 96 px, Auto-Fit Headline, Gradient-Overlay für Kontrast.
- * Wird wieder als Standard verwendet, bis ein Master-Template hochgeladen wird.
+ * Pinterest Best Practices:
+ *  - Seitenverhältnis 2:3 (Pflicht für volle Feed-Höhe)
+ *  - Auflösung 1200x1800 px (Retina-scharf)
+ *  - Safe-Zone 96 px allseitig (Pinterest beschneidet Ecken im Feed)
+ *  - Headline max. 2 Zeilen, Auto-Fontsize, hoher Kontrast via Overlay
+ *  - Export als PNG (Text & Logo bleiben knackig)
  */
 const PINTEREST_TEMPLATE = {
   width: 1200,
   height: 1800,
   safeZone: 96,
   colors: {
-    bg: "#000000",
-    glowInner: "rgba(255,120,30,0.5)",
-    glowOuter: "rgba(255,80,10,0)",
-    accent: "#e63329",
-    accentDark: "#b8231b",
-    flameYellow: "#ffb800",
+    bgTop: "#1a0a05",
+    bgMid: "#2d1208",
+    bgBottom: "#0a0503",
+    accent: "#ff6b1a",
+    accentSoft: "#ffa366",
     text: "#ffffff",
-    frame: "#ffffff",
+    textMuted: "rgba(255,255,255,0.75)",
+    badgeDark: "#000000",
   },
   fonts: {
     brand: 'bold 44px "Helvetica Neue", Arial, sans-serif',
-    label: 'bold 32px "Helvetica Neue", Arial, sans-serif',
-    headlineMax: 54,
-    headlineMin: 32,
-    city: '600 26px "Helvetica Neue", Arial, sans-serif',
+    category: '600 28px "Helvetica Neue", Arial, sans-serif',
+    badge: 'bold 26px "Helvetica Neue", Arial, sans-serif',
+    headlineMax: 76, // wird via Auto-Fit verkleinert
+    headlineMin: 44,
+    city: '600 32px "Helvetica Neue", Arial, sans-serif',
   },
-  imageHeight: 720,
-  arrowSize: 84,
-  badge: { w: 180, h: 58, radius: 8 },
-  frameRadius: 16,
+  image: {
+    width: 960, // (1200 - 2*120) – etwas mehr Innen-Padding als Safe-Zone für Optik
+    height: 620,
+    radius: 20,
+    frameWidth: 8,
+  },
+  layout: {
+    headerY: 110,
+    beforeY: 200,
+    arrowGap: 40,
+    footerHeadlineOffset: 90, // Abstand After-Bild → Headline
+    headlineLineHeight: 1.18,
+    citySpacing: 56,
+  },
 } as const;
 
 const CANVAS_WIDTH = PINTEREST_TEMPLATE.width;
@@ -102,177 +116,185 @@ function drawRoundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w:
   ctx.closePath();
 }
 
-/** Roter Label-Badge (VORHER/NACHHER) zentriert auf einer Position. */
-function drawLabelBadge(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  cx: number,
-  cy: number,
-) {
-  const T = PINTEREST_TEMPLATE;
-  const { w, h, radius } = T.badge;
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.45)";
-  ctx.shadowBlur = 14;
-  ctx.shadowOffsetY = 4;
-  ctx.fillStyle = T.colors.accent;
-  drawRoundedRect(ctx, cx - w / 2, cy - h / 2, w, h, radius);
-  ctx.fill();
-  ctx.restore();
-
-  ctx.fillStyle = T.colors.text;
-  ctx.font = T.fonts.label;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(text, cx, cy + 1);
-}
-
-/** Vertikaler Pfeil zwischen Vorher- und Nachher-Bild. */
-function drawDownArrow(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  size: number,
-) {
-  const T = PINTEREST_TEMPLATE;
-  ctx.save();
-  ctx.fillStyle = T.colors.accent;
-  ctx.shadowColor = "rgba(0,0,0,0.5)";
-  ctx.shadowBlur = 12;
-  ctx.beginPath();
-  ctx.moveTo(cx, cy + size / 2);
-  ctx.lineTo(cx - size / 2, cy - size / 2);
-  ctx.lineTo(cx + size / 2, cy - size / 2);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
-
-/** Renders the Pinterest collage onto the given canvas (V1 Vertikal). */
+/** Renders the Pinterest collage onto the given canvas. */
 async function renderCollage(
   canvas: HTMLCanvasElement,
   beforeUrl: string,
   afterUrl: string,
   category: string,
   city: string,
-  title: string,
+  title: string
 ) {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas-Kontext nicht verfügbar");
 
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
+
   const T = PINTEREST_TEMPLATE;
 
-  // 1) Hintergrund + warmer Glow
-  ctx.fillStyle = T.colors.bg;
-  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  const glow = ctx.createRadialGradient(
-    CANVAS_WIDTH / 2,
-    CANVAS_HEIGHT,
-    100,
-    CANVAS_WIDTH / 2,
-    CANVAS_HEIGHT,
-    1300,
-  );
-  glow.addColorStop(0, T.colors.glowInner);
-  glow.addColorStop(1, T.colors.glowOuter);
-  ctx.fillStyle = glow;
+  // Hintergrund-Gradient (tief warm)
+  const bg = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+  bg.addColorStop(0, T.colors.bgTop);
+  bg.addColorStop(0.5, T.colors.bgMid);
+  bg.addColorStop(1, T.colors.bgBottom);
+  ctx.fillStyle = bg;
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  // 2) Ember-Partikel
-  for (let i = 0; i < 120; i++) {
+  // Subtile Ember-Partikel
+  for (let i = 0; i < 110; i++) {
     const x = Math.random() * CANVAS_WIDTH;
     const y = Math.random() * CANVAS_HEIGHT;
-    const r = Math.random() * 2.2 + 0.4;
-    const alpha = Math.random() * 0.5 + 0.1;
-    ctx.fillStyle = `rgba(255, ${130 + Math.random() * 90}, 40, ${alpha})`;
+    const r = Math.random() * 2 + 0.5;
+    const alpha = Math.random() * 0.4 + 0.1;
+    ctx.fillStyle = `rgba(255, ${120 + Math.random() * 80}, 30, ${alpha})`;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // 3) Brand oben zentriert
-  ctx.fillStyle = T.colors.text;
+  // Header (Brand + Kategorie) – innerhalb Safe-Zone
+  ctx.fillStyle = T.colors.accent;
   ctx.font = T.fonts.brand;
-  ctx.textAlign = "center";
+  ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
-  ctx.fillText("DER KAMINDOKTOR", CANVAS_WIDTH / 2, T.safeZone + 50);
+  ctx.fillText("🔥 DER KAMINDOKTOR", T.safeZone, T.layout.headerY);
 
-  // 4) Bilder laden
-  const [beforeImg, afterImg] = await Promise.all([
-    loadImage(beforeUrl),
-    loadImage(afterUrl),
-  ]);
+  ctx.fillStyle = T.colors.textMuted;
+  ctx.font = T.fonts.category;
+  ctx.textAlign = "right";
+  ctx.fillText(category, CANVAS_WIDTH - T.safeZone, T.layout.headerY - 4);
 
-  // 5) Layout: Vorher oben, Pfeil mittig, Nachher unten
-  const imgW = CANVAS_WIDTH - T.safeZone * 2;
-  const imgH = T.imageHeight;
-  const topY = T.safeZone + 110;
-  const arrowCy = topY + imgH + 60;
-  const bottomY = arrowCy + 60;
+  // Load images in parallel
+  const [beforeImg, afterImg] = await Promise.all([loadImage(beforeUrl), loadImage(afterUrl)]);
 
-  // Vorher
+  // Bild-Maße
+  const imgW = T.image.width;
+  const imgH = T.image.height;
+  const imgX = (CANVAS_WIDTH - imgW) / 2;
+  const beforeY = T.layout.beforeY;
+  const arrowH = 95;
+  const afterY = beforeY + imgH + T.layout.arrowGap + arrowH + T.layout.arrowGap;
+
+  // BEFORE image (grayscale, with frame)
   ctx.save();
-  drawRoundedRect(ctx, T.safeZone, topY, imgW, imgH, T.frameRadius);
-  ctx.clip();
-  drawCover(ctx, beforeImg, T.safeZone, topY, imgW, imgH, true);
+  drawRoundedRect(
+    ctx,
+    imgX - T.image.frameWidth,
+    beforeY - T.image.frameWidth,
+    imgW + T.image.frameWidth * 2,
+    imgH + T.image.frameWidth * 2,
+    T.image.radius + 4,
+  );
+  ctx.fillStyle = T.colors.accent;
+  ctx.fill();
   ctx.restore();
-  ctx.strokeStyle = T.colors.frame;
-  ctx.lineWidth = 6;
-  drawRoundedRect(ctx, T.safeZone, topY, imgW, imgH, T.frameRadius);
-  ctx.stroke();
-  drawLabelBadge(ctx, "VORHER", T.safeZone + T.badge.w / 2 + 18, topY + 18);
 
-  // Pfeil
-  drawDownArrow(ctx, CANVAS_WIDTH / 2, arrowCy, T.arrowSize);
-
-  // Nachher
   ctx.save();
-  drawRoundedRect(ctx, T.safeZone, bottomY, imgW, imgH, T.frameRadius);
+  drawRoundedRect(ctx, imgX, beforeY, imgW, imgH, T.image.radius);
   ctx.clip();
-  drawCover(ctx, afterImg, T.safeZone, bottomY, imgW, imgH, false);
+  drawCover(ctx, beforeImg, imgX, beforeY, imgW, imgH, true);
   ctx.restore();
-  ctx.strokeStyle = T.colors.frame;
-  ctx.lineWidth = 6;
-  drawRoundedRect(ctx, T.safeZone, bottomY, imgW, imgH, T.frameRadius);
-  ctx.stroke();
-  drawLabelBadge(ctx, "NACHHER", T.safeZone + T.badge.w / 2 + 18, bottomY + 18);
 
-  // 6) Footer mit dunklem Gradient-Overlay + Headline + Stadt
-  // Höhe knapp bemessen, damit das Nachher-Bild nicht überdeckt wird.
-  const footerH = 220;
-  const footerY = CANVAS_HEIGHT - footerH;
-  const fGrad = ctx.createLinearGradient(0, footerY, 0, CANVAS_HEIGHT);
-  fGrad.addColorStop(0, "rgba(0,0,0,0)");
-  fGrad.addColorStop(1, "rgba(0,0,0,0.85)");
-  ctx.fillStyle = fGrad;
-  ctx.fillRect(0, footerY, CANVAS_WIDTH, footerH);
+  // VORHER badge
+  ctx.fillStyle = T.colors.badgeDark;
+  drawRoundedRect(ctx, imgX + 24, beforeY + 24, 180, 58, 10);
+  ctx.fill();
+  ctx.fillStyle = T.colors.text;
+  ctx.font = T.fonts.badge;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("VORHER", imgX + 24 + 90, beforeY + 24 + 29);
 
-  // Headline (auto-fit, max 2 Zeilen)
-  const maxW = CANVAS_WIDTH - T.safeZone * 2;
-  const fitted = fitHeadline(
+  // Pfeil zwischen den Bildern (nach unten)
+  const arrowCx = CANVAS_WIDTH / 2;
+  const arrowY = beforeY + imgH + T.layout.arrowGap;
+  ctx.fillStyle = T.colors.accent;
+  ctx.beginPath();
+  ctx.moveTo(arrowCx - 48, arrowY);
+  ctx.lineTo(arrowCx + 48, arrowY);
+  ctx.lineTo(arrowCx + 48, arrowY + 30);
+  ctx.lineTo(arrowCx + 84, arrowY + 30);
+  ctx.lineTo(arrowCx, arrowY + 95);
+  ctx.lineTo(arrowCx - 84, arrowY + 30);
+  ctx.lineTo(arrowCx - 48, arrowY + 30);
+  ctx.closePath();
+  ctx.fill();
+
+  // AFTER image (color)
+  ctx.save();
+  drawRoundedRect(
+    ctx,
+    imgX - T.image.frameWidth,
+    afterY - T.image.frameWidth,
+    imgW + T.image.frameWidth * 2,
+    imgH + T.image.frameWidth * 2,
+    T.image.radius + 4,
+  );
+  ctx.fillStyle = T.colors.accent;
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  drawRoundedRect(ctx, imgX, afterY, imgW, imgH, T.image.radius);
+  ctx.clip();
+  drawCover(ctx, afterImg, imgX, afterY, imgW, imgH, false);
+  ctx.restore();
+
+  // NACHHER badge
+  ctx.fillStyle = T.colors.accent;
+  drawRoundedRect(ctx, imgX + 24, afterY + 24, 200, 58, 10);
+  ctx.fill();
+  ctx.fillStyle = T.colors.text;
+  ctx.font = T.fonts.badge;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("NACHHER", imgX + 24 + 100, afterY + 24 + 29);
+
+  // ----- Footer-Bereich: Headline mit Auto-Fit + dunkles Overlay -----
+  const footerTop = afterY + imgH + T.layout.arrowGap;
+  const footerBottom = CANVAS_HEIGHT - T.safeZone;
+  const footerHeight = footerBottom - footerTop;
+  const maxTextWidth = CANVAS_WIDTH - T.safeZone * 2;
+
+  // Dunkles Gradient-Overlay für garantierten Kontrast hinter Headline
+  const overlay = ctx.createLinearGradient(0, footerTop - 30, 0, CANVAS_HEIGHT);
+  overlay.addColorStop(0, "rgba(0,0,0,0)");
+  overlay.addColorStop(0.35, "rgba(0,0,0,0.55)");
+  overlay.addColorStop(1, "rgba(0,0,0,0.85)");
+  ctx.fillStyle = overlay;
+  ctx.fillRect(0, footerTop - 30, CANVAS_WIDTH, CANVAS_HEIGHT - (footerTop - 30));
+
+  // Auto-Fit Headline: starte mit headlineMax, verkleinere bis ≤2 Zeilen passen
+  const fittedTitle = fitHeadline(
     ctx,
     title,
-    maxW,
+    maxTextWidth,
     T.fonts.headlineMax,
     T.fonts.headlineMin,
   );
-  const lineH = fitted.fontSize * 1.15;
-  const headlineBlockH = lineH * fitted.lines.length;
-  const headlineStartY = CANVAS_HEIGHT - T.safeZone - 60 - headlineBlockH + fitted.fontSize;
-  ctx.font = `bold ${fitted.fontSize}px "Helvetica Neue", Arial, sans-serif`;
-  ctx.fillStyle = T.colors.text;
+
   ctx.textAlign = "center";
-  fitted.lines.forEach((line, i) => {
-    ctx.fillText(line, CANVAS_WIDTH / 2, headlineStartY + i * lineH);
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = T.colors.text;
+  ctx.font = `bold ${fittedTitle.fontSize}px "Helvetica Neue", Arial, sans-serif`;
+
+  const lineHeight = fittedTitle.fontSize * T.layout.headlineLineHeight;
+  const totalTextH = lineHeight * fittedTitle.lines.length + T.layout.citySpacing;
+  const startY = footerTop + (footerHeight - totalTextH) / 2 + fittedTitle.fontSize;
+
+  fittedTitle.lines.forEach((line, i) => {
+    ctx.fillText(line, CANVAS_WIDTH / 2, startY + i * lineHeight);
   });
 
-  // Stadt + Kategorie
-  ctx.fillStyle = "rgba(255,255,255,0.75)";
+  // City-Label
+  ctx.fillStyle = T.colors.accentSoft;
   ctx.font = T.fonts.city;
-  ctx.textAlign = "center";
-  ctx.fillText(`${category}  ·  ${city}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT - T.safeZone - 10);
+  ctx.fillText(
+    `📍 ${city}`,
+    CANVAS_WIDTH / 2,
+    startY + fittedTitle.lines.length * lineHeight + T.layout.citySpacing - 16,
+  );
 }
 
 /**
