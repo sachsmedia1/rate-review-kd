@@ -42,9 +42,9 @@ const PINTEREST_TEMPLATE = {
   fonts: {
     brand: 'bold 44px "Helvetica Neue", Arial, sans-serif',
     label: 'bold 32px "Helvetica Neue", Arial, sans-serif',
-    headlineMax: 76,
-    headlineMin: 44,
-    city: '600 32px "Helvetica Neue", Arial, sans-serif',
+    headlineMax: 54,
+    headlineMin: 32,
+    city: '600 26px "Helvetica Neue", Arial, sans-serif',
   },
   imageHeight: 720,
   arrowSize: 84,
@@ -240,7 +240,8 @@ async function renderCollage(
   drawLabelBadge(ctx, "NACHHER", T.safeZone + T.badge.w / 2 + 18, bottomY + 18);
 
   // 6) Footer mit dunklem Gradient-Overlay + Headline + Stadt
-  const footerH = 360;
+  // Höhe knapp bemessen, damit das Nachher-Bild nicht überdeckt wird.
+  const footerH = 220;
   const footerY = CANVAS_HEIGHT - footerH;
   const fGrad = ctx.createLinearGradient(0, footerY, 0, CANVAS_HEIGHT);
   fGrad.addColorStop(0, "rgba(0,0,0,0)");
