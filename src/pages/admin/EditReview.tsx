@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { checkUserRole } from "@/lib/auth";
 import { ReviewForm } from "@/components/admin/ReviewForm";
+import { PinterestAdminAction } from "@/components/pinterest/PinterestAdminAction";
 
 const EditReview = () => {
   const { id } = useParams<{ id: string }>();
@@ -107,6 +108,17 @@ const EditReview = () => {
         
         {/* Trennlinie */}
         <div className="border-t border-gray-800 mb-6"></div>
+
+        <PinterestAdminAction
+          reviewId={existingReview.id}
+          beforeImageUrl={existingReview.before_image_url}
+          afterImageUrl={existingReview.after_image_url}
+          category={existingReview.product_category}
+          city={existingReview.city}
+          description={existingReview.description_seo}
+          pinterestPinUrl={existingReview.pinterest_pin_url}
+          pinnedAt={existingReview.pinned_at}
+        />
 
         <ReviewForm mode="edit" existingData={existingReview} reviewId={id} />
       </div>
