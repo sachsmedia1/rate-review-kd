@@ -1,6 +1,17 @@
 # Pinterest Integration - Workflow & Technische Spezifikation
 
-## Status: Geplant 🟡
+## Status: Phase 1 abgeschlossen ✅ – Phase 2/3 ausstehend
+
+### Fortschritt
+- ✅ DB-Felder migriert (`pinterest_pin_id`, `pinterest_pin_url`, `pinterest_collage_url`, `pinned_at`)
+- ✅ Pinterest-Board-URL pro Kategorie im `CategorySEOEditor` (bereits vorher vorhanden)
+- ✅ Edge Function `generate-pinterest-title` (Lovable AI Gateway, Gemini Flash)
+- ✅ Canvas-basierter Collage-Generator `PinterestCollageDialog`
+- ✅ Admin-only Action `PinterestAdminAction` auf `ReviewDetail`
+- ⏳ Logo + Hintergrund-Template vom Kunden (Phase 2)
+- ⏳ Pinterest Developer Account + OAuth Token (Phase 3)
+- ⏳ Edge Function `create-pinterest-pin` (Phase 3)
+- ⏳ Persistenz: Collage in R2 hochladen + Pin-Daten in `reviews` speichern (Phase 3)
 
 ## Übersicht
 
