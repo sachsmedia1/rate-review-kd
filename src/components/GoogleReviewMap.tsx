@@ -20,9 +20,7 @@ interface UserLocation {
   timestamp: number;
 }
 
-const GOOGLE_MAPS_API_KEY =
-  (import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as string | undefined) ||
-  "AIzaSyCwuop_lzv-uC1A_X7DRQ3RkVYx69SuSgo";
+const GOOGLE_MAPS_API_KEY = "AIzaSyCwuop_lzv-uC1A_X7DRQ3RkVYx69SuSgo";
 const LOCATION_CACHE_KEY = 'kd_user_location';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 Stunden
 
