@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "sdk_version": "0.24.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://babohldgbyiltrixrcwe.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "rate-review-kd",
+      "version": "0.1.0",
+      "title": "rate-review-kd"
+    },
+    "tools": [
+      {
+        "name": "list_reviews",
+        "title": "Bewertungen auflisten",
+        "description": "Listet die neuesten Kundenbewertungen, optional gefiltert nach Stadt, Kategorie oder Status.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string",
+              "description": "Stadt (Teilübereinstimmung)"
+            },
+            "product_category": {
+              "type": "string",
+              "description": "Produktkategorie, z.B. Kaminofen"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "published",
+                "pending"
+              ]
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Anzahl (Standard 20)"
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_review",
+        "title": "Bewertung abrufen",
+        "description": "Ruft eine einzelne Bewertung mit Details per ID oder Slug ab.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "UUID der Bewertung"
+            },
+            "slug": {
+              "type": "string",
+              "description": "URL-Slug der Bewertung"
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
