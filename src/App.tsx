@@ -22,6 +22,7 @@ const Settings = lazy(() => import("./pages/admin/Settings"));
 const ReviewDetail = lazy(() => import("./pages/ReviewDetail"));
 const Sitemap = lazy(() => import("./pages/Sitemap"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 
 const queryClient = new QueryClient();
 
@@ -118,6 +119,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

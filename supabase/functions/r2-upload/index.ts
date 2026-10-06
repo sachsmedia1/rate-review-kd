@@ -44,7 +44,8 @@ async function createAwsSignature(
   ].join('\n');
   
   // Create string to sign
-  const timestamp = new Date().toISOString().replace(/[:-]|\.\d{3}/g, '');
+  // Use the exact x-amz-date that is part of the signed headers to avoid signature mismatch
+  const timestamp = headers['x-amz-date'] ?? new Date().toISOString().replace(/[:-]|\.\d{3}/g, '');
   const date = timestamp.slice(0, 8);
   const credentialScope = `${date}/${region}/${service}/aws4_request`;
   
