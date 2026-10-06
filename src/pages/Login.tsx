@@ -21,12 +21,18 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const rawNext = new URLSearchParams(window.location.search).get("next");
+  const nextPath = rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : null;
+  const goAfterLogin = () => {
+    if (nextPath) window.location.href = nextPath;
+    else navigate("/admin/dashboard");
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
       const session = await getCurrentSession();
       if (session) {
-        navigate("/admin/dashboard");
+        goAfterLogin();
       }
     };
     checkAuth();
@@ -75,7 +81,7 @@ const Login = () => {
           title: "Erfolgreich angemeldet",
           description: "Sie werden weitergeleitet...",
         });
-        navigate("/admin/dashboard");
+        goAfterLogin();
       }
     } catch (error) {
       toast({
